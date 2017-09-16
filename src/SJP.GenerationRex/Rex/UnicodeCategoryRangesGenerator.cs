@@ -7,7 +7,7 @@ using EnumsNET;
 
 namespace Rex
 {
-    internal static class UnicodeCategoryRangesGenerator
+    public static class UnicodeCategoryRangesGenerator
     {
         public static void Generate(string namespacename, string classname, string path)
         {
@@ -21,7 +21,8 @@ namespace Rex
             var fileInfo = new FileInfo(string.Format("{1}{0}.cs", classname, path));
             if (fileInfo.Exists)
                 fileInfo.IsReadOnly = false;
-            using (var sw = new StreamWriter(string.Format("{1}{0}.cs", classname, path)))
+
+            using (var sw = File.AppendText(string.Format("{1}{0}.cs", classname, path)))
             {
                 sw.WriteLine(str1);
                 /*sw.WriteLine("#region ASCII");
@@ -48,22 +49,22 @@ namespace Rex
                 dictionary[category] = new Ranges();
 
             const int bits = 16;
-            int num1 = (1 << bits) - 1;
+            const int num1 = (1 << bits) - 1;
             var ranges = new Ranges();
-            for (int n = 0; n <= num1; ++n)
+            for (int n = 0; n <= num1; n++)
             {
                 var c = (char)n;
                 if (char.IsWhiteSpace(c))
                     ranges.Add(n);
-                UnicodeCategory unicodeCategory = char.GetUnicodeCategory(c);
-                dictionary[unicodeCategory].Add(n);
+                var category = char.GetUnicodeCategory(c);
+                dictionary[category].Add(n);
             }
 
             var bddArray = new BinaryDecisionDiagram[30];
             var bddBuilder = new BinaryDecisionDiagramBuilder(bits);
             for (int index = 0; index < 30; ++index)
-                bddArray[index] = bddBuilder.MkBddForIntRanges(dictionary[(UnicodeCategory)index].ranges);
-            BinaryDecisionDiagram bdd1 = bddBuilder.MkBddForIntRanges(ranges.ranges);
+                bddArray[index] = bddBuilder.MkBddForIntRanges(dictionary[(UnicodeCategory)index].RangeCollection);
+            BinaryDecisionDiagram bdd1 = bddBuilder.MkBddForIntRanges(ranges.RangeCollection);
             BinaryDecisionDiagram bdd2 = bddBuilder.MkOr(bddArray[0], bddBuilder.MkOr(bddArray[1], bddBuilder.MkOr(bddArray[2], bddBuilder.MkOr(bddArray[3], bddBuilder.MkOr(bddArray[4], bddBuilder.MkOr(bddArray[8], bddArray[18]))))));
             sw.WriteLine("/// <summary>\r\n/// Compact BDD encodings of the categories.\r\n/// </summary>");
             sw.WriteLine("public static int[][] " + field + "Bdd = new int[][]{");
@@ -72,7 +73,9 @@ namespace Rex
                 sw.WriteLine("//{0}({1}):", key, key);
                 BinaryDecisionDiagram bdd3 = bddArray[(int)key];
                 if (bdd3 == null || bdd3 == BinaryDecisionDiagram.False)
+                {
                     sw.WriteLine("null, //false");
+                }
                 else if (bdd3 == BinaryDecisionDiagram.True)
                 {
                     sw.WriteLine("new int[]{0,0}, //true");
@@ -106,20 +109,20 @@ namespace Rex
 
             internal void Add(int n)
             {
-                for (int index = 0; index < ranges.Count; ++index)
+                for (int index = 0; index < RangeCollection.Count; ++index)
                 {
-                    if (ranges[index][1] == n - 1)
+                    if (RangeCollection[index][1] == n - 1)
                     {
-                        ranges[index][1] = n;
+                        RangeCollection[index][1] = n;
                         return;
                     }
                 }
-                ranges.Add(new int[2] { n, n });
+                RangeCollection.Add(new int[2] { n, n });
             }
 
-            internal int Count => ranges.Count;
+            internal int Count => RangeCollection.Count;
 
-            internal List<int[]> ranges = new List<int[]>();
+            internal List<int[]> RangeCollection = new List<int[]>();
         }
     }
 }
