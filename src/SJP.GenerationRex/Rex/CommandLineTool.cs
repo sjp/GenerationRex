@@ -27,17 +27,17 @@ namespace SJP.GenerationRex
             //  stringList.AddRange((IEnumerable<string>) File.ReadAllLines(rexSettings.regexfile));
             //if (stringList.Count == 0)
             //  throw new RexException("No regexes are given.");
-            List<SFA<BDD>> sfaList = new List<SFA<BDD>>();
+            List<SymbolicFiniteAutomaton<BinaryDecisionDiagram>> sfaList = new List<SymbolicFiniteAutomaton<BinaryDecisionDiagram>>();
             if (rexSettings.intersect)
             {
-                SFA<BDD> sfaFromRegexes = rexEngine.CreateSFAFromRegexes(options, stringList.ToArray());
+                SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfaFromRegexes = rexEngine.CreateSFAFromRegexes(options, stringList.ToArray());
                 sfaList.Add(sfaFromRegexes);
             }
             else
             {
                 foreach (string str in stringList)
                 {
-                    SFA<BDD> sfaFromRegexes = rexEngine.CreateSFAFromRegexes(options, str);
+                    SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfaFromRegexes = rexEngine.CreateSFAFromRegexes(options, str);
                     sfaList.Add(sfaFromRegexes);
                 }
             }
@@ -47,7 +47,7 @@ namespace SJP.GenerationRex
                 rexEngine.ToDot(dot, sfaList[0]);
                 dot.Close();
             }
-            foreach (SFA<BDD> sfa in sfaList)
+            foreach (SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfa in sfaList)
             {
                 foreach (string member in rexEngine.GenerateMembers(sfa, rexSettings.k))
                 {

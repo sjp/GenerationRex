@@ -8,45 +8,39 @@ namespace SJP.GenerationRex
 {
     public class RexEngine
     {
-        private const int tryLimitMin = 100;
-        private const int tryLimitMax = 200;
-        private Chooser chooser;
-        private BddBuilder solver;
-        private RegexToSFA<BDD> converter;
+        private const int TryLimitMin = 100;
+        private const int TryLimitMax = 200;
+        private Chooser _chooser;
+        private BddBuilder _solver;
+        private RegexToSFA<BinaryDecisionDiagram> _converter;
 
         internal RexEngine(BddBuilder solver)
         {
-            this.solver = solver;
-            this.chooser = new Chooser();
-            this.converter = new RegexToSFA<BDD>((ICharacterConstraintSolver<BDD>)solver, (IUnicodeCategoryConditions<BDD>)new UnicodeCategoryConditionsBddProvider(solver));
+            _solver = solver;
+            _chooser = new Chooser();
+            _converter = new RegexToSFA<BinaryDecisionDiagram>(solver, new UnicodeCategoryConditionsBddProvider(solver));
         }
 
         public RexEngine(CharacterEncoding encoding, int randomSeed)
         {
-            this.solver = new BddBuilder((int)encoding);
-            this.chooser = new Chooser();
+            _solver = new BddBuilder((int)encoding);
+            _chooser = new Chooser();
             if (randomSeed > -1)
-                this.chooser.RandomSeed = randomSeed;
-            this.converter = new RegexToSFA<BDD>((ICharacterConstraintSolver<BDD>)this.solver, (IUnicodeCategoryConditions<BDD>)new UnicodeCategoryConditionsBddProvider(this.solver));
+                _chooser.RandomSeed = randomSeed;
+            this._converter = new RegexToSFA<BinaryDecisionDiagram>(this._solver, new UnicodeCategoryConditionsBddProvider(this._solver));
         }
 
-        public int RandomSeed
-        {
-            get
-            {
-                return this.chooser.RandomSeed;
-            }
-        }
+        public int RandomSeed => _chooser.RandomSeed;
 
-        internal string GenerateMember(SFA<BDD> fa)
+        internal string GenerateMember(SymbolicFiniteAutomaton<BinaryDecisionDiagram> fa)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            Move<BDD> nthMoveFrom;
-            for (int index = fa.InitialState; !fa.IsFinalState(index) || fa.OutDegree(index) > 0 && this.chooser.ChooseTrueOrFalse(); index = nthMoveFrom.TargetState)
+            var stringBuilder = new StringBuilder();
+            Move<BinaryDecisionDiagram> nthMoveFrom;
+            for (int index = fa.InitialState; !fa.IsFinalState(index) || fa.OutDegree(index) > 0 && this._chooser.ChooseBoolean(); index = nthMoveFrom.TargetState)
             {
-                nthMoveFrom = fa.GetNthMoveFrom(index, this.chooser.Choose(fa.GetMovesCountFrom(index)));
+                nthMoveFrom = fa.GetNthMoveFrom(index, this._chooser.Choose(fa.GetMovesCountFrom(index)));
                 if (!nthMoveFrom.IsEpsilon)
-                    stringBuilder.Append(this.solver.GenerateMember(this.chooser, nthMoveFrom.Condition));
+                    stringBuilder.Append(this._solver.GenerateMember(this._chooser, nthMoveFrom.Condition));
             }
             return stringBuilder.ToString();
         }
@@ -56,17 +50,17 @@ namespace SJP.GenerationRex
             return this.GenerateMembers(this.CreateSFAFromRegexes(options, regexes), k);
         }
 
-        internal IEnumerable<string> GenerateMembers(SFA<BDD> sfa, int k)
+        internal IEnumerable<string> GenerateMembers(SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfa, int k)
         {
             if (sfa != null && !sfa.IsEmpty)
             {
-                HashSet<string> old = new HashSet<string>();
+                var old = new HashSet<string>();
                 for (int i = 0; i < k; ++i)
                 {
-                    string member = this.GenerateMember(sfa);
+                    string member = GenerateMember(sfa);
                     int tryCount = Math.Min(100 + old.Count, 200);
                     while (old.Contains(member) && tryCount-- > 0)
-                        member = this.GenerateMember(sfa);
+                        member = GenerateMember(sfa);
                     if (tryCount < 0 && old.Contains(member))
                         break;
                     old.Add(member);
@@ -75,13 +69,13 @@ namespace SJP.GenerationRex
             }
         }
 
-        internal SFA<BDD> CreateSFAFromRegexes(RegexOptions options, params string[] regexes)
+        internal SymbolicFiniteAutomaton<BinaryDecisionDiagram> CreateSFAFromRegexes(RegexOptions options, params string[] regexes)
         {
-            SFA<BDD> a = (SFA<BDD>)null;
+            SymbolicFiniteAutomaton<BinaryDecisionDiagram> a = null;
             foreach (string regex in regexes)
             {
-                SFA<BDD> b1 = this.converter.Convert(regex, options);
-                a = a == null ? b1 : SFA<BDD>.MkProduct(a, b1, new Func<BDD, BDD, BDD>(this.solver.MkAnd), new Func<BDD, BDD, BDD>(this.solver.MkOr), (Func<BDD, bool>)(b => b != this.solver.False));
+                SymbolicFiniteAutomaton<BinaryDecisionDiagram> b1 = _converter.Convert(regex, options);
+                a = a == null ? b1 : SymbolicFiniteAutomaton<BinaryDecisionDiagram>.MkProduct(a, b1,  _solver.MkAnd, _solver.MkOr, b => b != _solver.False);
                 if (a.IsEmpty)
                     break;
             }
@@ -90,8 +84,8 @@ namespace SJP.GenerationRex
 
         public static IEnumerable<string> GenerateMembers(RexSettings settings)
         {
-            RexEngine rexEngine = new RexEngine(settings.encoding, settings.seed);
-            RegexOptions options = RegexOptions.None;
+            var rexEngine = new RexEngine(settings.encoding, settings.seed);
+            var options = RegexOptions.None;
             if (settings.options != null)
             {
                 foreach (RegexOptions option in settings.options)
@@ -104,7 +98,7 @@ namespace SJP.GenerationRex
         {
             int i = (int)c;
             if (i > (int)sbyte.MaxValue)
-                return RexEngine.ToUnicodeRepr(i);
+                return ToUnicodeRepr(i);
             switch (c)
             {
                 case char.MinValue:
@@ -148,9 +142,9 @@ namespace SJP.GenerationRex
             return stringBuilder.ToString();
         }
 
-        internal void ToDot(TextWriter dot, SFA<BDD> sfa)
+        internal void ToDot(TextWriter dot, SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfa)
         {
-            this.converter.ToDot(sfa, "SFA", dot, DotRankDir.LR, 12);
+            _converter.ToDot(sfa, "SFA", dot, DotRankDir.LR, 12);
         }
     }
 }

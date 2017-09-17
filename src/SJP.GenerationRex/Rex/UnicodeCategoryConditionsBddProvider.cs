@@ -1,11 +1,11 @@
 ﻿namespace SJP.GenerationRex
 {
-    internal class UnicodeCategoryConditionsBddProvider : IUnicodeCategoryConditions<BDD>
+    internal class UnicodeCategoryConditionsBddProvider : IUnicodeCategoryConditions<BinaryDecisionDiagram>
     {
-        private BDD[] catConditions = new BDD[30];
+        private BinaryDecisionDiagram[] catConditions = new BinaryDecisionDiagram[30];
         private BddBuilder bddb;
-        private BDD whiteSpaceCondition;
-        private BDD wordLetterCondition;
+        private BinaryDecisionDiagram whiteSpaceCondition;
+        private BinaryDecisionDiagram wordLetterCondition;
 
         internal UnicodeCategoryConditionsBddProvider(BddBuilder bddb)
         {
@@ -18,14 +18,14 @@
             if (this.bddb.NrOfBits == 7)
             {
                 for (int index = 0; index < 30; ++index)
-                    this.catConditions[index] = UnicodeCategoryRanges.ASCIIBdd[index] != null ? this.bddb.DeserializeCompact(UnicodeCategoryRanges.ASCIIBdd[index]) : BDD.False;
+                    this.catConditions[index] = UnicodeCategoryRanges.ASCIIBdd[index] != null ? this.bddb.DeserializeCompact(UnicodeCategoryRanges.ASCIIBdd[index]) : BinaryDecisionDiagram.False;
                 this.whiteSpaceCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.ASCIIWhitespaceBdd);
                 this.wordLetterCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.ASCIIWordCharacterBdd);
             }
             else if (this.bddb.NrOfBits == 8)
             {
                 for (int index = 0; index < 30; ++index)
-                    this.catConditions[index] = UnicodeCategoryRanges.CP437Bdd[index] != null ? this.bddb.DeserializeCompact(UnicodeCategoryRanges.CP437Bdd[index]) : BDD.False;
+                    this.catConditions[index] = UnicodeCategoryRanges.CP437Bdd[index] != null ? this.bddb.DeserializeCompact(UnicodeCategoryRanges.CP437Bdd[index]) : BinaryDecisionDiagram.False;
                 this.whiteSpaceCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.CP437WhitespaceBdd);
                 this.wordLetterCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.CP437WordCharacterBdd);
             }
@@ -38,12 +38,12 @@
             }
         }
 
-        public BDD CategoryCondition(int cat)
+        public BinaryDecisionDiagram CategoryCondition(int cat)
         {
             return this.catConditions[cat];
         }
 
-        public BDD WhiteSpaceCondition
+        public BinaryDecisionDiagram WhiteSpaceCondition
         {
             get
             {
@@ -51,7 +51,7 @@
             }
         }
 
-        public BDD WordLetterCondition
+        public BinaryDecisionDiagram WordLetterCondition
         {
             get
             {

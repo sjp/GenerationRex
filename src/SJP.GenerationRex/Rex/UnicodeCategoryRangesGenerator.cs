@@ -53,21 +53,21 @@ namespace SJP.GenerationRex
                 UnicodeCategory unicodeCategory = char.GetUnicodeCategory(c);
                 dictionary[unicodeCategory].Add(n);
             }
-            BDD[] bddArray = new BDD[30];
+            BinaryDecisionDiagram[] bddArray = new BinaryDecisionDiagram[30];
             BddBuilder bddBuilder = new BddBuilder(bits);
             for (int index = 0; index < 30; ++index)
                 bddArray[index] = bddBuilder.MkBddForIntRanges((IEnumerable<int[]>)dictionary[(UnicodeCategory)index].ranges);
-            BDD bdd1 = bddBuilder.MkBddForIntRanges((IEnumerable<int[]>)ranges.ranges);
-            BDD bdd2 = bddBuilder.MkOr(bddArray[0], bddBuilder.MkOr(bddArray[1], bddBuilder.MkOr(bddArray[2], bddBuilder.MkOr(bddArray[3], bddBuilder.MkOr(bddArray[4], bddBuilder.MkOr(bddArray[8], bddArray[18]))))));
+            BinaryDecisionDiagram bdd1 = bddBuilder.MkBddForIntRanges((IEnumerable<int[]>)ranges.ranges);
+            BinaryDecisionDiagram bdd2 = bddBuilder.MkOr(bddArray[0], bddBuilder.MkOr(bddArray[1], bddBuilder.MkOr(bddArray[2], bddBuilder.MkOr(bddArray[3], bddBuilder.MkOr(bddArray[4], bddBuilder.MkOr(bddArray[8], bddArray[18]))))));
             sw.WriteLine("/// <summary>\r\n/// Compact BDD encodings of the categories.\r\n/// </summary>");
             sw.WriteLine("public static int[][] " + field + "Bdd = new int[][]{");
             foreach (UnicodeCategory key in dictionary.Keys)
             {
                 sw.WriteLine("//{0}({1}):", (object)key, (object)key);
-                BDD bdd3 = bddArray[(int)key];
-                if (bdd3 == null || bdd3 == BDD.False)
+                BinaryDecisionDiagram bdd3 = bddArray[(int)key];
+                if (bdd3 == null || bdd3 == BinaryDecisionDiagram.False)
                     sw.WriteLine("null, //false");
-                else if (bdd3 == BDD.True)
+                else if (bdd3 == BinaryDecisionDiagram.True)
                 {
                     sw.WriteLine("new int[]{0,0}, //true");
                 }

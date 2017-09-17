@@ -2,26 +2,26 @@
 
 namespace SJP.GenerationRex
 {
-    internal interface ICharacterConstraintSolver<S>
+    internal interface ICharacterConstraintSolver<TConstraint>
     {
-        S MkOr(S constraint1, S constraint2);
+        TConstraint MkOr(TConstraint constraint1, TConstraint constraint2);
 
-        S MkOr(IEnumerable<S> constraints);
+        TConstraint MkOr(IEnumerable<TConstraint> constraints);
 
-        S MkAnd(S constraint1, S constraint2);
+        TConstraint MkAnd(TConstraint constraint1, TConstraint constraint2);
 
-        S MkAnd(IEnumerable<S> constraints);
+        TConstraint MkAnd(IEnumerable<TConstraint> constraints);
 
-        S MkNot(S constraint);
+        TConstraint MkNot(TConstraint constraint);
 
-        S True { get; }
+        TConstraint True { get; }
 
-        S False { get; }
+        TConstraint False { get; }
 
-        S MkRangeConstraint(bool caseInsensitive, char lower, char upper);
+        TConstraint MkRangeConstraint(bool caseInsensitive, char lower, char upper);
 
-        S MkCharConstraint(bool caseInsensitive, char c);
+        TConstraint MkCharConstraint(bool caseInsensitive, char c);
 
-        S MkRangesConstraint(bool caseInsensitive, IEnumerable<char[]> ranges);
+        TConstraint MkRangesConstraint(bool caseInsensitive, IEnumerable<char[]> ranges);
     }
 }
