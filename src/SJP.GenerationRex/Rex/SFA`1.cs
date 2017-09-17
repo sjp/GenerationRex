@@ -5,10 +5,10 @@ namespace SJP.GenerationRex
 {
     internal class SFA<S>
     {
-        public static SFA<S> Empty = SFA<S>.Create(0, (IEnumerable<int>)new int[0], (IEnumerable<MOVE<S>>)new MOVE<S>[0]);
-        public static SFA<S> Epsilon = SFA<S>.Create(0, (IEnumerable<int>)new int[1], (IEnumerable<MOVE<S>>)new MOVE<S>[0]);
-        private Dictionary<int, List<MOVE<S>>> delta;
-        private Dictionary<int, List<MOVE<S>>> deltaInv;
+        public static SFA<S> Empty = SFA<S>.Create(0, (IEnumerable<int>)new int[0], (IEnumerable<Move<S>>)new Move<S>[0]);
+        public static SFA<S> Epsilon = SFA<S>.Create(0, (IEnumerable<int>)new int[1], (IEnumerable<Move<S>>)new Move<S>[0]);
+        private Dictionary<int, List<Move<S>>> delta;
+        private Dictionary<int, List<Move<S>>> deltaInv;
         private int initialState;
         private HashSet<int> finalStateSet;
         private int maxState;
@@ -41,7 +41,7 @@ namespace SJP.GenerationRex
             return this.delta[state].Count;
         }
 
-        public MOVE<S> GetMoveFrom(int state)
+        public Move<S> GetMoveFrom(int state)
         {
             return this.delta[state][0];
         }
@@ -91,7 +91,7 @@ namespace SJP.GenerationRex
             {
                 int s = stack.Pop();
                 yield return s;
-                foreach (MOVE<S> move in this.delta[s])
+                foreach (Move<S> move in this.delta[s])
                 {
                     if (move.IsEpsilon && !done.Contains(move.TargetState))
                     {
@@ -112,7 +112,7 @@ namespace SJP.GenerationRex
             {
                 int s = stack.Pop();
                 yield return s;
-                foreach (MOVE<S> move in this.deltaInv[s])
+                foreach (Move<S> move in this.deltaInv[s])
                 {
                     if (move.IsEpsilon && !done.Contains(move.SourceState))
                     {
@@ -131,27 +131,27 @@ namespace SJP.GenerationRex
             }
         }
 
-        public static SFA<S> Create(int initialState, IEnumerable<int> finalStates, IEnumerable<MOVE<S>> moves)
+        public static SFA<S> Create(int initialState, IEnumerable<int> finalStates, IEnumerable<Move<S>> moves)
         {
-            Dictionary<int, List<MOVE<S>>> dictionary1 = new Dictionary<int, List<MOVE<S>>>();
-            Dictionary<int, List<MOVE<S>>> dictionary2 = new Dictionary<int, List<MOVE<S>>>();
-            dictionary1[initialState] = new List<MOVE<S>>();
-            dictionary2[initialState] = new List<MOVE<S>>();
+            Dictionary<int, List<Move<S>>> dictionary1 = new Dictionary<int, List<Move<S>>>();
+            Dictionary<int, List<Move<S>>> dictionary2 = new Dictionary<int, List<Move<S>>>();
+            dictionary1[initialState] = new List<Move<S>>();
+            dictionary2[initialState] = new List<Move<S>>();
             bool flag1 = true;
             int val1 = initialState;
             bool flag2 = true;
-            foreach (MOVE<S> move in moves)
+            foreach (Move<S> move in moves)
             {
                 if (move.IsEpsilon)
                     flag1 = false;
                 if (!dictionary1.ContainsKey(move.SourceState))
-                    dictionary1[move.SourceState] = new List<MOVE<S>>();
+                    dictionary1[move.SourceState] = new List<Move<S>>();
                 if (!dictionary1.ContainsKey(move.TargetState))
-                    dictionary1[move.TargetState] = new List<MOVE<S>>();
+                    dictionary1[move.TargetState] = new List<Move<S>>();
                 if (!dictionary2.ContainsKey(move.SourceState))
-                    dictionary2[move.SourceState] = new List<MOVE<S>>();
+                    dictionary2[move.SourceState] = new List<Move<S>>();
                 if (!dictionary2.ContainsKey(move.TargetState))
-                    dictionary2[move.TargetState] = new List<MOVE<S>>();
+                    dictionary2[move.TargetState] = new List<Move<S>>();
                 dictionary1[move.SourceState].Add(move);
                 dictionary2[move.TargetState].Add(move);
                 flag2 = flag2 && dictionary1[move.SourceState].Count < 2;
@@ -208,20 +208,20 @@ namespace SJP.GenerationRex
             }
         }
 
-        public IEnumerable<MOVE<S>> GetMoves()
+        public IEnumerable<Move<S>> GetMoves()
         {
             foreach (int state in this.States)
             {
-                foreach (MOVE<S> move in this.delta[state])
+                foreach (Move<S> move in this.delta[state])
                     yield return move;
             }
         }
 
-        public IEnumerable<MOVE<S>> GetEpsilonMoves()
+        public IEnumerable<Move<S>> GetEpsilonMoves()
         {
             foreach (int state in this.States)
             {
-                foreach (MOVE<S> move in this.delta[state])
+                foreach (Move<S> move in this.delta[state])
                 {
                     if (move.IsEpsilon)
                         yield return move;
@@ -231,7 +231,7 @@ namespace SJP.GenerationRex
 
         public IEnumerable<int> GetEpsilonTargetsFrom(int state)
         {
-            foreach (MOVE<S> move in this.delta[state])
+            foreach (Move<S> move in this.delta[state])
             {
                 if (move.IsEpsilon)
                     yield return move.TargetState;
@@ -243,9 +243,9 @@ namespace SJP.GenerationRex
             return (IEnumerable<int>)this.finalStateSet;
         }
 
-        public IEnumerable<MOVE<S>> GetMovesFrom(int sourceState)
+        public IEnumerable<Move<S>> GetMovesFrom(int sourceState)
         {
-            return (IEnumerable<MOVE<S>>)this.delta[sourceState];
+            return (IEnumerable<Move<S>>)this.delta[sourceState];
         }
 
         public int GetMovesCountFrom(int sourceState)
@@ -253,16 +253,16 @@ namespace SJP.GenerationRex
             return this.delta[sourceState].Count;
         }
 
-        public MOVE<S> GetNthMoveFrom(int sourceState, int n)
+        public Move<S> GetNthMoveFrom(int sourceState, int n)
         {
             return this.delta[sourceState][n];
         }
 
-        public IEnumerable<MOVE<S>> GetMovesFromStates(IEnumerable<int> sourceStates)
+        public IEnumerable<Move<S>> GetMovesFromStates(IEnumerable<int> sourceStates)
         {
             foreach (int sourceState in sourceStates)
             {
-                foreach (MOVE<S> move in this.delta[sourceState])
+                foreach (Move<S> move in this.delta[sourceState])
                     yield return move;
             }
         }
@@ -286,17 +286,17 @@ namespace SJP.GenerationRex
         {
             foreach (int state in fa.States)
             {
-                this.delta[state] = new List<MOVE<S>>((IEnumerable<MOVE<S>>)fa.delta[state]);
-                this.deltaInv[state] = new List<MOVE<S>>((IEnumerable<MOVE<S>>)fa.deltaInv[state]);
+                this.delta[state] = new List<Move<S>>((IEnumerable<Move<S>>)fa.delta[state]);
+                this.deltaInv[state] = new List<Move<S>>((IEnumerable<Move<S>>)fa.deltaInv[state]);
             }
             if (this.HasSingleFinalSink)
             {
                 foreach (int finalState in this.finalStateSet)
                 {
-                    foreach (MOVE<S> move1 in this.deltaInv[finalState])
+                    foreach (Move<S> move1 in this.deltaInv[finalState])
                     {
                         this.delta[move1.SourceState].Remove(move1);
-                        MOVE<S> move2 = MOVE<S>.T(move1.SourceState == finalState ? fa.InitialState : move1.SourceState, fa.InitialState, move1.Condition);
+                        Move<S> move2 = Move<S>.To(move1.SourceState == finalState ? fa.InitialState : move1.SourceState, fa.InitialState, move1.Condition);
                         this.delta[move2.SourceState].Add(move2);
                         this.deltaInv[move2.TargetState].Add(move2);
                     }
@@ -312,7 +312,7 @@ namespace SJP.GenerationRex
             {
                 foreach (int finalState in this.finalStateSet)
                 {
-                    MOVE<S> move = MOVE<S>.Epsilon(finalState, fa.initialState);
+                    Move<S> move = Move<S>.Epsilon(finalState, fa.initialState);
                     this.delta[finalState].Add(move);
                     this.deltaInv[fa.initialState].Add(move);
                 }
@@ -346,12 +346,12 @@ namespace SJP.GenerationRex
             this.finalStateSet.Add(this.initialState);
         }
 
-        internal void AddMove(MOVE<S> move)
+        internal void AddMove(Move<S> move)
         {
             if (!this.delta.ContainsKey(move.SourceState))
-                this.delta[move.SourceState] = new List<MOVE<S>>();
+                this.delta[move.SourceState] = new List<Move<S>>();
             if (!this.deltaInv.ContainsKey(move.TargetState))
-                this.deltaInv[move.TargetState] = new List<MOVE<S>>();
+                this.deltaInv[move.TargetState] = new List<Move<S>>();
             this.delta[move.SourceState].Add(move);
             this.deltaInv[move.TargetState].Add(move);
             this.maxState = Math.Max(this.maxState, Math.Max(move.SourceState, move.TargetState));
@@ -365,13 +365,13 @@ namespace SJP.GenerationRex
                 return false;
             foreach (int finalState in this.finalStateSet)
             {
-                if (finalState != this.initialState && !this.delta[finalState].Exists(new Predicate<MOVE<S>>(this.IsEpsilonMoveToInitialState)))
+                if (finalState != this.initialState && !this.delta[finalState].Exists(new Predicate<Move<S>>(this.IsEpsilonMoveToInitialState)))
                     return false;
             }
             return true;
         }
 
-        internal bool IsEpsilonMoveToInitialState(MOVE<S> move)
+        internal bool IsEpsilonMoveToInitialState(Move<S> move)
         {
             if (move.IsEpsilon)
                 return move.TargetState == this.initialState;
@@ -380,14 +380,14 @@ namespace SJP.GenerationRex
 
         internal void RenameInitialState(int p)
         {
-            List<MOVE<S>> moveList = this.delta[this.initialState];
+            List<Move<S>> moveList = this.delta[this.initialState];
             if (!this.delta.ContainsKey(p))
-                this.delta[p] = new List<MOVE<S>>();
+                this.delta[p] = new List<Move<S>>();
             if (!this.deltaInv.ContainsKey(p))
-                this.deltaInv[p] = new List<MOVE<S>>();
-            foreach (MOVE<S> move1 in moveList)
+                this.deltaInv[p] = new List<Move<S>>();
+            foreach (Move<S> move1 in moveList)
             {
-                MOVE<S> move2 = MOVE<S>.T(p, move1.TargetState, move1.Condition);
+                Move<S> move2 = Move<S>.To(p, move1.TargetState, move1.Condition);
                 this.deltaInv[move1.TargetState].Remove(move1);
                 this.deltaInv[move1.TargetState].Add(move2);
                 this.delta[p].Add(move2);
@@ -405,10 +405,10 @@ namespace SJP.GenerationRex
         internal void AddNewInitialStateThatIsFinal(int newInitialState)
         {
             this.finalStateSet.Add(newInitialState);
-            List<MOVE<S>> moveList = new List<MOVE<S>>();
-            moveList.Add(MOVE<S>.Epsilon(newInitialState, this.initialState));
+            List<Move<S>> moveList = new List<Move<S>>();
+            moveList.Add(Move<S>.Epsilon(newInitialState, this.initialState));
             this.delta[newInitialState] = moveList;
-            this.deltaInv[newInitialState] = new List<MOVE<S>>();
+            this.deltaInv[newInitialState] = new List<Move<S>>();
             this.deltaInv[this.initialState].Add(moveList[0]);
             this.isDeterministic = false;
             this.isEpsilonFree = false;
@@ -421,9 +421,9 @@ namespace SJP.GenerationRex
             int num = Math.Max(this.maxState, newInitialState) + 1;
             Dictionary<int, int> dictionary = new Dictionary<int, int>();
             dictionary[this.initialState] = newInitialState;
-            List<MOVE<S>> moveList = new List<MOVE<S>>();
+            List<Move<S>> moveList = new List<Move<S>>();
             HashSet<int> intSet = new HashSet<int>();
-            foreach (MOVE<S> move in this.GetMoves())
+            foreach (Move<S> move in this.GetMoves())
             {
                 int sourceState;
                 if (!dictionary.TryGetValue(move.SourceState, out sourceState))
@@ -441,23 +441,23 @@ namespace SJP.GenerationRex
                     if (this.finalStateSet.Contains(move.TargetState))
                         intSet.Add(targetState);
                 }
-                moveList.Add(MOVE<S>.T(sourceState, targetState, move.Condition));
+                moveList.Add(Move<S>.To(sourceState, targetState, move.Condition));
             }
             if (this.finalStateSet.Contains(this.initialState))
                 intSet.Add(newInitialState);
-            return SFA<S>.Create(newInitialState, (IEnumerable<int>)intSet, (IEnumerable<MOVE<S>>)moveList);
+            return SFA<S>.Create(newInitialState, (IEnumerable<int>)intSet, (IEnumerable<Move<S>>)moveList);
         }
 
         public void RemoveState(int state)
         {
-            foreach (MOVE<S> move in this.delta[state])
+            foreach (Move<S> move in this.delta[state])
                 this.deltaInv[move.TargetState].Remove(move);
-            foreach (MOVE<S> move in this.deltaInv[state])
+            foreach (Move<S> move in this.deltaInv[state])
                 this.delta[move.SourceState].Remove(move);
             this.finalStateSet.Remove(state);
         }
 
-        internal void RemoveTheMove(MOVE<S> move)
+        internal void RemoveTheMove(Move<S> move)
         {
             this.delta[move.SourceState].Remove(move);
             this.deltaInv[move.TargetState].Remove(move);
@@ -465,7 +465,7 @@ namespace SJP.GenerationRex
 
         internal S GetCondition(int source, int target)
         {
-            foreach (MOVE<S> move in this.delta[source])
+            foreach (Move<S> move in this.delta[source])
             {
                 if (move.TargetState == target)
                     return move.Condition;
@@ -482,8 +482,8 @@ namespace SJP.GenerationRex
             Stack<Pair<int, int>> pairStack = new Stack<Pair<int, int>>();
             pairStack.Push(index1);
             dictionary1[index1] = 0;
-            Dictionary<int, List<MOVE<S>>> delta = new Dictionary<int, List<MOVE<S>>>();
-            delta[0] = new List<MOVE<S>>();
+            Dictionary<int, List<Move<S>>> delta = new Dictionary<int, List<Move<S>>>();
+            delta[0] = new List<Move<S>>();
             List<int> intList1 = new List<int>();
             intList1.Add(0);
             List<int> intList2 = new List<int>();
@@ -494,10 +494,10 @@ namespace SJP.GenerationRex
             {
                 Pair<int, int> index2 = pairStack.Pop();
                 int sourceState = dictionary1[index2];
-                List<MOVE<S>> moveList = delta[sourceState];
-                foreach (MOVE<S> move1 in a.GetMovesFrom(index2.First))
+                List<Move<S>> moveList = delta[sourceState];
+                foreach (Move<S> move1 in a.GetMovesFrom(index2.First))
                 {
-                    foreach (MOVE<S> move2 in b.GetMovesFrom(index2.Second))
+                    foreach (Move<S> move2 in b.GetMovesFrom(index2.Second))
                     {
                         S condition = conj(move1.Condition, move2.Condition);
                         if (isSat(condition))
@@ -510,29 +510,29 @@ namespace SJP.GenerationRex
                                 ++num;
                                 dictionary1[key] = targetState;
                                 intList1.Add(targetState);
-                                delta[targetState] = new List<MOVE<S>>();
+                                delta[targetState] = new List<Move<S>>();
                                 pairStack.Push(key);
                                 if (a.IsFinalState(move1.TargetState) && b.IsFinalState(move2.TargetState))
                                     intList2.Add(targetState);
                             }
-                            moveList.Add(MOVE<S>.T(sourceState, targetState, condition));
+                            moveList.Add(Move<S>.To(sourceState, targetState, condition));
                         }
                     }
                 }
             }
-            Dictionary<int, List<MOVE<S>>> dictionary2 = new Dictionary<int, List<MOVE<S>>>();
+            Dictionary<int, List<Move<S>>> dictionary2 = new Dictionary<int, List<Move<S>>>();
             foreach (int index2 in intList1)
-                dictionary2[index2] = new List<MOVE<S>>();
+                dictionary2[index2] = new List<Move<S>>();
             foreach (int index2 in intList1)
             {
-                foreach (MOVE<S> move in delta[index2])
+                foreach (Move<S> move in delta[index2])
                     dictionary2[move.TargetState].Add(move);
             }
             Stack<int> intStack = new Stack<int>((IEnumerable<int>)intList2);
             HashSet<int> intSet = new HashSet<int>((IEnumerable<int>)intList2);
             while (intStack.Count > 0)
             {
-                foreach (MOVE<S> move in dictionary2[intStack.Pop()])
+                foreach (Move<S> move in dictionary2[intStack.Pop()])
                 {
                     if (!intSet.Contains(move.SourceState))
                     {
@@ -554,8 +554,8 @@ namespace SJP.GenerationRex
             List<int> intList4 = intList3;
             foreach (int index2 in intList4)
             {
-                List<MOVE<S>> moveList = new List<MOVE<S>>();
-                foreach (MOVE<S> move in delta[index2])
+                List<Move<S>> moveList = new List<Move<S>>();
+                foreach (Move<S> move in delta[index2])
                 {
                     if (intSet.Contains(move.TargetState))
                         moveList.Add(move);
@@ -570,11 +570,11 @@ namespace SJP.GenerationRex
             return sfa;
         }
 
-        private static IEnumerable<MOVE<S>> EnumerateMoves(Dictionary<int, List<MOVE<S>>> delta)
+        private static IEnumerable<Move<S>> EnumerateMoves(Dictionary<int, List<Move<S>>> delta)
         {
-            foreach (KeyValuePair<int, List<MOVE<S>>> keyValuePair in delta)
+            foreach (KeyValuePair<int, List<Move<S>>> keyValuePair in delta)
             {
-                foreach (MOVE<S> move in keyValuePair.Value)
+                foreach (Move<S> move in keyValuePair.Value)
                     yield return move;
             }
         }
@@ -588,15 +588,15 @@ namespace SJP.GenerationRex
                 dictionary[state] = intSet.Intersect(this.GetInvEpsilonClosure(state)).Choice;
             }
             Dictionary<Pair<int, int>, S> conditionMap = new Dictionary<Pair<int, int>, S>();
-            HashSet<MOVE<S>> eMoves = new HashSet<MOVE<S>>();
-            foreach (MOVE<S> move in this.GetMoves())
+            HashSet<Move<S>> eMoves = new HashSet<Move<S>>();
+            foreach (Move<S> move in this.GetMoves())
             {
                 int num1 = dictionary[move.SourceState];
                 int num2 = dictionary[move.TargetState];
                 if (move.IsEpsilon)
                 {
                     if (num1 != num2)
-                        eMoves.Add(MOVE<S>.Epsilon(num1, num2));
+                        eMoves.Add(Move<S>.Epsilon(num1, num2));
                 }
                 else
                 {
@@ -612,11 +612,11 @@ namespace SJP.GenerationRex
             return SFA<S>.Create(initialState, (IEnumerable<int>)intSet1, this.EnumerateMoves(conditionMap, eMoves));
         }
 
-        private IEnumerable<MOVE<S>> EnumerateMoves(Dictionary<Pair<int, int>, S> conditionMap, HashSet<MOVE<S>> eMoves)
+        private IEnumerable<Move<S>> EnumerateMoves(Dictionary<Pair<int, int>, S> conditionMap, HashSet<Move<S>> eMoves)
         {
             foreach (KeyValuePair<Pair<int, int>, S> condition in conditionMap)
-                yield return MOVE<S>.T(condition.Key.First, condition.Key.Second, condition.Value);
-            foreach (MOVE<S> eMove in eMoves)
+                yield return Move<S>.To(condition.Key.First, condition.Key.Second, condition.Value);
+            foreach (Move<S> eMove in eMoves)
                 yield return eMove;
         }
 
@@ -626,7 +626,7 @@ namespace SJP.GenerationRex
             if (sfa1.IsEpsilonFree)
                 return sfa1;
             Dictionary<Pair<int, int>, S> dictionary = new Dictionary<Pair<int, int>, S>();
-            foreach (MOVE<S> move in sfa1.GetMoves())
+            foreach (Move<S> move in sfa1.GetMoves())
             {
                 if (!move.IsEpsilon)
                 {
@@ -641,7 +641,7 @@ namespace SJP.GenerationRex
                 {
                     if (sourceState != state)
                     {
-                        foreach (MOVE<S> move in sfa1.GetMovesFrom(sourceState))
+                        foreach (Move<S> move in sfa1.GetMovesFrom(sourceState))
                         {
                             if (!move.IsEpsilon)
                             {
@@ -653,18 +653,18 @@ namespace SJP.GenerationRex
                     }
                 }
             }
-            Dictionary<int, List<MOVE<S>>> delta = new Dictionary<int, List<MOVE<S>>>();
+            Dictionary<int, List<Move<S>>> delta = new Dictionary<int, List<Move<S>>>();
             foreach (int state in sfa1.States)
-                delta[state] = new List<MOVE<S>>();
+                delta[state] = new List<Move<S>>();
             foreach (KeyValuePair<Pair<int, int>, S> keyValuePair in dictionary)
-                delta[keyValuePair.Key.First].Add(MOVE<S>.T(keyValuePair.Key.First, keyValuePair.Key.Second, keyValuePair.Value));
+                delta[keyValuePair.Key.First].Add(Move<S>.To(keyValuePair.Key.First, keyValuePair.Key.Second, keyValuePair.Value));
             Stack<int> intStack = new Stack<int>();
             intStack.Push(sfa1.InitialState);
             HashSet<int> intSet = new HashSet<int>();
             intSet.Add(sfa1.InitialState);
             while (intStack.Count > 0)
             {
-                foreach (MOVE<S> move in delta[intStack.Pop()])
+                foreach (Move<S> move in delta[intStack.Pop()])
                 {
                     if (!intSet.Contains(move.TargetState))
                     {

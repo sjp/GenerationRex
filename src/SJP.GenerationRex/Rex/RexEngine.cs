@@ -41,7 +41,7 @@ namespace SJP.GenerationRex
         internal string GenerateMember(SFA<BDD> fa)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            MOVE<BDD> nthMoveFrom;
+            Move<BDD> nthMoveFrom;
             for (int index = fa.InitialState; !fa.IsFinalState(index) || fa.OutDegree(index) > 0 && this.chooser.ChooseTrueOrFalse(); index = nthMoveFrom.TargetState)
             {
                 nthMoveFrom = fa.GetNthMoveFrom(index, this.chooser.Choose(fa.GetMovesCountFrom(index)));

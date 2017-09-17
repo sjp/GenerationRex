@@ -456,7 +456,7 @@ namespace SJP.GenerationRex
                 throw new ArgumentOutOfRangeException(nameof(bdd), "Must be different from BDD.True and BDD.False");
             Dictionary<BDD, int> dictionary1 = new Dictionary<BDD, int>();
             Dictionary<int, int> dictionary2 = new Dictionary<int, int>();
-            List<MOVE<string>> moveList = new List<MOVE<string>>();
+            List<Move<string>> moveList = new List<Move<string>>();
             Stack<BDD> bddStack = new Stack<BDD>();
             bddStack.Push(bdd);
             dictionary1.Add(BDD.False, 0);
@@ -480,8 +480,8 @@ namespace SJP.GenerationRex
                     dictionary1[index.T] = num++;
                     bddStack.Push(index.T);
                 }
-                moveList.Add(MOVE<string>.T(sourceState, dictionary1[index.F], "0"));
-                moveList.Add(MOVE<string>.T(sourceState, dictionary1[index.T], "1"));
+                moveList.Add(Move<string>.To(sourceState, dictionary1[index.F], "0"));
+                moveList.Add(Move<string>.To(sourceState, dictionary1[index.T], "1"));
             }
             dictionary2[0] = val2 + 1;
             dictionary2[1] = val2 + 1;
@@ -501,7 +501,7 @@ namespace SJP.GenerationRex
             tw.WriteLine("1 [label = True, group = {0}]", (object)val2);
             tw.WriteLine();
             tw.WriteLine("//Links");
-            foreach (MOVE<string> move in moveList)
+            foreach (Move<string> move in moveList)
                 tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\", fontsize = {3} ];", (object)move.SourceState, (object)move.TargetState, (object)move.Condition, (object)fontsize));
             tw.WriteLine("}");
         }

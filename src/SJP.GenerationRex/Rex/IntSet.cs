@@ -1,102 +1,81 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using System.Globalization;
+using System.Linq;
 
 namespace SJP.GenerationRex
 {
-    internal class IntSet
+    internal class IntSet : IEnumerable<int>, IEquatable<IntSet>
     {
-        private int choice = int.MaxValue;
-        private HashSet<int> elems;
-        private string repr;
-
-        private string Repr
+        public IntSet(IEnumerable<int> elems)
         {
-            get
-            {
-                if (this.repr == null)
-                    this.repr = this.MkString();
-                return this.repr;
-            }
-        }
-
-        internal IntSet(IEnumerable<int> elems)
-        {
-            this.elems = new HashSet<int>();
             foreach (int elem in elems)
             {
-                this.elems.Add(elem);
-                this.choice = Math.Min(elem, this.choice);
+                _elems.Add(elem);
+                Choice = Math.Min(elem, Choice);
             }
+
+            _strBuilder = new Lazy<string>(MkString);
         }
 
-        public override int GetHashCode()
+        public int Choice { get; } = int.MaxValue;
+
+        public bool IsSingleton => _elems.Count == 1;
+
+        internal bool Contains(int elem) => _elems.Contains(elem);
+
+        internal IntSet Intersect(IEnumerable<int> other)
         {
-            return this.Repr.GetHashCode();
+            var intSet = new HashSet<int>(_elems);
+            intSet.IntersectWith(other);
+            return new IntSet(intSet);
+        }
+
+        private string Repr => _strBuilder.Value;
+
+        public override string ToString() => Repr;
+
+        public override int GetHashCode() => Repr.GetHashCode();
+
+        public bool Equals(IntSet other)
+        {
+            if (ReferenceEquals(other, null))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return Repr == other.Repr;
         }
 
         public override bool Equals(object obj)
         {
-            return this.Repr.Equals(((IntSet)obj).Repr);
-        }
+            if (ReferenceEquals(obj, null))
+                return false;
 
-        public override string ToString()
-        {
-            return this.Repr;
-        }
+            if (ReferenceEquals(this, obj))
+                return true;
 
-        internal int Choice
-        {
-            get
-            {
-                return this.choice;
-            }
+            return Equals(obj as IntSet);
         }
 
         private string MkString()
         {
-            if (this.elems.Count == 0)
+            if (_elems.Count == 0)
                 return "{}";
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append("{");
-            bool flag = false;
-            List<int> intList = new List<int>((IEnumerable<int>)this.elems);
-            intList.Sort();
-            foreach (int num in intList)
-            {
-                if (flag)
-                    stringBuilder.Append(",");
-                else
-                    flag = true;
-                stringBuilder.Append(num);
-            }
-            stringBuilder.Append("}");
-            return stringBuilder.ToString();
+
+            var sorted = _elems
+                .OrderBy(i => i)
+                .Select(i => i.ToString(CultureInfo.InvariantCulture));
+
+            return "{" + string.Join(",", sorted) + "}";
         }
 
-        internal bool Contains(int elem)
-        {
-            return this.elems.Contains(elem);
-        }
+        public IEnumerator<int> GetEnumerator() => _elems.GetEnumerator();
 
-        internal IntSet Intersect(IEnumerable<int> other)
-        {
-            HashSet<int> intSet = new HashSet<int>((IEnumerable<int>)this.elems);
-            intSet.IntersectWith(other);
-            return new IntSet((IEnumerable<int>)intSet);
-        }
-
-        internal bool IsSingleton
-        {
-            get
-            {
-                return this.elems.Count == 1;
-            }
-        }
-
-        internal IEnumerable<int> EnumerateMembers()
-        {
-            return (IEnumerable<int>)this.elems;
-        }
+        IEnumerator IEnumerable.GetEnumerator() => _elems.GetEnumerator();
+        private readonly HashSet<int> _elems = new HashSet<int>();
+        private readonly Lazy<string> _strBuilder;
     }
 }

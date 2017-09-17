@@ -1,65 +1,71 @@
-﻿namespace SJP.GenerationRex
+﻿using System;
+
+namespace SJP.GenerationRex
 {
-    internal class MOVE<S>
+    public class Move<TCondition> : IEquatable<Move<TCondition>>
     {
-        public readonly int SourceState;
-        public readonly int TargetState;
-        public readonly S Condition;
-
-        private MOVE(int sourceState, int targetState, S condition)
+        private Move(int sourceState, int targetState, TCondition condition)
         {
-            this.SourceState = sourceState;
-            this.TargetState = targetState;
-            this.Condition = condition;
+            SourceState = sourceState;
+            TargetState = targetState;
+            Condition = condition;
         }
 
-        private MOVE(int sourceState, int targetState)
+        private Move(int sourceState, int targetState)
         {
-            this.SourceState = sourceState;
-            this.TargetState = targetState;
-            this.Condition = default(S);
+            SourceState = sourceState;
+            TargetState = targetState;
+            Condition = default(TCondition);
         }
 
-        public static MOVE<S> T(int sourceState, int targetState, S condition)
-        {
-            return new MOVE<S>(sourceState, targetState, condition);
-        }
+        public int SourceState { get; }
 
-        public static MOVE<S> Epsilon(int sourceState, int targetState)
-        {
-            return new MOVE<S>(sourceState, targetState);
-        }
+        public int TargetState { get; }
 
-        public bool IsEpsilon
-        {
-            get
-            {
-                return (object)this.Condition == null;
-            }
-        }
+        public TCondition Condition { get; }
+
+        public static Move<TCondition> To(int sourceState, int targetState, TCondition condition) => new Move<TCondition>(sourceState, targetState, condition);
+
+        public static Move<TCondition> Epsilon(int sourceState, int targetState) => new Move<TCondition>(sourceState, targetState);
+
+        public bool IsEpsilon => ReferenceEquals(Condition, null);
 
         public override bool Equals(object obj)
         {
-            if (!(obj is MOVE<S>))
+            if (ReferenceEquals(obj, null))
                 return false;
-            MOVE<S> move = (MOVE<S>)obj;
-            if (move.SourceState != this.SourceState || move.TargetState != this.TargetState)
-                return false;
-            if ((object)move.Condition == null && (object)this.Condition == null)
+
+            if (ReferenceEquals(this, obj))
                 return true;
-            if ((object)move.Condition != null)
-                return move.Condition.Equals((object)this.Condition);
-            return false;
+
+            return Equals(obj as Move<TCondition>);
         }
 
         public override int GetHashCode()
         {
-            return this.SourceState + this.TargetState * 2 + ((object)this.Condition == null ? 0 : this.Condition.GetHashCode());
+            return SourceState + (TargetState * 2) + (ReferenceEquals(Condition, null) ? 0 : Condition.GetHashCode());
         }
 
         public override string ToString()
         {
-            return "(" + (object)this.SourceState + "," + ((object)this.Condition == null ? (object)"" : (object)(this.Condition.ToString() + ",")) + (object)this.TargetState + ")";
+            return "(" + SourceState + "," + (ReferenceEquals(Condition, null) ? "" : (object)(Condition + ",")) + TargetState + ")";
+        }
+
+        public bool Equals(Move<TCondition> other)
+        {
+            if (ReferenceEquals(other, null))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            if (SourceState != other.SourceState || TargetState != other.TargetState)
+                return false;
+
+            if (ReferenceEquals(Condition, null) && ReferenceEquals(other.Condition, null))
+                return true;
+
+            return other.Condition != null && other.Condition.Equals(Condition);
         }
     }
 }

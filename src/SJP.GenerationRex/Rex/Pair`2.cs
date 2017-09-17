@@ -1,32 +1,62 @@
-﻿namespace SJP.GenerationRex
-{
-    internal class Pair<S, T>
-    {
-        public readonly S First;
-        public readonly T Second;
+﻿using System;
+using System.Collections.Generic;
 
-        public Pair(S first, T second)
+namespace SJP.GenerationRex
+{
+    internal class Pair<TFirst, TSecond> : IEquatable<Pair<TFirst, TSecond>>
+    {
+        public Pair(TFirst first, TSecond second)
         {
-            this.First = first;
-            this.Second = second;
+            if (ReferenceEquals(first, null))
+                throw new ArgumentNullException(nameof(first));
+            if (ReferenceEquals(second, null))
+                throw new ArgumentNullException(nameof(second));
+
+            First = first;
+            Second = second;
         }
 
-        public override string ToString()
+        public TFirst First { get; }
+
+        public TSecond Second { get; }
+
+        public override string ToString() => "(" + First + "," + Second + ")";
+
+        public bool Equals(Pair<TFirst, TSecond> other)
         {
-            return string.Format("({0},{1})", (object)this.First, (object)this.Second);
+            if (ReferenceEquals(other, null))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            var firstComparer = EqualityComparer<TFirst>.Default;
+            var secondComparer = EqualityComparer<TSecond>.Default;
+
+            return firstComparer.Equals(First, other.First)
+                && secondComparer.Equals(Second, other.Second);
         }
 
         public override bool Equals(object obj)
         {
-            Pair<S, T> pair = (Pair<S, T>)obj;
-            if (this.First.Equals((object)pair.First))
-                return this.Second.Equals((object)pair.Second);
-            return false;
+            if (ReferenceEquals(obj, null))
+                return false;
+
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            return Equals(obj as Pair<TFirst, TSecond>);
         }
 
         public override int GetHashCode()
         {
-            return this.First.GetHashCode() + 2 * this.Second.GetHashCode();
+            unchecked
+            {
+                var hash = 17;
+                hash = (hash * 23) + First.GetHashCode();
+                hash = (hash * 23) + Second.GetHashCode();
+                return hash;
+            }
         }
     }
 }

@@ -114,9 +114,9 @@ namespace SJP.GenerationRex
             return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            }, (IEnumerable<Move<S>>)new Move<S>[1]
             {
-        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+        Move<S>.To(minStateId, minStateId, this.solver.True)
             });
         }
 
@@ -128,7 +128,7 @@ namespace SJP.GenerationRex
             int num1 = minStateId;
             int num2 = num1 + length;
             int[] numArray = new int[1] { num2 };
-            List<MOVE<S>> moveList = new List<MOVE<S>>();
+            List<Move<S>> moveList = new List<Move<S>>();
             for (int index1 = 0; index1 < length; ++index1)
             {
                 List<char[]> chArrayList = new List<char[]>();
@@ -137,17 +137,17 @@ namespace SJP.GenerationRex
                 S index2 = this.solver.MkRangesConstraint(caseInsensitive, (IEnumerable<char[]>)chArrayList);
                 if (!this.description.ContainsKey(index2))
                     this.description[index2] = RexEngine.Escape(c);
-                moveList.Add(MOVE<S>.T(num1 + index1, num1 + index1 + 1, index2));
+                moveList.Add(Move<S>.To(num1 + index1, num1 + index1 + 1, index2));
             }
-            SFA<S> sfa = SFA<S>.Create(num1, (IEnumerable<int>)numArray, (IEnumerable<MOVE<S>>)moveList);
+            SFA<S> sfa = SFA<S>.Create(num1, (IEnumerable<int>)numArray, (IEnumerable<Move<S>>)moveList);
             sfa.isDeterministic = true;
             if (isStart)
             {
-                sfa.AddMove(MOVE<S>.T(num1, num1, this.solver.True));
+                sfa.AddMove(Move<S>.To(num1, num1, this.solver.True));
                 sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(MOVE<S>.T(num2, num2, this.solver.True));
+                sfa.AddMove(Move<S>.To(num2, num2, this.solver.True));
             sfa.isEpsilonFree = true;
             return sfa;
         }
@@ -160,18 +160,18 @@ namespace SJP.GenerationRex
             SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId + 1
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            }, (IEnumerable<Move<S>>)new Move<S>[1]
             {
-        MOVE<S>.T(minStateId, minStateId + 1, index)
+        Move<S>.To(minStateId, minStateId + 1, index)
             });
             sfa.isEpsilonFree = true;
             if (isStart)
             {
-                sfa.AddMove(MOVE<S>.T(minStateId, minStateId, this.solver.True));
+                sfa.AddMove(Move<S>.To(minStateId, minStateId, this.solver.True));
                 sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True));
+                sfa.AddMove(Move<S>.To(minStateId + 1, minStateId + 1, this.solver.True));
             return sfa;
         }
 
@@ -183,18 +183,18 @@ namespace SJP.GenerationRex
             SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId + 1
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            }, (IEnumerable<Move<S>>)new Move<S>[1]
             {
-        MOVE<S>.T(minStateId, minStateId + 1, index)
+        Move<S>.To(minStateId, minStateId + 1, index)
             });
             sfa.isEpsilonFree = true;
             if (isStart)
             {
-                sfa.AddMove(MOVE<S>.T(minStateId, minStateId, this.solver.True));
+                sfa.AddMove(Move<S>.To(minStateId, minStateId, this.solver.True));
                 sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True));
+                sfa.AddMove(Move<S>.To(minStateId + 1, minStateId + 1, this.solver.True));
             return sfa;
         }
 
@@ -208,18 +208,18 @@ namespace SJP.GenerationRex
             SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         num
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            }, (IEnumerable<Move<S>>)new Move<S>[1]
             {
-        MOVE<S>.T(minStateId, num, conditionFromSet)
+        Move<S>.To(minStateId, num, conditionFromSet)
             });
             sfa.isDeterministic = true;
             if (isStart)
             {
-                sfa.AddMove(MOVE<S>.T(minStateId, minStateId, this.solver.True));
+                sfa.AddMove(Move<S>.To(minStateId, minStateId, this.solver.True));
                 sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(MOVE<S>.T(num, num, this.solver.True));
+                sfa.AddMove(Move<S>.To(num, num, this.solver.True));
             sfa.isEpsilonFree = true;
             return sfa;
         }
@@ -329,9 +329,9 @@ namespace SJP.GenerationRex
             return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            }, (IEnumerable<Move<S>>)new Move<S>[1]
             {
-        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+        Move<S>.To(minStateId, minStateId, this.solver.True)
             });
         }
 
@@ -344,9 +344,9 @@ namespace SJP.GenerationRex
             return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            }, (IEnumerable<Move<S>>)new Move<S>[1]
             {
-        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+        Move<S>.To(minStateId, minStateId, this.solver.True)
             });
         }
 
@@ -359,9 +359,9 @@ namespace SJP.GenerationRex
             return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            }, (IEnumerable<Move<S>>)new Move<S>[1]
             {
-        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+        Move<S>.To(minStateId, minStateId, this.solver.True)
             });
         }
 
@@ -372,15 +372,15 @@ namespace SJP.GenerationRex
             SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId + 2
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[4]
+            }, (IEnumerable<Move<S>>)new Move<S>[4]
             {
-        MOVE<S>.Epsilon(minStateId, minStateId + 2),
-        MOVE<S>.Epsilon(minStateId, minStateId + 1),
-        MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True),
-        MOVE<S>.T(minStateId + 1, minStateId + 2, this.solver.MkCharConstraint(false, '\n'))
+        Move<S>.Epsilon(minStateId, minStateId + 2),
+        Move<S>.Epsilon(minStateId, minStateId + 1),
+        Move<S>.To(minStateId + 1, minStateId + 1, this.solver.True),
+        Move<S>.To(minStateId + 1, minStateId + 2, this.solver.MkCharConstraint(false, '\n'))
             });
             if (isEnd)
-                sfa.AddMove(MOVE<S>.T(sfa.FinalState, sfa.FinalState, this.solver.True));
+                sfa.AddMove(Move<S>.To(sfa.FinalState, sfa.FinalState, this.solver.True));
             return sfa;
         }
 
@@ -391,15 +391,15 @@ namespace SJP.GenerationRex
             SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
             {
         minStateId + 2
-            }, (IEnumerable<MOVE<S>>)new MOVE<S>[4]
+            }, (IEnumerable<Move<S>>)new Move<S>[4]
             {
-        MOVE<S>.Epsilon(minStateId, minStateId + 2),
-        MOVE<S>.Epsilon(minStateId + 1, minStateId + 2),
-        MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True),
-        MOVE<S>.T(minStateId, minStateId + 1, this.solver.MkCharConstraint(false, '\n'))
+        Move<S>.Epsilon(minStateId, minStateId + 2),
+        Move<S>.Epsilon(minStateId + 1, minStateId + 2),
+        Move<S>.To(minStateId + 1, minStateId + 1, this.solver.True),
+        Move<S>.To(minStateId, minStateId + 1, this.solver.MkCharConstraint(false, '\n'))
             });
             if (isStart)
-                sfa.AddMove(MOVE<S>.T(sfa.InitialState, sfa.InitialState, this.solver.True));
+                sfa.AddMove(Move<S>.To(sfa.InitialState, sfa.InitialState, this.solver.True));
             return sfa;
         }
 
@@ -488,10 +488,10 @@ namespace SJP.GenerationRex
                     for (int index2 = index1 + 1; index2 < sfas.Count; ++index2)
                     {
                         S constraint1 = this.solver.False;
-                        foreach (MOVE<S> move in sfas[index1].GetMovesFrom(sfas[index1].InitialState))
+                        foreach (Move<S> move in sfas[index1].GetMovesFrom(sfas[index1].InitialState))
                             constraint1 = this.solver.MkOr(constraint1, move.Condition);
                         S s = this.solver.False;
-                        foreach (MOVE<S> move in sfas[index2].GetMovesFrom(sfas[index2].InitialState))
+                        foreach (Move<S> move in sfas[index2].GetMovesFrom(sfas[index2].InitialState))
                             s = this.solver.MkOr(s, move.Condition);
                         flag2 = this.solver.MkAnd(constraint1, s).Equals((object)this.solver.False);
                         if (!flag2)
@@ -506,7 +506,7 @@ namespace SJP.GenerationRex
             Dictionary<int, int> dictionary = new Dictionary<int, int>();
             foreach (SFA<S> sfa in sfas)
             {
-                foreach (MOVE<S> move in sfa.GetMoves())
+                foreach (Move<S> move in sfa.GetMoves())
                 {
                     int first = !flag1 || sfa.InitialState != move.SourceState ? move.SourceState : start;
                     int second = !flag3 || sfa.FinalState != move.TargetState ? move.TargetState : val2;
@@ -648,9 +648,9 @@ namespace SJP.GenerationRex
                     SFA<S> sfa = SFA<S>.Create(loop.MaxState + 1, (IEnumerable<int>)new int[1]
                     {
             loop.MaxState + 1
-                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                    }, (IEnumerable<Move<S>>)new Move<S>[1]
                     {
-            MOVE<S>.T(loop.MaxState + 1, loop.MaxState + 1, this.solver.True)
+            Move<S>.To(loop.MaxState + 1, loop.MaxState + 1, this.solver.True)
                     });
                     sfa.Concat(loop);
                     loop = sfa;
@@ -659,9 +659,9 @@ namespace SJP.GenerationRex
                     loop = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
                     {
             minStateId
-                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                    }, (IEnumerable<Move<S>>)new Move<S>[1]
                     {
-            MOVE<S>.T(minStateId, minStateId, this.solver.True)
+            Move<S>.To(minStateId, minStateId, this.solver.True)
                     });
             }
             if (isEnd)
@@ -670,17 +670,17 @@ namespace SJP.GenerationRex
                     loop.Concat(SFA<S>.Create(loop.MaxState + 1, (IEnumerable<int>)new int[1]
                     {
             loop.MaxState + 1
-                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                    }, (IEnumerable<Move<S>>)new Move<S>[1]
                     {
-            MOVE<S>.T(loop.MaxState + 1, loop.MaxState + 1, this.solver.True)
+            Move<S>.To(loop.MaxState + 1, loop.MaxState + 1, this.solver.True)
                     }));
                 else
                     loop = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
                     {
             minStateId
-                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                    }, (IEnumerable<Move<S>>)new Move<S>[1]
                     {
-            MOVE<S>.T(minStateId, minStateId, this.solver.True)
+            Move<S>.To(minStateId, minStateId, this.solver.True)
                     });
             }
             return loop;
@@ -708,7 +708,7 @@ namespace SJP.GenerationRex
             foreach (int finalState in sfa.GetFinalStates())
             {
                 if (finalState != sfa.InitialState && finalState != initialState)
-                    sfa.AddMove(MOVE<S>.Epsilon(finalState, initialState));
+                    sfa.AddMove(Move<S>.Epsilon(finalState, initialState));
             }
             return sfa.RemoveEpsilonLoops(new Func<S, S, S>(this.solver.MkOr));
         }
@@ -752,9 +752,9 @@ namespace SJP.GenerationRex
                 SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
                 {
           minStateId
-                }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                }, (IEnumerable<Move<S>>)new Move<S>[1]
                 {
-          MOVE<S>.T(minStateId, minStateId, cond)
+          Move<S>.To(minStateId, minStateId, cond)
                 });
                 sfa.isEpsilonFree = true;
                 sfa.isDeterministic = true;
@@ -766,9 +766,9 @@ namespace SJP.GenerationRex
                 {
           minStateId,
           minStateId + 1
-                }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                }, (IEnumerable<Move<S>>)new Move<S>[1]
                 {
-          MOVE<S>.T(minStateId, minStateId + 1, cond)
+          Move<S>.To(minStateId, minStateId + 1, cond)
                 });
                 sfa.isEpsilonFree = true;
                 sfa.isDeterministic = true;
@@ -776,25 +776,25 @@ namespace SJP.GenerationRex
             }
             if (n == int.MaxValue)
             {
-                List<MOVE<S>> moveList = new List<MOVE<S>>();
+                List<Move<S>> moveList = new List<Move<S>>();
                 for (int index = 0; index < m; ++index)
-                    moveList.Add(MOVE<S>.T(minStateId + index, minStateId + index + 1, cond));
-                moveList.Add(MOVE<S>.T(minStateId + m, minStateId + m, cond));
+                    moveList.Add(Move<S>.To(minStateId + index, minStateId + index + 1, cond));
+                moveList.Add(Move<S>.To(minStateId + m, minStateId + m, cond));
                 SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
                 {
           minStateId + m
-                }, (IEnumerable<MOVE<S>>)moveList);
+                }, (IEnumerable<Move<S>>)moveList);
                 sfa.isDeterministic = true;
                 sfa.isEpsilonFree = true;
                 return sfa;
             }
-            MOVE<S>[] moveArray = new MOVE<S>[n];
+            Move<S>[] moveArray = new Move<S>[n];
             for (int index = 0; index < n; ++index)
-                moveArray[index] = MOVE<S>.T(minStateId + index, minStateId + index + 1, cond);
+                moveArray[index] = Move<S>.To(minStateId + index, minStateId + index + 1, cond);
             int[] numArray = new int[n + 1 - m];
             for (int index = m; index <= n; ++index)
                 numArray[index - m] = index + minStateId;
-            SFA<S> sfa1 = SFA<S>.Create(minStateId, (IEnumerable<int>)numArray, (IEnumerable<MOVE<S>>)moveArray);
+            SFA<S> sfa1 = SFA<S>.Create(minStateId, (IEnumerable<int>)numArray, (IEnumerable<Move<S>>)moveArray);
             sfa1.isEpsilonFree = true;
             sfa1.isDeterministic = true;
             return sfa1;
@@ -895,12 +895,12 @@ namespace SJP.GenerationRex
             return !sfa.isEpsilonFree;
         }
 
-        private IEnumerable<MOVE<S>> GenerateMoves(Dictionary<Pair<int, int>, S> condMap, IEnumerable<Pair<int, int>> eMoves)
+        private IEnumerable<Move<S>> GenerateMoves(Dictionary<Pair<int, int>, S> condMap, IEnumerable<Pair<int, int>> eMoves)
         {
             foreach (KeyValuePair<Pair<int, int>, S> cond in condMap)
-                yield return MOVE<S>.T(cond.Key.First, cond.Key.Second, cond.Value);
+                yield return Move<S>.To(cond.Key.First, cond.Key.Second, cond.Value);
             foreach (Pair<int, int> eMove in eMoves)
-                yield return MOVE<S>.Epsilon(eMove.First, eMove.Second);
+                yield return Move<S>.Epsilon(eMove.First, eMove.Second);
         }
 
         public void ToDot(SFA<S> fa, string faName, string filename, DotRankDir rankdir, int fontsize)
@@ -936,7 +936,7 @@ namespace SJP.GenerationRex
             }
             tw.WriteLine();
             tw.WriteLine("//Transitions");
-            foreach (MOVE<S> move in fa.GetMoves())
+            foreach (Move<S> move in fa.GetMoves())
                 tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\"{3}, fontsize = {4} ];", (object)move.SourceState, (object)move.TargetState, move.IsEpsilon ? (object)"" : (object)this.description[move.Condition], move.IsEpsilon ? (object)", style = dashed" : (object)"", (object)fontsize));
             tw.WriteLine("}");
         }
