@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
-    internal class BinaryDecisionDiagramBuilder : ICharacterConstraintSolver<BinaryDecisionDiagram>
+    internal class BddBuilder : ICharacterConstraintSolver<BDD>
     {
-        private Dictionary<long, BinaryDecisionDiagram> restrictCache = new Dictionary<long, BinaryDecisionDiagram>();
-        private Dictionary<BinaryDecisionDiagramBuilder.BddPair, BinaryDecisionDiagram> orCache = new Dictionary<BddPair, BinaryDecisionDiagram>();
-        private Dictionary<BinaryDecisionDiagramBuilder.BddPair, BinaryDecisionDiagram> andCache = new Dictionary<BddPair, BinaryDecisionDiagram>();
-        private Dictionary<int, BinaryDecisionDiagram> intCache = new Dictionary<int, BinaryDecisionDiagram>();
-        private Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram> notCache = new Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram>();
+        private Dictionary<long, BDD> restrictCache = new Dictionary<long, BDD>();
+        private Dictionary<BddBuilder.BddPair, BDD> orCache = new Dictionary<BddBuilder.BddPair, BDD>();
+        private Dictionary<BddBuilder.BddPair, BDD> andCache = new Dictionary<BddBuilder.BddPair, BDD>();
+        private Dictionary<int, BDD> intCache = new Dictionary<int, BDD>();
+        private Dictionary<BDD, BDD> notCache = new Dictionary<BDD, BDD>();
         private int id = 2;
         private const int maxChar = 65535;
         private int[] bitOrder;
@@ -22,257 +22,270 @@ namespace Rex
         {
             get
             {
-                return k;
+                return this.k;
             }
         }
 
-        public BinaryDecisionDiagramBuilder(int k)
+        public BddBuilder(int k)
         {
-            bitOrder = new int[k];
-            bitMaps = new int[k];
+            this.bitOrder = new int[k];
+            this.bitMaps = new int[k];
             for (int index = 0; index < k; ++index)
             {
-                bitOrder[index] = k - 1 - index;
-                bitMaps[index] = 1 << k - 1 - index;
+                this.bitOrder[index] = k - 1 - index;
+                this.bitMaps[index] = 1 << k - 1 - index;
             }
             this.k = k;
         }
 
-        public BinaryDecisionDiagramBuilder(int k, int randomSeed)
+        public BddBuilder(int k, int randomSeed)
         {
-            bitOrder = new int[k];
-            bitMaps = new int[k];
+            this.bitOrder = new int[k];
+            this.bitMaps = new int[k];
             for (int index = 0; index < k; ++index)
             {
-                bitOrder[index] = k - 1 - index;
-                bitMaps[index] = 1 << k - 1 - index;
+                this.bitOrder[index] = k - 1 - index;
+                this.bitMaps[index] = 1 << k - 1 - index;
             }
             this.k = k;
         }
 
         private int MkId()
         {
-            return id++;
+            return this.id++;
         }
 
-        private static long MkRestrictKey(int v, bool makeTrue, BinaryDecisionDiagram bdd)
+        private static long MkRestrictKey(int v, bool makeTrue, BDD bdd)
         {
-            return ((long)bdd.Id << 16) + (v << 4) + (makeTrue ? 1L : 0L);
+            return ((long)bdd.Id << 16) + (long)(v << 4) + (makeTrue ? 1L : 0L);
         }
 
-        private static BinaryDecisionDiagramBuilder.BddPair MkApplyKey(BinaryDecisionDiagram bdd1, BinaryDecisionDiagram bdd2)
+        private static BddBuilder.BddPair MkApplyKey(BDD bdd1, BDD bdd2)
         {
-            return new BinaryDecisionDiagramBuilder.BddPair(bdd1, bdd2);
+            return new BddBuilder.BddPair(bdd1, bdd2);
         }
 
-        private BinaryDecisionDiagram Restrict(int v, bool makeTrue, BinaryDecisionDiagram bdd)
+        private BDD Restrict(int v, bool makeTrue, BDD bdd)
         {
-            long key = BinaryDecisionDiagramBuilder.MkRestrictKey(v, makeTrue, bdd);
-            BinaryDecisionDiagram bdd1;
-            if (restrictCache.TryGetValue(key, out bdd1))
+            long key = BddBuilder.MkRestrictKey(v, makeTrue, bdd);
+            BDD bdd1;
+            if (this.restrictCache.TryGetValue(key, out bdd1))
                 return bdd1;
-            BinaryDecisionDiagram bdd2;
+            BDD bdd2;
             if (v < bdd.Ordinal)
                 bdd2 = bdd;
             else if (bdd.Ordinal < v)
             {
-                BinaryDecisionDiagram t = Restrict(v, makeTrue, bdd.T);
-                BinaryDecisionDiagram f = Restrict(v, makeTrue, bdd.F);
-                bdd2 = f == t ? t : (f != bdd.F || t != bdd.T ? new BinaryDecisionDiagram(MkId(), bdd.Ordinal, t, f) : bdd);
+                BDD t = this.Restrict(v, makeTrue, bdd.T);
+                BDD f = this.Restrict(v, makeTrue, bdd.F);
+                bdd2 = f == t ? t : (f != bdd.F || t != bdd.T ? new BDD(this.MkId(), bdd.Ordinal, t, f) : bdd);
             }
             else
                 bdd2 = makeTrue ? bdd.T : bdd.F;
-            restrictCache[key] = bdd2;
+            this.restrictCache[key] = bdd2;
             return bdd2;
         }
 
-        public BinaryDecisionDiagram MkOr(BinaryDecisionDiagram constraint1, BinaryDecisionDiagram constraint2)
+        public BDD MkOr(BDD constraint1, BDD constraint2)
         {
-            if (constraint1 == BinaryDecisionDiagram.False)
+            if (constraint1 == BDD.False)
                 return constraint2;
-            if (constraint2 == BinaryDecisionDiagram.False)
+            if (constraint2 == BDD.False)
                 return constraint1;
-            if (constraint1 == BinaryDecisionDiagram.True || constraint2 == BinaryDecisionDiagram.True)
-                return BinaryDecisionDiagram.True;
-            BddPair key = MkApplyKey(constraint1, constraint2);
-            if (orCache.TryGetValue(key, out var bdd))
+            if (constraint1 == BDD.True || constraint2 == BDD.True)
+                return BDD.True;
+            BddBuilder.BddPair key = BddBuilder.MkApplyKey(constraint1, constraint2);
+            BDD bdd;
+            if (this.orCache.TryGetValue(key, out bdd))
                 return bdd;
             if (constraint2.Ordinal < constraint1.Ordinal)
             {
-                BinaryDecisionDiagram t = MkOr(constraint1, Restrict(constraint2.Ordinal, true, constraint2));
-                BinaryDecisionDiagram f = MkOr(constraint1, Restrict(constraint2.Ordinal, false, constraint2));
-                bdd = t == f ? t : new BinaryDecisionDiagram(MkId(), constraint2.Ordinal, t, f);
+                BDD t = this.MkOr(constraint1, this.Restrict(constraint2.Ordinal, true, constraint2));
+                BDD f = this.MkOr(constraint1, this.Restrict(constraint2.Ordinal, false, constraint2));
+                bdd = t == f ? t : new BDD(this.MkId(), constraint2.Ordinal, t, f);
             }
             else if (constraint1.Ordinal < constraint2.Ordinal)
             {
-                BinaryDecisionDiagram t = MkOr(Restrict(constraint1.Ordinal, true, constraint1), constraint2);
-                BinaryDecisionDiagram f = MkOr(Restrict(constraint1.Ordinal, false, constraint1), constraint2);
-                bdd = t == f ? t : new BinaryDecisionDiagram(MkId(), constraint1.Ordinal, t, f);
+                BDD t = this.MkOr(this.Restrict(constraint1.Ordinal, true, constraint1), constraint2);
+                BDD f = this.MkOr(this.Restrict(constraint1.Ordinal, false, constraint1), constraint2);
+                bdd = t == f ? t : new BDD(this.MkId(), constraint1.Ordinal, t, f);
             }
             else
             {
-                BinaryDecisionDiagram t = MkOr(Restrict(constraint1.Ordinal, true, constraint1), Restrict(constraint1.Ordinal, true, constraint2));
-                BinaryDecisionDiagram f = MkOr(Restrict(constraint1.Ordinal, false, constraint1), Restrict(constraint1.Ordinal, false, constraint2));
-                bdd = t == f ? t : new BinaryDecisionDiagram(MkId(), constraint1.Ordinal, t, f);
+                BDD t = this.MkOr(this.Restrict(constraint1.Ordinal, true, constraint1), this.Restrict(constraint1.Ordinal, true, constraint2));
+                BDD f = this.MkOr(this.Restrict(constraint1.Ordinal, false, constraint1), this.Restrict(constraint1.Ordinal, false, constraint2));
+                bdd = t == f ? t : new BDD(this.MkId(), constraint1.Ordinal, t, f);
             }
-            orCache[key] = bdd;
+            this.orCache[key] = bdd;
             return bdd;
         }
 
-        public BinaryDecisionDiagram MkAnd(BinaryDecisionDiagram constraint1, BinaryDecisionDiagram constraint2)
+        public BDD MkAnd(BDD constraint1, BDD constraint2)
         {
-            if (constraint1 == BinaryDecisionDiagram.True)
+            if (constraint1 == BDD.True)
                 return constraint2;
-            if (constraint2 == BinaryDecisionDiagram.True)
+            if (constraint2 == BDD.True)
                 return constraint1;
-            if (constraint1 == BinaryDecisionDiagram.False || constraint2 == BinaryDecisionDiagram.False)
-                return BinaryDecisionDiagram.False;
-            BddPair key = MkApplyKey(constraint1, constraint2);
-            BinaryDecisionDiagram bdd;
-            if (andCache.TryGetValue(key, out bdd))
+            if (constraint1 == BDD.False || constraint2 == BDD.False)
+                return BDD.False;
+            BddBuilder.BddPair key = BddBuilder.MkApplyKey(constraint1, constraint2);
+            BDD bdd;
+            if (this.andCache.TryGetValue(key, out bdd))
                 return bdd;
             if (constraint2.Ordinal < constraint1.Ordinal)
             {
-                BinaryDecisionDiagram t = MkAnd(constraint1, Restrict(constraint2.Ordinal, true, constraint2));
-                BinaryDecisionDiagram f = MkAnd(constraint1, Restrict(constraint2.Ordinal, false, constraint2));
-                bdd = t == f ? t : new BinaryDecisionDiagram(MkId(), constraint2.Ordinal, t, f);
+                BDD t = this.MkAnd(constraint1, this.Restrict(constraint2.Ordinal, true, constraint2));
+                BDD f = this.MkAnd(constraint1, this.Restrict(constraint2.Ordinal, false, constraint2));
+                bdd = t == f ? t : new BDD(this.MkId(), constraint2.Ordinal, t, f);
             }
             else if (constraint1.Ordinal < constraint2.Ordinal)
             {
-                BinaryDecisionDiagram t = MkAnd(Restrict(constraint1.Ordinal, true, constraint1), constraint2);
-                BinaryDecisionDiagram f = MkAnd(Restrict(constraint1.Ordinal, false, constraint1), constraint2);
-                bdd = t == f ? t : new BinaryDecisionDiagram(MkId(), constraint1.Ordinal, t, f);
+                BDD t = this.MkAnd(this.Restrict(constraint1.Ordinal, true, constraint1), constraint2);
+                BDD f = this.MkAnd(this.Restrict(constraint1.Ordinal, false, constraint1), constraint2);
+                bdd = t == f ? t : new BDD(this.MkId(), constraint1.Ordinal, t, f);
             }
             else
             {
-                BinaryDecisionDiagram t = MkAnd(Restrict(constraint1.Ordinal, true, constraint1), Restrict(constraint1.Ordinal, true, constraint2));
-                BinaryDecisionDiagram f = MkAnd(Restrict(constraint1.Ordinal, false, constraint1), Restrict(constraint1.Ordinal, false, constraint2));
-                bdd = t == f ? t : new BinaryDecisionDiagram(MkId(), constraint1.Ordinal, t, f);
+                BDD t = this.MkAnd(this.Restrict(constraint1.Ordinal, true, constraint1), this.Restrict(constraint1.Ordinal, true, constraint2));
+                BDD f = this.MkAnd(this.Restrict(constraint1.Ordinal, false, constraint1), this.Restrict(constraint1.Ordinal, false, constraint2));
+                bdd = t == f ? t : new BDD(this.MkId(), constraint1.Ordinal, t, f);
             }
-            andCache[key] = bdd;
+            this.andCache[key] = bdd;
             return bdd;
         }
 
-        public BinaryDecisionDiagram MkNot(BinaryDecisionDiagram constraint)
+        public BDD MkNot(BDD constraint)
         {
-            if (constraint == BinaryDecisionDiagram.False)
-                return BinaryDecisionDiagram.True;
-            if (constraint == BinaryDecisionDiagram.True)
-                return BinaryDecisionDiagram.False;
-            BinaryDecisionDiagram bdd1;
-            if (notCache.TryGetValue(constraint, out bdd1))
+            if (constraint == BDD.False)
+                return BDD.True;
+            if (constraint == BDD.True)
+                return BDD.False;
+            BDD bdd1;
+            if (this.notCache.TryGetValue(constraint, out bdd1))
                 return bdd1;
-            var bdd2 = new BinaryDecisionDiagram(MkId(), constraint.Ordinal, MkNot(constraint.T), MkNot(constraint.F));
-            notCache[constraint] = bdd2;
+            BDD bdd2 = new BDD(this.MkId(), constraint.Ordinal, this.MkNot(constraint.T), this.MkNot(constraint.F));
+            this.notCache[constraint] = bdd2;
             return bdd2;
         }
 
-        public BinaryDecisionDiagram MkAnd(IEnumerable<BinaryDecisionDiagram> constraints)
+        public BDD MkAnd(IEnumerable<BDD> constraints)
         {
-            BinaryDecisionDiagram a = BinaryDecisionDiagram.True;
-            foreach (BinaryDecisionDiagram constraint in constraints)
-                a = MkAnd(a, constraint);
+            BDD a = BDD.True;
+            foreach (BDD condition in constraints)
+                a = this.MkAnd(a, condition);
             return a;
         }
 
-        public BinaryDecisionDiagram MkOr(IEnumerable<BinaryDecisionDiagram> constraints)
+        public BDD MkOr(IEnumerable<BDD> constraints)
         {
-            var result = BinaryDecisionDiagram.False;
-            foreach (BinaryDecisionDiagram constraint in constraints)
-                result = MkOr(result, constraint);
-            return result;
+            BDD a = BDD.False;
+            foreach (BDD condition in constraints)
+                a = this.MkOr(a, condition);
+            return a;
         }
 
-        public BinaryDecisionDiagram True => BinaryDecisionDiagram.True;
-
-        public BinaryDecisionDiagram False => BinaryDecisionDiagram.False;
-
-        public BinaryDecisionDiagram MkBddForInt(int n)
+        public BDD True
         {
-            BinaryDecisionDiagram bdd1;
-            if (intCache.TryGetValue(n, out bdd1))
+            get
+            {
+                return BDD.True;
+            }
+        }
+
+        public BDD False
+        {
+            get
+            {
+                return BDD.False;
+            }
+        }
+
+        public BDD MkBddForInt(int n)
+        {
+            BDD bdd1;
+            if (this.intCache.TryGetValue(n, out bdd1))
                 return bdd1;
-            BinaryDecisionDiagram bdd2 = BinaryDecisionDiagram.True;
-            for (int x = k - 1; x >= 0; --x)
-                bdd2 = (n & bitMaps[x]) != 0 ? new BinaryDecisionDiagram(MkId(), x, bdd2, BinaryDecisionDiagram.False) : new BinaryDecisionDiagram(MkId(), x, BinaryDecisionDiagram.False, bdd2);
-            intCache[n] = bdd2;
+            BDD bdd2 = BDD.True;
+            for (int x = this.k - 1; x >= 0; --x)
+                bdd2 = (n & this.bitMaps[x]) != 0 ? new BDD(this.MkId(), x, bdd2, BDD.False) : new BDD(this.MkId(), x, BDD.False, bdd2);
+            this.intCache[n] = bdd2;
             return bdd2;
         }
 
-        public BinaryDecisionDiagram MkCharConstraint(bool caseInsensitive, char c)
+        public BDD MkCharConstraint(bool caseInsensitive, char c)
         {
             if (caseInsensitive)
             {
                 if (char.IsUpper(c))
-                    return MkOr(MkBddForInt(c), MkBddForInt(char.ToLower(c)));
+                    return this.MkOr(this.MkBddForInt((int)c), this.MkBddForInt((int)char.ToLower(c)));
                 if (char.IsLower(c))
-                    return MkOr(MkBddForInt(c), MkBddForInt(char.ToUpper(c)));
+                    return this.MkOr(this.MkBddForInt((int)c), this.MkBddForInt((int)char.ToUpper(c)));
             }
-            return MkBddForInt(c);
+            return this.MkBddForInt((int)c);
         }
 
-        public BinaryDecisionDiagram MkBddForIntRange(int m, int n)
+        public BDD MkBddForIntRange(int m, int n)
         {
-            BinaryDecisionDiagram a = BinaryDecisionDiagram.False;
+            BDD a = BDD.False;
             for (int n1 = m; n1 <= n; ++n1)
-                a = MkOr(a, MkBddForInt(n1));
+                a = this.MkOr(a, this.MkBddForInt(n1));
             return a;
         }
 
-        public BinaryDecisionDiagram MkRangeConstraint(bool caseInsensitive, char lower, char upper)
+        public BDD MkRangeConstraint(bool caseInsensitive, char lower, char upper)
         {
-            if (k == 7)
-                return MkRangeConstraint1(caseInsensitive, lower < sbyte.MaxValue ? lower : '\x007F', upper < sbyte.MaxValue ? upper : '\x007F');
-            if (k == 8)
-                return MkRangeConstraint1(caseInsensitive, lower < byte.MaxValue ? lower : 'ÿ', upper < byte.MaxValue ? upper : 'ÿ');
-            int num1 = lower;
-            int num2 = upper;
-            if (num2 - num1 < ushort.MaxValue - num2 + num1 || caseInsensitive)
-                return MkRangeConstraint1(caseInsensitive, lower, upper);
-            return MkNot(MkOr(lower > 0 ? MkRangeConstraint1(caseInsensitive, char.MinValue, (char)(lower - 1U)) : BinaryDecisionDiagram.False, upper < ushort.MaxValue ? MkRangeConstraint1(caseInsensitive, (char)(upper + 1U), char.MaxValue) : BinaryDecisionDiagram.False));
+            if (this.k == 7)
+                return this.MkRangeConstraint1(caseInsensitive, (int)lower < (int)sbyte.MaxValue ? lower : '\x007F', (int)upper < (int)sbyte.MaxValue ? upper : '\x007F');
+            if (this.k == 8)
+                return this.MkRangeConstraint1(caseInsensitive, (int)lower < (int)byte.MaxValue ? lower : 'ÿ', (int)upper < (int)byte.MaxValue ? upper : 'ÿ');
+            int num1 = (int)lower;
+            int num2 = (int)upper;
+            if (num2 - num1 < (int)ushort.MaxValue - num2 + num1 || caseInsensitive)
+                return this.MkRangeConstraint1(caseInsensitive, lower, upper);
+            return this.MkNot(this.MkOr((int)lower > 0 ? this.MkRangeConstraint1(caseInsensitive, char.MinValue, (char)((uint)lower - 1U)) : BDD.False, (int)upper < (int)ushort.MaxValue ? this.MkRangeConstraint1(caseInsensitive, (char)((uint)upper + 1U), char.MaxValue) : BDD.False));
         }
 
-        public BinaryDecisionDiagram MkRangeConstraint1(bool ignoreCase, char c, char d)
+        public BDD MkRangeConstraint1(bool ignoreCase, char c, char d)
         {
-            BinaryDecisionDiagram a = BinaryDecisionDiagram.False;
-            for (char c1 = c; c1 <= d; ++c1)
-                a = MkOr(a, MkCharConstraint(ignoreCase, c1));
+            BDD a = BDD.False;
+            for (char c1 = c; (int)c1 <= (int)d; ++c1)
+                a = this.MkOr(a, this.MkCharConstraint(ignoreCase, c1));
             return a;
         }
 
-        public BinaryDecisionDiagram MkBddForIntRanges(IEnumerable<int[]> ranges)
+        public BDD MkBddForIntRanges(IEnumerable<int[]> ranges)
         {
-            BinaryDecisionDiagram a = BinaryDecisionDiagram.False;
+            BDD a = BDD.False;
             foreach (int[] range in ranges)
-                a = MkOr(a, MkBddForIntRange(range[0], range[1]));
+                a = this.MkOr(a, this.MkBddForIntRange(range[0], range[1]));
             return a;
         }
 
-        public BinaryDecisionDiagram MkRangesConstraint(bool caseInsensitive, IEnumerable<char[]> ranges)
+        public BDD MkRangesConstraint(bool caseInsensitive, IEnumerable<char[]> ranges)
         {
-            BinaryDecisionDiagram a = BinaryDecisionDiagram.False;
+            BDD a = BDD.False;
             foreach (char[] range in ranges)
-                a = MkOr(a, MkRangeConstraint(caseInsensitive, range[0], range[1]));
+                a = this.MkOr(a, this.MkRangeConstraint(caseInsensitive, range[0], range[1]));
             return a;
         }
 
-        public char GenerateMember(Chooser chooser, BinaryDecisionDiagram bdd)
+        public char GenerateMember(Chooser chooser, BDD bdd)
         {
             int num = 0;
-            for (int index = 0; index < k; ++index)
+            for (int index = 0; index < this.k; ++index)
             {
                 if (index < bdd.Ordinal)
-                    num |= chooser.ChooseBoolean() ? bitMaps[index] : 0;
-                else if (bdd.F == BinaryDecisionDiagram.False)
+                    num |= chooser.ChooseTrueOrFalse() ? this.bitMaps[index] : 0;
+                else if (bdd.F == BDD.False)
                 {
-                    num |= bitMaps[index];
+                    num |= this.bitMaps[index];
                     bdd = bdd.T;
                 }
-                else if (bdd.T == BinaryDecisionDiagram.False)
+                else if (bdd.T == BDD.False)
                     bdd = bdd.F;
-                else if (chooser.ChooseBoolean())
+                else if (chooser.ChooseTrueOrFalse())
                 {
-                    num |= bitMaps[index];
+                    num |= this.bitMaps[index];
                     bdd = bdd.T;
                 }
                 else
@@ -281,16 +294,22 @@ namespace Rex
             return (char)num;
         }
 
-        public IEnumerable<int[]> Serialize(BinaryDecisionDiagram bdd)
+        public IEnumerable<int[]> Serialize(BDD bdd)
         {
-            var done = new HashSet<BinaryDecisionDiagram>();
-            var stack = new Stack<BinaryDecisionDiagram>();
+            HashSet<BDD> done = new HashSet<BDD>();
+            Stack<BDD> stack = new Stack<BDD>();
             if (bdd.Id > 1)
                 stack.Push(bdd);
             while (stack.Count > 0)
             {
-                BinaryDecisionDiagram b = stack.Pop();
-                yield return new int[4] { b.Ordinal, b.Id, b.T.Id, b.F.Id };
+                BDD b = stack.Pop();
+                yield return new int[4]
+                {
+          b.Ordinal,
+          b.Id,
+          b.T.Id,
+          b.F.Id
+                };
                 if (b.T.Id > 1 && !done.Contains(b.T))
                 {
                     done.Add(b.T);
@@ -304,23 +323,23 @@ namespace Rex
             }
         }
 
-        public int[] SerializeCompact(BinaryDecisionDiagram bdd)
+        public int[] SerializeCompact(BDD bdd)
         {
-            if (bdd == BinaryDecisionDiagram.False)
+            if (bdd == BDD.False)
                 return new int[1];
-            if (bdd == BinaryDecisionDiagram.True)
+            if (bdd == BDD.True)
                 return new int[2];
-            var numArray = new int[bdd.CalculateSize()];
-            var dictionary = new Dictionary<BinaryDecisionDiagram, int>();
-            dictionary[BinaryDecisionDiagram.False] = 0;
-            dictionary[BinaryDecisionDiagram.True] = 1;
-            var bddStack = new Stack<BinaryDecisionDiagram>();
+            int[] numArray = new int[bdd.CalculateSize()];
+            Dictionary<BDD, int> dictionary = new Dictionary<BDD, int>();
+            dictionary[BDD.False] = 0;
+            dictionary[BDD.True] = 1;
+            Stack<BDD> bddStack = new Stack<BDD>();
             bddStack.Push(bdd);
             dictionary[bdd] = 2;
             int num1 = 3;
             while (bddStack.Count > 0)
             {
-                BinaryDecisionDiagram index1 = bddStack.Pop();
+                BDD index1 = bddStack.Pop();
                 if (!dictionary.ContainsKey(index1.T))
                 {
                     dictionary[index1.T] = num1++;
@@ -339,15 +358,15 @@ namespace Rex
             return numArray;
         }
 
-        public BinaryDecisionDiagram Deserialize(IEnumerable<int[]> arcs)
+        public BDD Deserialize(IEnumerable<int[]> arcs)
         {
-            BinaryDecisionDiagram bdd1 = null;
-            var dictionary1 = new Dictionary<int, int>();
-            var dictionary2 = new Dictionary<int, int>();
-            var dictionary3 = new Dictionary<int, BinaryDecisionDiagram>();
+            BDD bdd1 = (BDD)null;
+            Dictionary<int, int> dictionary1 = new Dictionary<int, int>();
+            Dictionary<int, int> dictionary2 = new Dictionary<int, int>();
+            Dictionary<int, BDD> dictionary3 = new Dictionary<int, BDD>();
             foreach (int[] arc in arcs)
             {
-                var bdd2 = new BinaryDecisionDiagram(MkId(), arc[0]);
+                BDD bdd2 = new BDD(this.MkId(), arc[0]);
                 dictionary3[arc[1]] = bdd2;
                 dictionary1[arc[1]] = arc[2];
                 dictionary2[arc[1]] = arc[3];
@@ -358,29 +377,29 @@ namespace Rex
             {
                 int index1 = dictionary1[key];
                 int index2 = dictionary2[key];
-                dictionary3[key].T = index1 == 0 ? BinaryDecisionDiagram.False : (index1 == 1 ? BinaryDecisionDiagram.True : dictionary3[index1]);
-                dictionary3[key].F = index2 == 0 ? BinaryDecisionDiagram.False : (index2 == 1 ? BinaryDecisionDiagram.True : dictionary3[index2]);
+                dictionary3[key].T = index1 == 0 ? BDD.False : (index1 == 1 ? BDD.True : dictionary3[index1]);
+                dictionary3[key].F = index2 == 0 ? BDD.False : (index2 == 1 ? BDD.True : dictionary3[index2]);
             }
-            return bdd1 ?? BinaryDecisionDiagram.True;
+            return bdd1 ?? BDD.True;
         }
 
-        public BinaryDecisionDiagram DeserializeCompact(int[] arcs)
+        public BDD DeserializeCompact(int[] arcs)
         {
             if (arcs.Length == 1)
-                return BinaryDecisionDiagram.False;
+                return BDD.False;
             if (arcs.Length == 2)
-                return BinaryDecisionDiagram.True;
-            var dictionary1 = new Dictionary<int, int>();
-            var dictionary2 = new Dictionary<int, int>();
-            var bddArray = new BinaryDecisionDiagram[arcs.Length];
-            bddArray[0] = BinaryDecisionDiagram.False;
-            bddArray[1] = BinaryDecisionDiagram.True;
+                return BDD.True;
+            Dictionary<int, int> dictionary1 = new Dictionary<int, int>();
+            Dictionary<int, int> dictionary2 = new Dictionary<int, int>();
+            BDD[] bddArray = new BDD[arcs.Length];
+            bddArray[0] = BDD.False;
+            bddArray[1] = BDD.True;
             for (int index = 2; index < arcs.Length; ++index)
             {
                 int x = arcs[index] >> 28 & 15;
                 int num1 = arcs[index] >> 14 & 16383;
                 int num2 = arcs[index] & 16383;
-                var bdd = new BinaryDecisionDiagram(MkId(), x);
+                BDD bdd = new BDD(this.MkId(), x);
                 bddArray[index] = bdd;
                 dictionary1[index] = num1;
                 dictionary2[index] = num2;
@@ -395,20 +414,20 @@ namespace Rex
             return bddArray[2];
         }
 
-        public static void Display(BinaryDecisionDiagram bdd, string name, DotRankDir dir, int fontsize, bool showgraph, string format)
+        public static void Display(BDD bdd, string name, DotRankDir dir, int fontsize, bool showgraph, string format)
         {
             string currentDirectory = Environment.CurrentDirectory;
-            string str = string.Format("{1}\\{0}.dot", name, currentDirectory);
-            string fileName = string.Format("{2}\\{0}.{1}", name, format, currentDirectory);
-            var fileInfo1 = new FileInfo(str);
+            string str = string.Format("{1}\\{0}.dot", (object)name, (object)currentDirectory);
+            string fileName = string.Format("{2}\\{0}.{1}", (object)name, (object)format, (object)currentDirectory);
+            FileInfo fileInfo1 = new FileInfo(str);
             if (fileInfo1.Exists)
                 fileInfo1.IsReadOnly = false;
-            var fileInfo2 = new FileInfo(fileName);
+            FileInfo fileInfo2 = new FileInfo(fileName);
             if (fileInfo2.Exists)
                 fileInfo2.IsReadOnly = false;
-            ToDot(bdd, name, str, dir, fontsize);
-            var process = new Process();
-            process.StartInfo = new ProcessStartInfo("dot.exe", string.Format("-T{2} {0} -o {1}", str, fileName, format));
+            BddBuilder.ToDot(bdd, name, str, dir, fontsize);
+            Process process = new Process();
+            process.StartInfo = new ProcessStartInfo("dot.exe", string.Format("-T{2} {0} -o {1}", (object)str, (object)fileName, (object)format));
             try
             {
                 process.Start();
@@ -424,29 +443,30 @@ namespace Rex
             }
         }
 
-        public static void ToDot(BinaryDecisionDiagram bdd, string bddName, string filename, DotRankDir rankdir, int fontsize)
+        public static void ToDot(BDD bdd, string bddName, string filename, DotRankDir rankdir, int fontsize)
         {
-            using (var tw = new StreamWriter(filename))
-                ToDot(bdd, bddName, tw, rankdir, fontsize);
+            StreamWriter tw = new StreamWriter(filename);
+            BddBuilder.ToDot(bdd, bddName, tw, rankdir, fontsize);
+            tw.Close();
         }
 
-        public static void ToDot(BinaryDecisionDiagram bdd, string bddName, StreamWriter tw, DotRankDir rankdir, int fontsize)
+        public static void ToDot(BDD bdd, string bddName, StreamWriter tw, DotRankDir rankdir, int fontsize)
         {
             if (bdd.Id < 2)
                 throw new ArgumentOutOfRangeException(nameof(bdd), "Must be different from BDD.True and BDD.False");
-            var dictionary1 = new Dictionary<BinaryDecisionDiagram, int>();
-            var dictionary2 = new Dictionary<int, int>();
-            var moveList = new List<Move<string>>();
-            var bddStack = new Stack<BinaryDecisionDiagram>();
+            Dictionary<BDD, int> dictionary1 = new Dictionary<BDD, int>();
+            Dictionary<int, int> dictionary2 = new Dictionary<int, int>();
+            List<MOVE<string>> moveList = new List<MOVE<string>>();
+            Stack<BDD> bddStack = new Stack<BDD>();
             bddStack.Push(bdd);
-            dictionary1.Add(BinaryDecisionDiagram.False, 0);
-            dictionary1.Add(BinaryDecisionDiagram.True, 1);
+            dictionary1.Add(BDD.False, 0);
+            dictionary1.Add(BDD.True, 1);
             dictionary1.Add(bdd, 2);
             int num = 3;
             int val2 = 0;
             while (bddStack.Count > 0)
             {
-                BinaryDecisionDiagram index = bddStack.Pop();
+                BDD index = bddStack.Pop();
                 int sourceState = dictionary1[index];
                 dictionary2[sourceState] = index.Ordinal;
                 val2 = Math.Max(index.Ordinal, val2);
@@ -460,71 +480,54 @@ namespace Rex
                     dictionary1[index.T] = num++;
                     bddStack.Push(index.T);
                 }
-                moveList.Add(Move<string>.T(sourceState, dictionary1[index.F], "0"));
-                moveList.Add(Move<string>.T(sourceState, dictionary1[index.T], "1"));
+                moveList.Add(MOVE<string>.T(sourceState, dictionary1[index.F], "0"));
+                moveList.Add(MOVE<string>.T(sourceState, dictionary1[index.T], "1"));
             }
             dictionary2[0] = val2 + 1;
             dictionary2[1] = val2 + 1;
             tw.WriteLine("digraph \"" + bddName + "\" {");
-            tw.WriteLine(string.Format("rankdir={0};", rankdir.ToString()));
+            tw.WriteLine(string.Format("rankdir={0};", (object)rankdir.ToString()));
             tw.WriteLine();
             tw.WriteLine("//Nodes");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", fontsize));
+            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", (object)fontsize));
             foreach (int key in dictionary2.Keys)
             {
                 if (key > 1)
-                    tw.WriteLine("{0} [label = {1}, group = {1}]", key, dictionary2[key]);
+                    tw.WriteLine("{0} [label = {1}, group = {1}]", (object)key, (object)dictionary2[key]);
             }
             tw.WriteLine("//True and False");
-            tw.WriteLine(string.Format("node [style = filled, shape= polygon, sides=4, fillcolor = white, fontsize = {0}]", fontsize));
-            tw.WriteLine("0 [label = False, group = {0}]", val2);
-            tw.WriteLine("1 [label = True, group = {0}]", val2);
+            tw.WriteLine(string.Format("node [style = filled, shape= polygon, sides=4, fillcolor = white, fontsize = {0}]", (object)fontsize));
+            tw.WriteLine("0 [label = False, group = {0}]", (object)val2);
+            tw.WriteLine("1 [label = True, group = {0}]", (object)val2);
             tw.WriteLine();
             tw.WriteLine("//Links");
-            foreach (Move<string> move in moveList)
-                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\", fontsize = {3} ];", move.SourceState, move.TargetState, move.Condition, fontsize));
+            foreach (MOVE<string> move in moveList)
+                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\", fontsize = {3} ];", (object)move.SourceState, (object)move.TargetState, (object)move.Condition, (object)fontsize));
             tw.WriteLine("}");
         }
 
-        private class BddPair : IEquatable<BddPair>
+        private class BddPair
         {
-            private BinaryDecisionDiagram a;
-            private BinaryDecisionDiagram b;
+            private BDD a;
+            private BDD b;
 
-            internal BddPair(BinaryDecisionDiagram a, BinaryDecisionDiagram b)
+            internal BddPair(BDD a, BDD b)
             {
                 this.a = a;
                 this.b = b;
             }
 
-            public BinaryDecisionDiagram First { get; }
-
-            public BinaryDecisionDiagram Second { get; }
-
             public override int GetHashCode()
             {
-
-                return a.Id + (b.Id << 1);
+                return this.a.Id + (this.b.Id << 1);
             }
 
             public override bool Equals(object obj)
             {
-                var bddPair = (BddPair)obj;
-                if (bddPair.a == a)
-                    return bddPair.b == b;
+                BddBuilder.BddPair bddPair = (BddBuilder.BddPair)obj;
+                if (bddPair.a == this.a)
+                    return bddPair.b == this.b;
                 return false;
-            }
-
-            public bool Equals(BddPair other)
-            {
-                if (ReferenceEquals(other, null))
-                    return false;
-
-                if (ReferenceEquals(this, other))
-                    return true;
-
-                return First == other.First
-                    && Second == other.Second;
             }
         }
     }

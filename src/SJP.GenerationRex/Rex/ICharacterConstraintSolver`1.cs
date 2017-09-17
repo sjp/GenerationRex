@@ -1,27 +1,27 @@
 ﻿using System.Collections.Generic;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
-    internal interface ICharacterConstraintSolver<TConstraint>
+    internal interface ICharacterConstraintSolver<S>
     {
-        TConstraint MkOr(TConstraint constraint1, TConstraint constraint2);
+        S MkOr(S constraint1, S constraint2);
 
-        TConstraint MkOr(IEnumerable<TConstraint> constraints);
+        S MkOr(IEnumerable<S> constraints);
 
-        TConstraint MkAnd(TConstraint constraint1, TConstraint constraint2);
+        S MkAnd(S constraint1, S constraint2);
 
-        TConstraint MkAnd(IEnumerable<TConstraint> constraints);
+        S MkAnd(IEnumerable<S> constraints);
 
-        TConstraint MkNot(TConstraint constraint);
+        S MkNot(S constraint);
 
-        TConstraint True { get; }
+        S True { get; }
 
-        TConstraint False { get; }
+        S False { get; }
 
-        TConstraint MkRangeConstraint(bool caseInsensitive, char lower, char upper);
+        S MkRangeConstraint(bool caseInsensitive, char lower, char upper);
 
-        TConstraint MkCharConstraint(bool caseInsensitive, char c);
+        S MkCharConstraint(bool caseInsensitive, char c);
 
-        TConstraint MkRangesConstraint(bool caseInsensitive, IEnumerable<char[]> ranges);
+        S MkRangesConstraint(bool caseInsensitive, IEnumerable<char[]> ranges);
     }
 }

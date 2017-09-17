@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using SJP.GenerationRex.RegularExpressions;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     internal class RegexToSFAGeneric<S>
     {
@@ -20,246 +21,268 @@ namespace Rex
         {
             this.solver = solver;
             this.categorizer = categorizer;
-            description.Add(solver.True, "");
+            this.description.Add(solver.True, "");
         }
 
-        public SymbolicFiniteAutomaton<S> Convert(string regex, RegexOptions options)
+        public SFA<S> Convert(string regex, RegexOptions options)
         {
             RegexOptions op = options & ~RegexOptions.RightToLeft;
-            return ConvertNode(RegexParser.Parse(regex, op)._root, 0, true, true);
+            return this.ConvertNode(RegexParser.Parse(regex, op)._root, 0, true, true);
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNode(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNode(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             switch (node._type)
             {
                 case 3:
-                    return ConvertNodeOneloop(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeOneloop(node, minStateId, isStart, isEnd);
                 case 4:
-                    return ConvertNodeNotoneloop(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeNotoneloop(node, minStateId, isStart, isEnd);
                 case 5:
-                    return ConvertNodeSetloop(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeSetloop(node, minStateId, isStart, isEnd);
                 case 6:
-                    return ConvertNodeOnelazy(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeOnelazy(node, minStateId, isStart, isEnd);
                 case 7:
-                    return ConvertNodeNotonelazy(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeNotonelazy(node, minStateId, isStart, isEnd);
                 case 8:
-                    return ConvertNodeSetlazy(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeSetlazy(node, minStateId, isStart, isEnd);
                 case 9:
-                    return ConvertNodeOne(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeOne(node, minStateId, isStart, isEnd);
                 case 10:
-                    return ConvertNodeNotone(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeNotone(node, minStateId, isStart, isEnd);
                 case 11:
-                    return ConvertNodeSet(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeSet(node, minStateId, isStart, isEnd);
                 case 12:
-                    return ConvertNodeMulti(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeMulti(node, minStateId, isStart, isEnd);
                 case 13:
-                    return ConvertNodeRef(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeRef(node, minStateId, isStart, isEnd);
                 case 14:
-                    return ConvertNodeBol(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeBol(node, minStateId, isStart, isEnd);
                 case 15:
-                    return ConvertNodeEol(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeEol(node, minStateId, isStart, isEnd);
                 case 16:
-                    return ConvertNodeBoundary(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeBoundary(node, minStateId, isStart, isEnd);
                 case 17:
-                    return ConvertNodeNonboundary(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeNonboundary(node, minStateId, isStart, isEnd);
                 case 18:
-                    return ConvertNodeBeginning(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeBeginning(node, minStateId, isStart, isEnd);
                 case 19:
-                    return ConvertNodeStart(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeStart(node, minStateId, isStart, isEnd);
                 case 20:
-                    return ConvertNodeEndZ(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeEndZ(node, minStateId, isStart, isEnd);
                 case 21:
-                    return ConvertNodeEnd(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeEnd(node, minStateId, isStart, isEnd);
                 case 22:
-                    return ConvertNodeNothing(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeNothing(node, minStateId, isStart, isEnd);
                 case 23:
-                    return ConvertNodeEmpty(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeEmpty(node, minStateId, isStart, isEnd);
                 case 24:
-                    return ConvertNodeAlternate(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeAlternate(node, minStateId, isStart, isEnd);
                 case 25:
-                    return ConvertNodeConcatenate(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeConcatenate(node, minStateId, isStart, isEnd);
                 case 26:
-                    return ConvertNodeLoop(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeLoop(node, minStateId, isStart, isEnd);
                 case 27:
-                    return ConvertNodeLazyloop(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeLazyloop(node, minStateId, isStart, isEnd);
                 case 28:
-                    return ConvertNode(node.Child(0), minStateId, isStart, isEnd);
+                    return this.ConvertNode(node.Child(0), minStateId, isStart, isEnd);
                 case 29:
-                    return ConvertNodeGroup(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeGroup(node, minStateId, isStart, isEnd);
                 case 30:
-                    return ConvertNodeRequire(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeRequire(node, minStateId, isStart, isEnd);
                 case 31:
-                    return ConvertNodePrevent(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodePrevent(node, minStateId, isStart, isEnd);
                 case 32:
-                    return ConvertNodeGreedy(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeGreedy(node, minStateId, isStart, isEnd);
                 case 33:
-                    return ConvertNodeTestref(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeTestref(node, minStateId, isStart, isEnd);
                 case 34:
-                    return ConvertNodeTestgroup(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeTestgroup(node, minStateId, isStart, isEnd);
                 case 41:
-                    return ConvertNodeECMABoundary(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeECMABoundary(node, minStateId, isStart, isEnd);
                 case 42:
-                    return ConvertNodeNonECMABoundary(node, minStateId, isStart, isEnd);
+                    return this.ConvertNodeNonECMABoundary(node, minStateId, isStart, isEnd);
                 default:
                     throw new RexException("Unrecognized regex construct");
             }
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeEmpty(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeEmpty(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             if (!isStart && !isEnd)
-                return SymbolicFiniteAutomaton<S>.Epsilon;
-            return SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId }, new Move<S>[1] { Move<S>.T(minStateId, minStateId, solver.True) });
+                return SFA<S>.Epsilon;
+            return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            {
+        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+            });
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeMulti(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeMulti(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             string str = node._str;
             int length = str.Length;
             bool caseInsensitive = (node._options & RegexOptions.IgnoreCase) != RegexOptions.None;
             int num1 = minStateId;
             int num2 = num1 + length;
-            var numArray = new int[1] { num2 };
-            var moveList = new List<Move<S>>();
+            int[] numArray = new int[1] { num2 };
+            List<MOVE<S>> moveList = new List<MOVE<S>>();
             for (int index1 = 0; index1 < length; ++index1)
             {
-                var chArrayList = new List<char[]>();
+                List<char[]> chArrayList = new List<char[]>();
                 char c = str[index1];
                 chArrayList.Add(new char[2] { c, c });
-                S index2 = solver.MkRangesConstraint(caseInsensitive, chArrayList);
-                if (!description.ContainsKey(index2))
-                    description[index2] = RexEngine.Escape(c);
-                moveList.Add(Move<S>.T(num1 + index1, num1 + index1 + 1, index2));
+                S index2 = this.solver.MkRangesConstraint(caseInsensitive, (IEnumerable<char[]>)chArrayList);
+                if (!this.description.ContainsKey(index2))
+                    this.description[index2] = RexEngine.Escape(c);
+                moveList.Add(MOVE<S>.T(num1 + index1, num1 + index1 + 1, index2));
             }
-            SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(num1, numArray, moveList);
-            sfa._isDeterministic = true;
+            SFA<S> sfa = SFA<S>.Create(num1, (IEnumerable<int>)numArray, (IEnumerable<MOVE<S>>)moveList);
+            sfa.isDeterministic = true;
             if (isStart)
             {
-                sfa.AddMove(Move<S>.T(num1, num1, solver.True));
-                sfa._isDeterministic = false;
+                sfa.AddMove(MOVE<S>.T(num1, num1, this.solver.True));
+                sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(Move<S>.T(num2, num2, solver.True));
-            sfa._isEpsilonFree = true;
+                sfa.AddMove(MOVE<S>.T(num2, num2, this.solver.True));
+            sfa.isEpsilonFree = true;
             return sfa;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeNotone(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeNotone(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            S index = solver.MkNot(solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch));
-            if (!description.ContainsKey(index))
-                description[index] = string.Format("[^{0}]", RexEngine.Escape(node._ch));
-            SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId + 1 }, new Move<S>[1] { Move<S>.T(minStateId, minStateId + 1, index) });
-            sfa._isEpsilonFree = true;
+            S index = this.solver.MkNot(this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch));
+            if (!this.description.ContainsKey(index))
+                this.description[index] = string.Format("[^{0}]", (object)RexEngine.Escape(node._ch));
+            SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId + 1
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            {
+        MOVE<S>.T(minStateId, minStateId + 1, index)
+            });
+            sfa.isEpsilonFree = true;
             if (isStart)
             {
-                sfa.AddMove(Move<S>.T(minStateId, minStateId, solver.True));
-                sfa._isDeterministic = false;
+                sfa.AddMove(MOVE<S>.T(minStateId, minStateId, this.solver.True));
+                sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(Move<S>.T(minStateId + 1, minStateId + 1, solver.True));
+                sfa.AddMove(MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True));
             return sfa;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeOne(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeOne(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            S index = solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch);
-            if (!description.ContainsKey(index))
-                description[index] = RexEngine.Escape(node._ch);
-            SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId + 1 }, new Move<S>[1] { Move<S>.T(minStateId, minStateId + 1, index) });
-            sfa._isEpsilonFree = true;
+            S index = this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch);
+            if (!this.description.ContainsKey(index))
+                this.description[index] = RexEngine.Escape(node._ch);
+            SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId + 1
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            {
+        MOVE<S>.T(minStateId, minStateId + 1, index)
+            });
+            sfa.isEpsilonFree = true;
             if (isStart)
             {
-                sfa.AddMove(Move<S>.T(minStateId, minStateId, solver.True));
-                sfa._isDeterministic = false;
+                sfa.AddMove(MOVE<S>.T(minStateId, minStateId, this.solver.True));
+                sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(Move<S>.T(minStateId + 1, minStateId + 1, solver.True));
+                sfa.AddMove(MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True));
             return sfa;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeSet(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeSet(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             string str = node._str;
-            S conditionFromSet = CreateConditionFromSet((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, str);
-            if (conditionFromSet.Equals(solver.False))
-                return SymbolicFiniteAutomaton<S>.Empty;
-            if (!description.ContainsKey(conditionFromSet))
-                description[conditionFromSet] = RegexCharClass.SetDescription(str);
+            S conditionFromSet = this.CreateConditionFromSet((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, str);
+            if (conditionFromSet.Equals((object)this.solver.False))
+                return SFA<S>.Empty;
             int num = minStateId + 1;
-            SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { num }, new Move<S>[1] { Move<S>.T(minStateId, num, conditionFromSet) });
-            sfa._isDeterministic = true;
+            SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        num
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            {
+        MOVE<S>.T(minStateId, num, conditionFromSet)
+            });
+            sfa.isDeterministic = true;
             if (isStart)
             {
-                sfa.AddMove(Move<S>.T(minStateId, minStateId, solver.True));
-                sfa._isDeterministic = false;
+                sfa.AddMove(MOVE<S>.T(minStateId, minStateId, this.solver.True));
+                sfa.isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(Move<S>.T(num, num, solver.True));
-            sfa._isEpsilonFree = true;
+                sfa.AddMove(MOVE<S>.T(num, num, this.solver.True));
+            sfa.isEpsilonFree = true;
             return sfa;
         }
 
         private S CreateConditionFromSet(bool ignoreCase, string set)
         {
             bool flag1 = RegexCharClass.IsNegated(set);
-            var sList = new List<S>();
+            List<S> sList = new List<S>();
             foreach (Pair<char, char> range in RegexToSFAGeneric<S>.ComputeRanges(set))
             {
-                S constraint = solver.MkRangeConstraint(ignoreCase, range.First, range.Second);
-                sList.Add(flag1 ? solver.MkNot(constraint) : constraint);
+                S constraint = this.solver.MkRangeConstraint(ignoreCase, range.First, range.Second);
+                sList.Add(flag1 ? this.solver.MkNot(constraint) : constraint);
             }
-            int num1 = set[1];
-            int num2 = set[2];
+            int num1 = (int)set[1];
+            int num2 = (int)set[2];
             int num3 = num1 + 3;
             int startIndex = num3;
             while (startIndex < num3 + num2)
             {
-                var num4 = (short)set[startIndex++];
-                if (num4 != 0)
+                short num4 = (short)set[startIndex++];
+                if ((int)num4 != 0)
                 {
-                    S condition = MapCategoryCodeToCondition(Math.Abs(num4) - 1);
-                    sList.Add(num4 < 0 ^ flag1 ? solver.MkNot(condition) : condition);
+                    S condition = this.MapCategoryCodeToCondition((int)Math.Abs(num4) - 1);
+                    sList.Add((int)num4 < 0 ^ flag1 ? this.solver.MkNot(condition) : condition);
                 }
                 else
                 {
-                    var num5 = (short)set[startIndex++];
-                    if (num5 != 0)
+                    short num5 = (short)set[startIndex++];
+                    if ((int)num5 != 0)
                     {
-                        var catCodes = new HashSet<int>();
-                        bool flag2 = num5 < 0;
-                        for (; num5 != 0; num5 = (short)set[startIndex++])
-                            catCodes.Add(Math.Abs(num5) - 1);
-                        S condition = MapCategoryCodeSetToCondition(catCodes);
-                        S s = flag1 ^ flag2 ? solver.MkNot(condition) : condition;
+                        HashSet<int> catCodes = new HashSet<int>();
+                        bool flag2 = (int)num5 < 0;
+                        for (; (int)num5 != 0; num5 = (short)set[startIndex++])
+                            catCodes.Add((int)Math.Abs(num5) - 1);
+                        S condition = this.MapCategoryCodeSetToCondition(catCodes);
+                        S s = flag1 ^ flag2 ? this.solver.MkNot(condition) : condition;
                         sList.Add(s);
                     }
                 }
             }
-            var constraint1 = default(S);
+            S constraint1 = default(S);
             if (set.Length > startIndex)
             {
                 string set1 = set.Substring(startIndex);
-                constraint1 = CreateConditionFromSet(ignoreCase, set1);
+                constraint1 = this.CreateConditionFromSet(ignoreCase, set1);
             }
-            S constraint1_1 = sList.Count != 0 ? (flag1 ? solver.MkAnd(sList) : solver.MkOr(sList)) : (flag1 ? solver.False : solver.True);
-            if (constraint1 != null)
-                constraint1_1 = solver.MkAnd(constraint1_1, solver.MkNot(constraint1));
+            S constraint1_1 = sList.Count != 0 ? (flag1 ? this.solver.MkAnd((IEnumerable<S>)sList) : this.solver.MkOr((IEnumerable<S>)sList)) : (flag1 ? this.solver.False : this.solver.True);
+            if ((object)constraint1 != null)
+                constraint1_1 = this.solver.MkAnd(constraint1_1, this.solver.MkNot(constraint1));
             return constraint1_1;
         }
 
         private static List<Pair<char, char>> ComputeRanges(string set)
         {
-            int capacity = set[1];
-            var pairList = new List<Pair<char, char>>(capacity);
+            int capacity = (int)set[1];
+            List<Pair<char, char>> pairList = new List<Pair<char, char>>(capacity);
             int index1 = 3;
             int num = index1 + capacity;
             while (index1 < num)
             {
                 char first = set[index1];
                 int index2 = index1 + 1;
-                char second = index2 >= num ? char.MaxValue : (char)(set[index2] - 1U);
+                char second = index2 >= num ? char.MaxValue : (char)((uint)set[index2] - 1U);
                 index1 = index2 + 1;
                 pairList.Add(new Pair<char, char>(first, second));
             }
@@ -268,7 +291,7 @@ namespace Rex
 
         private S MapCategoryCodeSetToCondition(HashSet<int> catCodes)
         {
-            var constraint1 = default(S);
+            S constraint1 = default(S);
             if (catCodes.Contains(0) && catCodes.Contains(1) && (catCodes.Contains(2) && catCodes.Contains(3)) && (catCodes.Contains(4) && catCodes.Contains(8) && catCodes.Contains(18)))
             {
                 catCodes.Remove(0);
@@ -278,12 +301,12 @@ namespace Rex
                 catCodes.Remove(4);
                 catCodes.Remove(8);
                 catCodes.Remove(18);
-                constraint1 = categorizer.WordLetterCondition;
+                constraint1 = this.categorizer.WordLetterCondition;
             }
             foreach (int catCode in catCodes)
             {
-                S condition = MapCategoryCodeToCondition(catCode);
-                constraint1 = ReferenceEquals(constraint1, null) ? condition : solver.MkOr(constraint1, condition);
+                S condition = this.MapCategoryCodeToCondition(catCode);
+                constraint1 = (object)constraint1 == null ? condition : this.solver.MkOr(constraint1, condition);
             }
             return constraint1;
         }
@@ -291,70 +314,106 @@ namespace Rex
         private S MapCategoryCodeToCondition(int code)
         {
             if (code == 99)
-                return categorizer.WhiteSpaceCondition;
+                return this.categorizer.WhiteSpaceCondition;
             if (code < 0 || code > 29)
                 throw new ArgumentOutOfRangeException(nameof(code), "Must be in the range 0..29 or equal to 99");
-            return categorizer.CategoryCondition(code);
+            return this.categorizer.CategoryCondition(code);
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeEnd(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeEnd(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             if (!isEnd)
                 throw new RexException("The anchor \\z, \\Z or $ is not supported if it is followed by other regex patterns or is nested in a loop");
             if (!isStart)
-                return SymbolicFiniteAutomaton<S>.Epsilon;
-            return SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId }, new Move<S>[1] { Move<S>.T(minStateId, minStateId, solver.True) });
+                return SFA<S>.Epsilon;
+            return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            {
+        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+            });
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeEndZ(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeEndZ(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             if (!isEnd)
                 throw new RexException("The anchor \\z, \\Z or $ is not supported if it is followed by other regex patterns or is nested in a loop");
             if (!isStart)
-                return SymbolicFiniteAutomaton<S>.Epsilon;
-            return SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId }, new Move<S>[1] { Move<S>.T(minStateId, minStateId, solver.True) });
+                return SFA<S>.Epsilon;
+            return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            {
+        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+            });
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeBeginning(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeBeginning(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             if (!isStart)
                 throw new RexException("The anchor \\A or ^ is not supported if it is preceded by other regex patterns or is nested in a loop");
             if (!isEnd)
-                return SymbolicFiniteAutomaton<S>.Epsilon;
-            return SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId }, new Move<S>[1] { Move<S>.T(minStateId, minStateId, solver.True) });
+                return SFA<S>.Epsilon;
+            return SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+            {
+        MOVE<S>.T(minStateId, minStateId, this.solver.True)
+            });
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeBol(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeBol(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             if (!isStart)
                 throw new RexException("The anchor \\A or ^ is not supported if it is preceded by other regex patterns or is nested in a loop");
-            SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId + 2 }, new Move<S>[4] { Move<S>.Epsilon(minStateId, minStateId + 2), Move<S>.Epsilon(minStateId, minStateId + 1), Move<S>.T(minStateId + 1, minStateId + 1, solver.True), Move<S>.T(minStateId + 1, minStateId + 2, solver.MkCharConstraint(false, '\n')) });
+            SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId + 2
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[4]
+            {
+        MOVE<S>.Epsilon(minStateId, minStateId + 2),
+        MOVE<S>.Epsilon(minStateId, minStateId + 1),
+        MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True),
+        MOVE<S>.T(minStateId + 1, minStateId + 2, this.solver.MkCharConstraint(false, '\n'))
+            });
             if (isEnd)
-                sfa.AddMove(Move<S>.T(sfa.FinalState, sfa.FinalState, solver.True));
+                sfa.AddMove(MOVE<S>.T(sfa.FinalState, sfa.FinalState, this.solver.True));
             return sfa;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeEol(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeEol(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             if (!isEnd)
                 throw new RexException("The anchor \\z, \\Z or $ is not supported if it is followed by other regex patterns or is nested in a loop");
-            SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId + 2 }, new Move<S>[4] { Move<S>.Epsilon(minStateId, minStateId + 2), Move<S>.Epsilon(minStateId + 1, minStateId + 2), Move<S>.T(minStateId + 1, minStateId + 1, solver.True), Move<S>.T(minStateId, minStateId + 1, solver.MkCharConstraint(false, '\n')) });
+            SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+            {
+        minStateId + 2
+            }, (IEnumerable<MOVE<S>>)new MOVE<S>[4]
+            {
+        MOVE<S>.Epsilon(minStateId, minStateId + 2),
+        MOVE<S>.Epsilon(minStateId + 1, minStateId + 2),
+        MOVE<S>.T(minStateId + 1, minStateId + 1, this.solver.True),
+        MOVE<S>.T(minStateId, minStateId + 1, this.solver.MkCharConstraint(false, '\n'))
+            });
             if (isStart)
-                sfa.AddMove(Move<S>.T(sfa.InitialState, sfa.InitialState, solver.True));
+                sfa.AddMove(MOVE<S>.T(sfa.InitialState, sfa.InitialState, this.solver.True));
             return sfa;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeAlternate(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeAlternate(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            var sfas = new List<SymbolicFiniteAutomaton<S>>();
+            List<SFA<S>> sfas = new List<SFA<S>>();
             int minStateId1 = minStateId + 1;
             bool addEmptyWord = false;
             foreach (RegexNode child in node._children)
             {
-                SymbolicFiniteAutomaton<S> sfa = ConvertNode(child, minStateId1, isStart, isEnd);
-                if (sfa != SymbolicFiniteAutomaton<S>.Empty)
+                SFA<S> sfa = this.ConvertNode(child, minStateId1, isStart, isEnd);
+                if (sfa != SFA<S>.Empty)
                 {
-                    if (sfa == SymbolicFiniteAutomaton<S>.Epsilon)
+                    if (sfa == SFA<S>.Epsilon)
                     {
                         addEmptyWord = true;
                     }
@@ -367,16 +426,16 @@ namespace Rex
                     }
                 }
             }
-            return AlternateSFAs(minStateId, sfas, addEmptyWord);
+            return this.AlternateSFAs(minStateId, sfas, addEmptyWord);
         }
 
-        private SymbolicFiniteAutomaton<S> AlternateSFAs(int start, List<SymbolicFiniteAutomaton<S>> sfas, bool addEmptyWord)
+        private SFA<S> AlternateSFAs(int start, List<SFA<S>> sfas, bool addEmptyWord)
         {
             if (sfas.Count == 0)
             {
                 if (addEmptyWord)
-                    return SymbolicFiniteAutomaton<S>.Epsilon;
-                return SymbolicFiniteAutomaton<S>.Empty;
+                    return SFA<S>.Epsilon;
+                return SFA<S>.Empty;
             }
             if (sfas.Count == 1)
             {
@@ -390,7 +449,7 @@ namespace Rex
                 return sfas[0];
             }
             bool flag1 = true;
-            foreach (SymbolicFiniteAutomaton<S> sfa in sfas)
+            foreach (SFA<S> sfa in sfas)
             {
                 if (!sfa.InitialStateIsSource)
                 {
@@ -398,11 +457,11 @@ namespace Rex
                     break;
                 }
             }
-            bool flag2 = !sfas.Exists(new Predicate<SymbolicFiniteAutomaton<S>>(RegexToSFAGeneric<S>.IsNonDeterministic));
-            sfas.Exists(new Predicate<SymbolicFiniteAutomaton<S>>(RegexToSFAGeneric<S>.HasEpsilons));
+            bool flag2 = !sfas.Exists(new Predicate<SFA<S>>(RegexToSFAGeneric<S>.IsNonDeterministic));
+            sfas.Exists(new Predicate<SFA<S>>(RegexToSFAGeneric<S>.HasEpsilons));
             bool flag3 = true;
             int val2 = int.MinValue;
-            foreach (SymbolicFiniteAutomaton<S> sfa in sfas)
+            foreach (SFA<S> sfa in sfas)
             {
                 if (!sfa.HasSingleFinalSink)
                 {
@@ -411,15 +470,15 @@ namespace Rex
                 }
                 val2 = Math.Max(sfa.FinalState, val2);
             }
-            var intList = new List<int>();
+            List<int> intList = new List<int>();
             if (addEmptyWord)
                 intList.Add(start);
-            var condMap = new Dictionary<Pair<int, int>, S>();
-            var pairSet = new HashSet<Pair<int, int>>();
+            Dictionary<Pair<int, int>, S> condMap = new Dictionary<Pair<int, int>, S>();
+            HashSet<Pair<int, int>> pairSet = new HashSet<Pair<int, int>>();
             if (!flag1)
             {
                 flag2 = false;
-                foreach (SymbolicFiniteAutomaton<S> sfa in sfas)
+                foreach (SFA<S> sfa in sfas)
                     pairSet.Add(new Pair<int, int>(start, sfa.InitialState));
             }
             else if (flag2)
@@ -428,13 +487,13 @@ namespace Rex
                 {
                     for (int index2 = index1 + 1; index2 < sfas.Count; ++index2)
                     {
-                        S constraint1 = solver.False;
-                        foreach (Move<S> move in sfas[index1].GetMovesFrom(sfas[index1].InitialState))
-                            constraint1 = solver.MkOr(constraint1, move.Condition);
-                        S s = solver.False;
-                        foreach (Move<S> move in sfas[index2].GetMovesFrom(sfas[index2].InitialState))
-                            s = solver.MkOr(s, move.Condition);
-                        flag2 = solver.MkAnd(constraint1, s).Equals(solver.False);
+                        S constraint1 = this.solver.False;
+                        foreach (MOVE<S> move in sfas[index1].GetMovesFrom(sfas[index1].InitialState))
+                            constraint1 = this.solver.MkOr(constraint1, move.Condition);
+                        S s = this.solver.False;
+                        foreach (MOVE<S> move in sfas[index2].GetMovesFrom(sfas[index2].InitialState))
+                            s = this.solver.MkOr(s, move.Condition);
+                        flag2 = this.solver.MkAnd(constraint1, s).Equals((object)this.solver.False);
                         if (!flag2)
                             break;
                     }
@@ -444,14 +503,14 @@ namespace Rex
             }
             if (flag3)
                 intList.Add(val2);
-            var dictionary = new Dictionary<int, int>();
-            foreach (SymbolicFiniteAutomaton<S> sfa in sfas)
+            Dictionary<int, int> dictionary = new Dictionary<int, int>();
+            foreach (SFA<S> sfa in sfas)
             {
-                foreach (Move<S> move in sfa.GetMoves())
+                foreach (MOVE<S> move in sfa.GetMoves())
                 {
                     int first = !flag1 || sfa.InitialState != move.SourceState ? move.SourceState : start;
                     int second = !flag3 || sfa.FinalState != move.TargetState ? move.TargetState : val2;
-                    var key = new Pair<int, int>(first, second);
+                    Pair<int, int> key = new Pair<int, int>(first, second);
                     dictionary[move.SourceState] = first;
                     dictionary[move.TargetState] = second;
                     if (move.IsEpsilon)
@@ -462,7 +521,7 @@ namespace Rex
                     else
                     {
                         S constraint1;
-                        condMap[key] = !condMap.TryGetValue(key, out constraint1) ? move.Condition : solver.MkOr(constraint1, move.Condition);
+                        condMap[key] = !condMap.TryGetValue(key, out constraint1) ? move.Condition : this.solver.MkOr(constraint1, move.Condition);
                     }
                 }
                 if (!flag3)
@@ -475,52 +534,52 @@ namespace Rex
                     }
                 }
             }
-            SymbolicFiniteAutomaton<S> sfa1 = SymbolicFiniteAutomaton<S>.Create(start, intList, GenerateMoves(condMap, pairSet));
-            sfa1._isDeterministic = flag2;
+            SFA<S> sfa1 = SFA<S>.Create(start, (IEnumerable<int>)intList, this.GenerateMoves(condMap, (IEnumerable<Pair<int, int>>)pairSet));
+            sfa1.isDeterministic = flag2;
             return sfa1;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeConcatenate(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeConcatenate(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             List<RegexNode> children = node._children;
-            var sfas = new List<SymbolicFiniteAutomaton<S>>();
+            List<SFA<S>> sfas = new List<SFA<S>>();
             int minStateId1 = minStateId;
             for (int index = 0; index < children.Count; ++index)
             {
-                SymbolicFiniteAutomaton<S> sfa = ConvertNode(children[index], minStateId1, isStart && index == 0, isEnd && index == children.Count - 1);
-                if (sfa == SymbolicFiniteAutomaton<S>.Empty)
-                    return SymbolicFiniteAutomaton<S>.Empty;
-                if (sfa != SymbolicFiniteAutomaton<S>.Epsilon)
+                SFA<S> sfa = this.ConvertNode(children[index], minStateId1, isStart && index == 0, isEnd && index == children.Count - 1);
+                if (sfa == SFA<S>.Empty)
+                    return SFA<S>.Empty;
+                if (sfa != SFA<S>.Epsilon)
                 {
                     sfas.Add(sfa);
                     minStateId1 = sfa.MaxState + 1;
                 }
             }
-            return ConcatenateSFAs(sfas);
+            return this.ConcatenateSFAs(sfas);
         }
 
-        private SymbolicFiniteAutomaton<S> ConcatenateSFAs(List<SymbolicFiniteAutomaton<S>> sfas)
+        private SFA<S> ConcatenateSFAs(List<SFA<S>> sfas)
         {
             if (sfas.Count == 0)
-                return SymbolicFiniteAutomaton<S>.Epsilon;
+                return SFA<S>.Epsilon;
             if (sfas.Count == 1)
                 return sfas[0];
-            SymbolicFiniteAutomaton<S> sfa = sfas[0];
+            SFA<S> sfa = sfas[0];
             for (int index = 1; index < sfas.Count; ++index)
                 sfa.Concat(sfas[index]);
             return sfa;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeLoop(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeLoop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            SymbolicFiniteAutomaton<S> sfa = ConvertNode(node._children[0], minStateId, false, false);
+            SFA<S> sfa = this.ConvertNode(node._children[0], minStateId, false, false);
             int m = node._m;
             int n = node._n;
-            SymbolicFiniteAutomaton<S> loop;
+            SFA<S> loop;
             if (m == 0 && sfa.IsEmpty)
-                loop = SymbolicFiniteAutomaton<S>.Epsilon;
+                loop = SFA<S>.Epsilon;
             else if (m == 0 && n == int.MaxValue)
-                loop = MakeKleeneClosure(sfa);
+                loop = this.MakeKleeneClosure(sfa);
             else if (m == 0 && n == 1)
             {
                 if (sfa.IsFinalState(sfa.InitialState))
@@ -534,32 +593,32 @@ namespace Rex
             else if (m == 1 && n == 1)
             {
                 if (sfa.IsEmpty)
-                    return SymbolicFiniteAutomaton<S>.Empty;
+                    return SFA<S>.Empty;
                 loop = sfa;
             }
             else if (n == int.MaxValue)
             {
                 if (sfa.IsEmpty)
-                    return SymbolicFiniteAutomaton<S>.Empty;
+                    return SFA<S>.Empty;
                 if (sfa.IsFinalState(sfa.InitialState))
                 {
-                    loop = MakeKleeneClosure(sfa);
+                    loop = this.MakeKleeneClosure(sfa);
                 }
                 else
                 {
-                    var sfas = new List<SymbolicFiniteAutomaton<S>>();
+                    List<SFA<S>> sfas = new List<SFA<S>>();
                     for (int index = 0; index < m; ++index)
                     {
                         sfas.Add(sfa);
                         sfa = sfa.MakeCopy(sfa.MaxState + 1);
                     }
-                    sfas.Add(MakeKleeneClosure(sfa));
-                    loop = ConcatenateSFAs(sfas);
+                    sfas.Add(this.MakeKleeneClosure(sfa));
+                    loop = this.ConcatenateSFAs(sfas);
                 }
             }
             else
             {
-                var sfas = new List<SymbolicFiniteAutomaton<S>>();
+                List<SFA<S>> sfas = new List<SFA<S>>();
                 for (int index = 0; index < n; ++index)
                 {
                     sfas.Add(sfa);
@@ -575,56 +634,62 @@ namespace Rex
                         }
                     }
                 }
-                loop = ConcatenateSFAs(sfas);
+                loop = this.ConcatenateSFAs(sfas);
             }
-            return ExtendLoop(minStateId, isStart, isEnd, loop);
+            return this.ExtendLoop(minStateId, isStart, isEnd, loop);
         }
 
-        private SymbolicFiniteAutomaton<S> ExtendLoop(int minStateId, bool isStart, bool isEnd, SymbolicFiniteAutomaton<S> loop)
+        private SFA<S> ExtendLoop(int minStateId, bool isStart, bool isEnd, SFA<S> loop)
         {
             if (isStart)
             {
-                if (loop != SymbolicFiniteAutomaton<S>.Epsilon)
+                if (loop != SFA<S>.Epsilon)
                 {
-                    SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(loop.MaxState + 1, new int[1] { loop.MaxState + 1 }, new Move<S>[1] { Move<S>.T(loop.MaxState + 1, loop.MaxState + 1, solver.True) });
+                    SFA<S> sfa = SFA<S>.Create(loop.MaxState + 1, (IEnumerable<int>)new int[1]
+                    {
+            loop.MaxState + 1
+                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                    {
+            MOVE<S>.T(loop.MaxState + 1, loop.MaxState + 1, this.solver.True)
+                    });
                     sfa.Concat(loop);
                     loop = sfa;
                 }
                 else
-                    loop = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1]
+                    loop = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
                     {
             minStateId
-                    }, new Move<S>[1]
+                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
                     {
-            Move<S>.T(minStateId, minStateId, solver.True)
+            MOVE<S>.T(minStateId, minStateId, this.solver.True)
                     });
             }
             if (isEnd)
             {
-                if (loop != SymbolicFiniteAutomaton<S>.Epsilon)
-                    loop.Concat(SymbolicFiniteAutomaton<S>.Create(loop.MaxState + 1, new int[1]
+                if (loop != SFA<S>.Epsilon)
+                    loop.Concat(SFA<S>.Create(loop.MaxState + 1, (IEnumerable<int>)new int[1]
                     {
             loop.MaxState + 1
-                    }, new Move<S>[1]
+                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
                     {
-            Move<S>.T(loop.MaxState + 1, loop.MaxState + 1, solver.True)
+            MOVE<S>.T(loop.MaxState + 1, loop.MaxState + 1, this.solver.True)
                     }));
                 else
-                    loop = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1]
+                    loop = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
                     {
             minStateId
-                    }, new Move<S>[1]
+                    }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
                     {
-            Move<S>.T(minStateId, minStateId, solver.True)
+            MOVE<S>.T(minStateId, minStateId, this.solver.True)
                     });
             }
             return loop;
         }
 
-        private SymbolicFiniteAutomaton<S> MakeKleeneClosure(SymbolicFiniteAutomaton<S> sfa)
+        private SFA<S> MakeKleeneClosure(SFA<S> sfa)
         {
-            if (sfa == SymbolicFiniteAutomaton<S>.Empty || sfa == SymbolicFiniteAutomaton<S>.Epsilon)
-                return SymbolicFiniteAutomaton<S>.Epsilon;
+            if (sfa == SFA<S>.Empty || sfa == SFA<S>.Epsilon)
+                return SFA<S>.Epsilon;
             if (sfa.IsKleeneClosure())
                 return sfa;
             if (sfa.InitialStateIsSource && sfa.HasSingleFinalSink)
@@ -643,205 +708,219 @@ namespace Rex
             foreach (int finalState in sfa.GetFinalStates())
             {
                 if (finalState != sfa.InitialState && finalState != initialState)
-                    sfa.AddMove(Move<S>.Epsilon(finalState, initialState));
+                    sfa.AddMove(MOVE<S>.Epsilon(finalState, initialState));
             }
-            return sfa.RemoveEpsilonLoops(new Func<S, S, S>(solver.MkOr));
+            return sfa.RemoveEpsilonLoops(new Func<S, S, S>(this.solver.MkOr));
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeNotoneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeNotoneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            S index = solver.MkNot(solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch));
-            if (!description.ContainsKey(index))
-                description[index] = string.Format("[^{0}]", RexEngine.Escape(node._ch));
-            SymbolicFiniteAutomaton<S> loopFromCondition = RegexToSFAGeneric<S>.CreateLoopFromCondition(minStateId, index, node._m, node._n);
-            return ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
+            S index = this.solver.MkNot(this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch));
+            if (!this.description.ContainsKey(index))
+                this.description[index] = string.Format("[^{0}]", (object)RexEngine.Escape(node._ch));
+            SFA<S> loopFromCondition = RegexToSFAGeneric<S>.CreateLoopFromCondition(minStateId, index, node._m, node._n);
+            return this.ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeOneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeOneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            S index = solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch);
-            if (!description.ContainsKey(index))
-                description[index] = string.Format("{0}", RexEngine.Escape(node._ch));
-            SymbolicFiniteAutomaton<S> loopFromCondition = RegexToSFAGeneric<S>.CreateLoopFromCondition(minStateId, index, node._m, node._n);
-            return ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
+            S index = this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch);
+            if (!this.description.ContainsKey(index))
+                this.description[index] = string.Format("{0}", (object)RexEngine.Escape(node._ch));
+            SFA<S> loopFromCondition = RegexToSFAGeneric<S>.CreateLoopFromCondition(minStateId, index, node._m, node._n);
+            return this.ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeSetloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeSetloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             string str = node._str;
-            S conditionFromSet = CreateConditionFromSet((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, str);
-            if (conditionFromSet.Equals(solver.False))
+            S conditionFromSet = this.CreateConditionFromSet((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, str);
+            if (conditionFromSet.Equals((object)this.solver.False))
             {
                 if (node._m == 0)
-                    return SymbolicFiniteAutomaton<S>.Epsilon;
-                return SymbolicFiniteAutomaton<S>.Empty;
+                    return SFA<S>.Epsilon;
+                return SFA<S>.Empty;
             }
-            if (!description.ContainsKey(conditionFromSet))
-                description[conditionFromSet] = RegexCharClass.SetDescription(str);
-            SymbolicFiniteAutomaton<S> loopFromCondition = RegexToSFAGeneric<S>.CreateLoopFromCondition(minStateId, conditionFromSet, node._m, node._n);
-            return ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
+            SFA<S> loopFromCondition = RegexToSFAGeneric<S>.CreateLoopFromCondition(minStateId, conditionFromSet, node._m, node._n);
+            return this.ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
         }
 
-        private static SymbolicFiniteAutomaton<S> CreateLoopFromCondition(int minStateId, S cond, int m, int n)
+        private static SFA<S> CreateLoopFromCondition(int minStateId, S cond, int m, int n)
         {
             if (m == 0 && n == int.MaxValue)
             {
-                SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId }, new Move<S>[1] { Move<S>.T(minStateId, minStateId, cond) });
-                sfa._isEpsilonFree = true;
-                sfa._isDeterministic = true;
+                SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+                {
+          minStateId
+                }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                {
+          MOVE<S>.T(minStateId, minStateId, cond)
+                });
+                sfa.isEpsilonFree = true;
+                sfa.isDeterministic = true;
                 return sfa;
             }
             if (m == 0 && n == 1)
             {
-                SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[2] { minStateId, minStateId + 1 }, new Move<S>[1] { Move<S>.T(minStateId, minStateId + 1, cond) });
-                sfa._isEpsilonFree = true;
-                sfa._isDeterministic = true;
+                SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[2]
+                {
+          minStateId,
+          minStateId + 1
+                }, (IEnumerable<MOVE<S>>)new MOVE<S>[1]
+                {
+          MOVE<S>.T(minStateId, minStateId + 1, cond)
+                });
+                sfa.isEpsilonFree = true;
+                sfa.isDeterministic = true;
                 return sfa;
             }
             if (n == int.MaxValue)
             {
-                var moveList = new List<Move<S>>();
+                List<MOVE<S>> moveList = new List<MOVE<S>>();
                 for (int index = 0; index < m; ++index)
-                    moveList.Add(Move<S>.T(minStateId + index, minStateId + index + 1, cond));
-                moveList.Add(Move<S>.T(minStateId + m, minStateId + m, cond));
-                SymbolicFiniteAutomaton<S> sfa = SymbolicFiniteAutomaton<S>.Create(minStateId, new int[1] { minStateId + m }, moveList);
-                sfa._isDeterministic = true;
-                sfa._isEpsilonFree = true;
+                    moveList.Add(MOVE<S>.T(minStateId + index, minStateId + index + 1, cond));
+                moveList.Add(MOVE<S>.T(minStateId + m, minStateId + m, cond));
+                SFA<S> sfa = SFA<S>.Create(minStateId, (IEnumerable<int>)new int[1]
+                {
+          minStateId + m
+                }, (IEnumerable<MOVE<S>>)moveList);
+                sfa.isDeterministic = true;
+                sfa.isEpsilonFree = true;
                 return sfa;
             }
-            var moveArray = new Move<S>[n];
+            MOVE<S>[] moveArray = new MOVE<S>[n];
             for (int index = 0; index < n; ++index)
-                moveArray[index] = Move<S>.T(minStateId + index, minStateId + index + 1, cond);
-            var numArray = new int[n + 1 - m];
+                moveArray[index] = MOVE<S>.T(minStateId + index, minStateId + index + 1, cond);
+            int[] numArray = new int[n + 1 - m];
             for (int index = m; index <= n; ++index)
                 numArray[index - m] = index + minStateId;
-            SymbolicFiniteAutomaton<S> sfa1 = SymbolicFiniteAutomaton<S>.Create(minStateId, numArray, moveArray);
-            sfa1._isEpsilonFree = true;
-            sfa1._isDeterministic = true;
+            SFA<S> sfa1 = SFA<S>.Create(minStateId, (IEnumerable<int>)numArray, (IEnumerable<MOVE<S>>)moveArray);
+            sfa1.isEpsilonFree = true;
+            sfa1.isDeterministic = true;
             return sfa1;
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeECMABoundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeECMABoundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeGreedy(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeGreedy(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeGroup(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeGroup(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeLazyloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeLazyloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeBoundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeBoundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeNothing(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeNothing(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeNonboundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeNonboundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeNonECMABoundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeNonECMABoundary(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeNotonelazy(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeNotonelazy(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeOnelazy(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeOnelazy(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodePrevent(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodePrevent(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeRef(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeRef(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeRequire(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeRequire(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeSetlazy(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeSetlazy(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeStart(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeStart(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeTestgroup(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeTestgroup(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private SymbolicFiniteAutomaton<S> ConvertNodeTestref(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SFA<S> ConvertNodeTestref(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             throw new RexException("The following constructs are currently not supported: anchors \\G, \\b, \\B, named groups, lookahead, lookbehind, as-few-times-as-possible quantifiers, backreferences, conditional alternation, substitution");
         }
 
-        private static bool IsNonDeterministic(SymbolicFiniteAutomaton<S> sfa)
+        private static bool IsNonDeterministic(SFA<S> sfa)
         {
-            return !sfa._isDeterministic;
+            return !sfa.isDeterministic;
         }
 
-        private static bool HasEpsilons(SymbolicFiniteAutomaton<S> sfa)
+        private static bool HasEpsilons(SFA<S> sfa)
         {
-            return !sfa._isEpsilonFree;
+            return !sfa.isEpsilonFree;
         }
 
-        private IEnumerable<Move<S>> GenerateMoves(Dictionary<Pair<int, int>, S> condMap, IEnumerable<Pair<int, int>> eMoves)
+        private IEnumerable<MOVE<S>> GenerateMoves(Dictionary<Pair<int, int>, S> condMap, IEnumerable<Pair<int, int>> eMoves)
         {
             foreach (KeyValuePair<Pair<int, int>, S> cond in condMap)
-                yield return Move<S>.T(cond.Key.First, cond.Key.Second, cond.Value);
+                yield return MOVE<S>.T(cond.Key.First, cond.Key.Second, cond.Value);
             foreach (Pair<int, int> eMove in eMoves)
-                yield return Move<S>.Epsilon(eMove.First, eMove.Second);
+                yield return MOVE<S>.Epsilon(eMove.First, eMove.Second);
         }
 
-        public void ToDot(SymbolicFiniteAutomaton<S> fa, string faName, string filename, DotRankDir rankdir, int fontsize)
+        public void ToDot(SFA<S> fa, string faName, string filename, DotRankDir rankdir, int fontsize)
         {
-            var streamWriter = new StreamWriter(filename);
-            ToDot(fa, faName, streamWriter, rankdir, fontsize);
+            StreamWriter streamWriter = new StreamWriter(filename);
+            this.ToDot(fa, faName, (TextWriter)streamWriter, rankdir, fontsize);
             streamWriter.Close();
         }
 
-        public void ToDot(SymbolicFiniteAutomaton<S> fa, string faName, TextWriter tw, DotRankDir rankdir, int fontsize)
+        public void ToDot(SFA<S> fa, string faName, TextWriter tw, DotRankDir rankdir, int fontsize)
         {
             tw.WriteLine("digraph \"" + faName + "\" {");
-            tw.WriteLine(string.Format("rankdir={0};", rankdir.ToString()));
+            tw.WriteLine(string.Format("rankdir={0};", (object)rankdir.ToString()));
             tw.WriteLine();
             tw.WriteLine("//Initial state");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = {0}, fillcolor = \"#d3d3d3ff\", fontsize = {1}]", fa.IsFinalState(fa.InitialState) ? "2" : "1", fontsize));
+            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = {0}, fillcolor = \"#d3d3d3ff\", fontsize = {1}]", fa.IsFinalState(fa.InitialState) ? (object)"2" : (object)"1", (object)fontsize));
             tw.WriteLine(fa.InitialState);
             tw.WriteLine();
             tw.WriteLine("//Final states");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 2, fillcolor = white, fontsize = {0}]", fontsize));
+            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 2, fillcolor = white, fontsize = {0}]", (object)fontsize));
             foreach (int finalState in fa.GetFinalStates())
             {
                 if (finalState != fa.InitialState)
@@ -849,7 +928,7 @@ namespace Rex
             }
             tw.WriteLine();
             tw.WriteLine("//Other states");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", fontsize));
+            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", (object)fontsize));
             foreach (int state in fa.States)
             {
                 if (state != fa.InitialState && !fa.IsFinalState(state))
@@ -857,25 +936,25 @@ namespace Rex
             }
             tw.WriteLine();
             tw.WriteLine("//Transitions");
-            foreach (Move<S> move in fa.GetMoves())
-                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\"{3}, fontsize = {4} ];", move.SourceState, move.TargetState, move.IsEpsilon ? "" : description[move.Condition], move.IsEpsilon ? ", style = dashed" : "", fontsize));
+            foreach (MOVE<S> move in fa.GetMoves())
+                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\"{3}, fontsize = {4} ];", (object)move.SourceState, (object)move.TargetState, move.IsEpsilon ? (object)"" : (object)this.description[move.Condition], move.IsEpsilon ? (object)", style = dashed" : (object)"", (object)fontsize));
             tw.WriteLine("}");
         }
 
-        public void Display(SymbolicFiniteAutomaton<S> fa, string name, DotRankDir dir, int fontsize, bool showgraph, string format)
+        public void Display(SFA<S> fa, string name, DotRankDir dir, int fontsize, bool showgraph, string format)
         {
             string currentDirectory = Environment.CurrentDirectory;
-            string str = string.Format("{1}\\{0}.dot", name, currentDirectory);
-            string fileName = string.Format("{2}\\{0}.{1}", name, format, currentDirectory);
-            var fileInfo1 = new FileInfo(str);
+            string str = string.Format("{1}\\{0}.dot", (object)name, (object)currentDirectory);
+            string fileName = string.Format("{2}\\{0}.{1}", (object)name, (object)format, (object)currentDirectory);
+            FileInfo fileInfo1 = new FileInfo(str);
             if (fileInfo1.Exists)
                 fileInfo1.IsReadOnly = false;
-            var fileInfo2 = new FileInfo(fileName);
+            FileInfo fileInfo2 = new FileInfo(fileName);
             if (fileInfo2.Exists)
                 fileInfo2.IsReadOnly = false;
-            ToDot(fa, name, str, dir, fontsize);
-            var process = new Process();
-            process.StartInfo = new ProcessStartInfo("dot.exe", string.Format("-T{2} {0} -o {1}", str, fileName, format));
+            this.ToDot(fa, name, str, dir, fontsize);
+            Process process = new Process();
+            process.StartInfo = new ProcessStartInfo("dot.exe", string.Format("-T{2} {0} -o {1}", (object)str, (object)fileName, (object)format));
             try
             {
                 process.Start();

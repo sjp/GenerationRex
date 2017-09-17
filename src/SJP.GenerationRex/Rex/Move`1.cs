@@ -1,77 +1,65 @@
-﻿using System;
-
-namespace Rex
+﻿namespace SJP.GenerationRex
 {
-    internal class Move<TCondition> : IEquatable<Move<TCondition>>
+    internal class MOVE<S>
     {
-        private Move(int sourceState, int targetState, TCondition condition)
+        public readonly int SourceState;
+        public readonly int TargetState;
+        public readonly S Condition;
+
+        private MOVE(int sourceState, int targetState, S condition)
         {
-            SourceState = sourceState;
-            TargetState = targetState;
-            Condition = condition;
+            this.SourceState = sourceState;
+            this.TargetState = targetState;
+            this.Condition = condition;
         }
 
-        private Move(int sourceState, int targetState)
+        private MOVE(int sourceState, int targetState)
         {
-            SourceState = sourceState;
-            TargetState = targetState;
-            Condition = default(TCondition);
+            this.SourceState = sourceState;
+            this.TargetState = targetState;
+            this.Condition = default(S);
         }
 
-        public int SourceState { get; }
-
-        public int TargetState { get; }
-
-        public TCondition Condition { get; }
-
-        public static Move<TCondition> T(int sourceState, int targetState, TCondition condition)
+        public static MOVE<S> T(int sourceState, int targetState, S condition)
         {
-            return new Move<TCondition>(sourceState, targetState, condition);
+            return new MOVE<S>(sourceState, targetState, condition);
         }
 
-        public static Move<TCondition> Epsilon(int sourceState, int targetState)
+        public static MOVE<S> Epsilon(int sourceState, int targetState)
         {
-            return new Move<TCondition>(sourceState, targetState);
+            return new MOVE<S>(sourceState, targetState);
         }
 
-        public bool IsEpsilon => ReferenceEquals(Condition, null);
+        public bool IsEpsilon
+        {
+            get
+            {
+                return (object)this.Condition == null;
+            }
+        }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(obj, null))
+            if (!(obj is MOVE<S>))
                 return false;
-
-            if (ReferenceEquals(this, obj))
+            MOVE<S> move = (MOVE<S>)obj;
+            if (move.SourceState != this.SourceState || move.TargetState != this.TargetState)
+                return false;
+            if ((object)move.Condition == null && (object)this.Condition == null)
                 return true;
-
-            return Equals(obj as Move<TCondition>);
+            if ((object)move.Condition != null)
+                return move.Condition.Equals((object)this.Condition);
+            return false;
         }
 
         public override int GetHashCode()
         {
-            return SourceState + (TargetState * 2) + (ReferenceEquals(Condition, null) ? 0 : Condition.GetHashCode());
+            return this.SourceState + this.TargetState * 2 + ((object)this.Condition == null ? 0 : this.Condition.GetHashCode());
         }
 
         public override string ToString()
         {
-            return "(" + SourceState + "," + (ReferenceEquals(Condition, null) ? "" : (object)(Condition + ",")) + TargetState + ")";
-        }
-
-        public bool Equals(Move<TCondition> other)
-        {
-            if (ReferenceEquals(other, null))
-                return false;
-
-            if (ReferenceEquals(this, other))
-                return true;
-
-            if (SourceState != other.SourceState || TargetState != other.TargetState)
-                return false;
-
-            if (ReferenceEquals(Condition, null) && ReferenceEquals(other.Condition, null))
-                return true;
-
-            return other.Condition != null && other.Condition.Equals(Condition);
+            return "(" + (object)this.SourceState + "," + ((object)this.Condition == null ? (object)"" : (object)(this.Condition.ToString() + ",")) + (object)this.TargetState + ")";
         }
     }
 }

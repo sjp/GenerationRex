@@ -1,11 +1,11 @@
-﻿namespace Rex
+﻿namespace SJP.GenerationRex
 {
-    internal interface IUnicodeCategoryConditions<TCondition>
+    internal interface IUnicodeCategoryConditions<S>
     {
-        TCondition CategoryCondition(int cat);
+        S CategoryCondition(int cat);
 
-        TCondition WhiteSpaceCondition { get; }
+        S WhiteSpaceCondition { get; }
 
-        TCondition WordLetterCondition { get; }
+        S WordLetterCondition { get; }
     }
 }

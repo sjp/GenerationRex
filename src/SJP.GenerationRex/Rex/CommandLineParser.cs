@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     internal sealed class CommandLineParser
     {
@@ -51,7 +51,7 @@ namespace Rex
 
         public static bool ParseArguments(string[] arguments, Type destination, ErrorReporter reporter)
         {
-            return new CommandLineParser(destination, reporter).Parse(arguments, null);
+            return new CommandLineParser(destination, reporter).Parse(arguments, (object)null);
         }
 
         private static void NullErrorReporter(string message)
@@ -60,11 +60,10 @@ namespace Rex
 
         public static bool ParseHelp(string[] args)
         {
-            var commandLineParser = new CommandLineParser(typeof(CommandLineParser.HelpArgument), new ErrorReporter(CommandLineParser.NullErrorReporter));
-            var helpArgument = new CommandLineParser.HelpArgument();
-            commandLineParser.Parse(args, helpArgument);
-            return false;
-            //return helpArgument.help;
+            CommandLineParser commandLineParser = new CommandLineParser(typeof(CommandLineParser.HelpArgument), new ErrorReporter(CommandLineParser.NullErrorReporter));
+            CommandLineParser.HelpArgument helpArgument = new CommandLineParser.HelpArgument();
+            commandLineParser.Parse(args, (object)helpArgument);
+            return helpArgument.help;
         }
 
         public static string ArgumentsUsage(Type argumentType)
@@ -77,7 +76,7 @@ namespace Rex
 
         public static string ArgumentsUsage(Type argumentType, int columns)
         {
-            return new CommandLineParser(argumentType, null).GetUsageString(columns);
+            return new CommandLineParser(argumentType, (ErrorReporter)null).GetUsageString(columns);
         }
 
         public static int IndexOf(StringBuilder text, char value, int startIndex)
@@ -86,7 +85,7 @@ namespace Rex
                 throw new ArgumentNullException(nameof(text));
             for (int index = startIndex; index < text.Length; ++index)
             {
-                if (text[index] == value)
+                if ((int)text[index] == (int)value)
                     return index;
             }
             return -1;
@@ -98,7 +97,7 @@ namespace Rex
                 throw new ArgumentNullException(nameof(text));
             for (int index = Math.Min(startIndex, text.Length - 1); index >= 0; --index)
             {
-                if (text[index] == value)
+                if ((int)text[index] == (int)value)
                     return index;
             }
             return -1;
@@ -109,36 +108,36 @@ namespace Rex
             if (argumentSpecification == null)
                 throw new ArgumentNullException(nameof(argumentSpecification));
             this.reporter = reporter;
-            arguments = new ArrayList();
-            argumentMap = new Hashtable();
+            this.arguments = new ArrayList();
+            this.argumentMap = new Hashtable();
             foreach (FieldInfo field in argumentSpecification.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 if (!field.IsInitOnly && !field.IsLiteral)
                 {
                     ArgumentAttribute attribute = CommandLineParser.GetAttribute(field);
                     if (attribute is DefaultArgumentAttribute)
-                        defaultArgument = new CommandLineParser.Argument(attribute, field, reporter);
+                        this.defaultArgument = new CommandLineParser.Argument(attribute, field, reporter);
                     else if (attribute != null)
-                        arguments.Add(new CommandLineParser.Argument(attribute, field, reporter));
+                        this.arguments.Add((object)new CommandLineParser.Argument(attribute, field, reporter));
                 }
             }
-            foreach (CommandLineParser.Argument obj in arguments)
+            foreach (CommandLineParser.Argument obj in this.arguments)
             {
-                argumentMap[obj.LongName] = obj;
+                this.argumentMap[(object)obj.LongName] = (object)obj;
                 if (obj.ExplicitShortName)
                 {
                     if (obj.ShortName != null && obj.ShortName.Length > 0)
-                        argumentMap[obj.ShortName] = obj;
+                        this.argumentMap[(object)obj.ShortName] = (object)obj;
                     else
                         obj.ClearShortName();
                 }
             }
-            foreach (CommandLineParser.Argument obj in arguments)
+            foreach (CommandLineParser.Argument obj in this.arguments)
             {
                 if (!obj.ExplicitShortName)
                 {
-                    if (obj.ShortName != null && obj.ShortName.Length > 0 && !argumentMap.ContainsKey(obj.ShortName))
-                        argumentMap[obj.ShortName] = obj;
+                    if (obj.ShortName != null && obj.ShortName.Length > 0 && !this.argumentMap.ContainsKey((object)obj.ShortName))
+                        this.argumentMap[(object)obj.ShortName] = (object)obj;
                     else
                         obj.ClearShortName();
                 }
@@ -150,12 +149,12 @@ namespace Rex
             object[] customAttributes = field.GetCustomAttributes(typeof(ArgumentAttribute), false);
             if (customAttributes.Length == 1)
                 return (ArgumentAttribute)customAttributes[0];
-            return null;
+            return (ArgumentAttribute)null;
         }
 
         private void ReportUnrecognizedArgument(string argument)
         {
-            reporter(string.Format("Unrecognized command line argument '{0}'", argument));
+            this.reporter(string.Format("Unrecognized command line argument '{0}'", (object)argument));
         }
 
         private bool ParseArgumentList(string[] args, object destination)
@@ -171,13 +170,18 @@ namespace Rex
                         {
                             case '-':
                             case '/':
-                                int num = str1.IndexOfAny(new char[3] { ':', '+', '-' }, 1);
+                                int num = str1.IndexOfAny(new char[3]
+                                {
+                  ':',
+                  '+',
+                  '-'
+                                }, 1);
                                 string str2 = str1.Substring(1, num == -1 ? str1.Length - 1 : num - 1);
-                                string str3 = str2.Length + 1 != str1.Length ? (str1.Length <= 1 + str2.Length || str1[1 + str2.Length] != 58 ? str1.Substring(str2.Length + 1) : str1.Substring(str2.Length + 2)) : null;
-                                var obj = (CommandLineParser.Argument)argumentMap[str2];
+                                string str3 = str2.Length + 1 != str1.Length ? (str1.Length <= 1 + str2.Length || (int)str1[1 + str2.Length] != 58 ? str1.Substring(str2.Length + 1) : str1.Substring(str2.Length + 2)) : (string)null;
+                                CommandLineParser.Argument obj = (CommandLineParser.Argument)this.argumentMap[(object)str2];
                                 if (obj == null)
                                 {
-                                    ReportUnrecognizedArgument(str1);
+                                    this.ReportUnrecognizedArgument(str1);
                                     flag = true;
                                     continue;
                                 }
@@ -185,15 +189,15 @@ namespace Rex
                                 continue;
                             case '@':
                                 string[] arguments1;
-                                flag = flag | LexFileArguments(str1.Substring(1), out arguments1) | ParseArgumentList(arguments1, destination);
+                                flag = flag | this.LexFileArguments(str1.Substring(1), out arguments1) | this.ParseArgumentList(arguments1, destination);
                                 continue;
                             default:
-                                if (defaultArgument != null)
+                                if (this.defaultArgument != null)
                                 {
-                                    flag |= !defaultArgument.SetValue(str1, destination);
+                                    flag |= !this.defaultArgument.SetValue(str1, destination);
                                     continue;
                                 }
-                                ReportUnrecognizedArgument(str1);
+                                this.ReportUnrecognizedArgument(str1);
                                 flag = true;
                                 continue;
                         }
@@ -205,37 +209,37 @@ namespace Rex
 
         public bool Parse(string[] args, object destination)
         {
-            bool argumentList = ParseArgumentList(args, destination);
-            foreach (CommandLineParser.Argument obj in arguments)
+            bool argumentList = this.ParseArgumentList(args, destination);
+            foreach (CommandLineParser.Argument obj in this.arguments)
                 argumentList |= obj.Finish(destination);
-            if (defaultArgument != null)
-                argumentList |= defaultArgument.Finish(destination);
+            if (this.defaultArgument != null)
+                argumentList |= this.defaultArgument.Finish(destination);
             return !argumentList;
         }
 
         public string GetUsageString(int screenWidth)
         {
-            CommandLineParser.ArgumentHelpStrings[] allHelpStrings = GetAllHelpStrings();
+            CommandLineParser.ArgumentHelpStrings[] allHelpStrings = this.GetAllHelpStrings();
             int val1 = 0;
             foreach (CommandLineParser.ArgumentHelpStrings argumentHelpStrings in allHelpStrings)
                 val1 = Math.Max(val1, argumentHelpStrings.syntax.Length);
             int num1 = val1 + 2;
             screenWidth = Math.Max(screenWidth, 15);
             int num2 = screenWidth >= num1 + 10 ? num1 : 5;
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.AppendLine();
             Assembly entryAssembly = Assembly.GetEntryAssembly();
             if (entryAssembly != null)
             {
-                builder.AppendFormat("{0} version {1}", CommandLineParser.GetTitle(entryAssembly), entryAssembly.GetName().Version);
+                builder.AppendFormat("{0} version {1}", (object)CommandLineParser.GetTitle(entryAssembly), (object)entryAssembly.GetName().Version);
                 builder.AppendLine();
                 AssemblyCopyrightAttribute assemblyAttribute = CommandLineParser.GetAssemblyAttribute<AssemblyCopyrightAttribute>(entryAssembly);
                 if (assemblyAttribute != null && !string.IsNullOrEmpty(assemblyAttribute.Copyright))
                     builder.AppendLine(assemblyAttribute.Copyright.Replace("©", "(C)"));
                 builder.AppendLine();
-                builder.AppendFormat("Usage: {0}", Path.GetFileNameWithoutExtension(entryAssembly.Location));
+                builder.AppendFormat("Usage: {0}", (object)Path.GetFileNameWithoutExtension(entryAssembly.Location));
                 foreach (CommandLineParser.ArgumentHelpStrings argumentHelpStrings in allHelpStrings)
-                    builder.AppendFormat(" {0}", argumentHelpStrings.syntax);
+                    builder.AppendFormat(" {0}", (object)argumentHelpStrings.syntax);
                 builder.AppendLine();
                 builder.AppendLine();
             }
@@ -273,7 +277,7 @@ namespace Rex
                     CommandLineParser.AddNewLine("\n", builder, ref currentColumn);
                     while (true)
                     {
-                        if (startIndex < argumentHelpStrings.help.Length && argumentHelpStrings.help[startIndex] == 32)
+                        if (startIndex < argumentHelpStrings.help.Length && (int)argumentHelpStrings.help[startIndex] == 32)
                             ++startIndex;
                         else
                             goto label_21;
@@ -329,12 +333,12 @@ namespace Rex
 
         private CommandLineParser.ArgumentHelpStrings[] GetAllHelpStrings()
         {
-            var argumentHelpStringsArray1 = new CommandLineParser.ArgumentHelpStrings[NumberOfParametersToDisplay()];
+            CommandLineParser.ArgumentHelpStrings[] argumentHelpStringsArray1 = new CommandLineParser.ArgumentHelpStrings[this.NumberOfParametersToDisplay()];
             int num1 = 0;
-            foreach (CommandLineParser.Argument obj in arguments)
+            foreach (CommandLineParser.Argument obj in this.arguments)
                 argumentHelpStringsArray1[num1++] = CommandLineParser.GetHelpStrings(obj);
-            if (defaultArgument != null)
-                argumentHelpStringsArray1[num1++] = CommandLineParser.GetHelpStrings(defaultArgument);
+            if (this.defaultArgument != null)
+                argumentHelpStringsArray1[num1++] = CommandLineParser.GetHelpStrings(this.defaultArgument);
             CommandLineParser.ArgumentHelpStrings[] argumentHelpStringsArray2 = argumentHelpStringsArray1;
             int index = num1;
             int num2 = 1;
@@ -350,8 +354,8 @@ namespace Rex
 
         private int NumberOfParametersToDisplay()
         {
-            int num = arguments.Count + 1;
-            if (HasDefaultArgument)
+            int num = this.arguments.Count + 1;
+            if (this.HasDefaultArgument)
                 ++num;
             return num;
         }
@@ -360,27 +364,27 @@ namespace Rex
         {
             get
             {
-                return defaultArgument != null;
+                return this.defaultArgument != null;
             }
         }
 
         private bool LexFileArguments(string fileName, out string[] arguments1)
         {
-            string str = null;
+            string str = (string)null;
             try
             {
-                using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
-                    str = new StreamReader(fileStream).ReadToEnd();
+                using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+                    str = new StreamReader((Stream)fileStream).ReadToEnd();
             }
             catch (Exception ex)
             {
-                reporter(string.Format("Error: Can't open command line argument file '{0}' : '{1}'", fileName, ex.Message));
-                arguments1 = null;
+                this.reporter(string.Format("Error: Can't open command line argument file '{0}' : '{1}'", (object)fileName, (object)ex.Message));
+                arguments1 = (string[])null;
                 return true;
             }
             bool flag1 = false;
-            var arrayList = new ArrayList();
-            var stringBuilder = new StringBuilder();
+            ArrayList arrayList = new ArrayList();
+            StringBuilder stringBuilder = new StringBuilder();
             bool flag2 = false;
             int index = 0;
             try
@@ -390,17 +394,17 @@ namespace Rex
                 {
                     while (char.IsWhiteSpace(str[index]))
                         ++index;
-                    if (str[index] != 35)
+                    if ((int)str[index] != 35)
                     {
                         do
                         {
-                            if (str[index] == 92)
+                            if ((int)str[index] == 92)
                             {
                                 int repeatCount = 1;
                                 ++index;
-                                while (index == str.Length && str[index] == 92)
+                                while (index == str.Length && (int)str[index] == 92)
                                     ++repeatCount;
-                                if (index == str.Length || str[index] != 34)
+                                if (index == str.Length || (int)str[index] != 34)
                                 {
                                     stringBuilder.Append('\\', repeatCount);
                                 }
@@ -413,7 +417,7 @@ namespace Rex
                                         flag2 = !flag2;
                                 }
                             }
-                            else if (str[index] == 34)
+                            else if ((int)str[index] == 34)
                             {
                                 flag2 = !flag2;
                                 ++index;
@@ -425,14 +429,14 @@ namespace Rex
                             }
                         }
                         while (!char.IsWhiteSpace(str[index]) || flag2);
-                        arrayList.Add(stringBuilder.ToString());
+                        arrayList.Add((object)stringBuilder.ToString());
                         stringBuilder.Length = 0;
                     }
                     else
                         break;
                 }
                 ++index;
-                while (str[index] != 10)
+                while ((int)str[index] != 10)
                     ++index;
                 goto label_10;
             }
@@ -440,11 +444,11 @@ namespace Rex
             {
                 if (flag2)
                 {
-                    reporter(string.Format("Error: Unbalanced '\"' in command line argument file '{0}'", fileName));
+                    this.reporter(string.Format("Error: Unbalanced '\"' in command line argument file '{0}'", (object)fileName));
                     flag1 = true;
                 }
                 else if (stringBuilder.Length > 0)
-                    arrayList.Add(stringBuilder.ToString());
+                    arrayList.Add((object)stringBuilder.ToString());
             }
             arguments1 = (string[])arrayList.ToArray(typeof(string));
             return flag1;
@@ -460,7 +464,7 @@ namespace Rex
         private static string ShortName(ArgumentAttribute attribute, FieldInfo field)
         {
             if (attribute is DefaultArgumentAttribute)
-                return null;
+                return (string)null;
             if (!CommandLineParser.ExplicitShortName(attribute))
                 return CommandLineParser.LongName(attribute, field).Substring(0, 1);
             return attribute.ShortName;
@@ -469,7 +473,7 @@ namespace Rex
         private static string HelpText(ArgumentAttribute attribute)
         {
             if (attribute == null)
-                return null;
+                return (string)null;
             return attribute.HelpText;
         }
 
@@ -489,16 +493,16 @@ namespace Rex
 
         private static object DefaultValue(ArgumentAttribute attribute)
         {
-            if (attribute != null && attribute.HasDefaultValue())
+            if (attribute != null && attribute.HasDefaultValue)
                 return attribute.DefaultValue;
-            return null;
+            return (object)null;
         }
 
         private static Type ElementType(FieldInfo field)
         {
             if (CommandLineParser.IsCollectionType(field.FieldType))
                 return field.FieldType.GetElementType();
-            return null;
+            return (Type)null;
         }
 
         private static ArgumentType Flags(ArgumentAttribute attribute, FieldInfo field)
@@ -524,8 +528,10 @@ namespace Rex
 
         private class HelpArgument
         {
-            //[Rex.Argument(ArgumentType.AtMostOnce, ShortName = "?")]
-            //public bool help;
+            [Argument(ArgumentType.AtMostOnce, ShortName = "?")]
+#pragma warning disable 649
+            public bool help;
+#pragma warning restore 649
         }
 
         private struct ArgumentHelpStrings
@@ -558,70 +564,70 @@ namespace Rex
 
             public Argument(ArgumentAttribute attribute, FieldInfo field, ErrorReporter reporter)
             {
-                longName = CommandLineParser.LongName(attribute, field);
-                explicitShortName = CommandLineParser.ExplicitShortName(attribute);
-                shortName = CommandLineParser.ShortName(attribute, field);
-                hasHelpText = CommandLineParser.HasHelpText(attribute);
-                helpText = CommandLineParser.HelpText(attribute);
-                defaultValue = CommandLineParser.DefaultValue(attribute);
-                elementType = CommandLineParser.ElementType(field);
-                flags = CommandLineParser.Flags(attribute, field);
+                this.longName = CommandLineParser.LongName(attribute, field);
+                this.explicitShortName = CommandLineParser.ExplicitShortName(attribute);
+                this.shortName = CommandLineParser.ShortName(attribute, field);
+                this.hasHelpText = CommandLineParser.HasHelpText(attribute);
+                this.helpText = CommandLineParser.HelpText(attribute);
+                this.defaultValue = CommandLineParser.DefaultValue(attribute);
+                this.elementType = CommandLineParser.ElementType(field);
+                this.flags = CommandLineParser.Flags(attribute, field);
                 this.field = field;
-                seenValue = false;
+                this.seenValue = false;
                 this.reporter = reporter;
-                isDefault = attribute != null && attribute is DefaultArgumentAttribute;
-                if (!IsCollection)
+                this.isDefault = attribute != null && attribute is DefaultArgumentAttribute;
+                if (!this.IsCollection)
                     return;
-                collectionValues = new ArrayList();
+                this.collectionValues = new ArrayList();
             }
 
             public bool Finish(object destination)
             {
-                if (!SeenValue && HasDefaultValue)
-                    field.SetValue(destination, DefaultValue);
-                if (IsCollection)
-                    field.SetValue(destination, collectionValues.ToArray(elementType));
-                return ReportMissingRequiredArgument();
+                if (!this.SeenValue && this.HasDefaultValue)
+                    this.field.SetValue(destination, this.DefaultValue);
+                if (this.IsCollection)
+                    this.field.SetValue(destination, (object)this.collectionValues.ToArray(this.elementType));
+                return this.ReportMissingRequiredArgument();
             }
 
             private bool ReportMissingRequiredArgument()
             {
-                if (!IsRequired || SeenValue)
+                if (!this.IsRequired || this.SeenValue)
                     return false;
-                if (IsDefault)
-                    reporter(string.Format("Missing required argument '<{0}>'.", LongName));
+                if (this.IsDefault)
+                    this.reporter(string.Format("Missing required argument '<{0}>'.", (object)this.LongName));
                 else
-                    reporter(string.Format("Missing required argument '/{0}'.", LongName));
+                    this.reporter(string.Format("Missing required argument '/{0}'.", (object)this.LongName));
                 return true;
             }
 
             private void ReportDuplicateArgumentValue(string value)
             {
-                reporter(string.Format("Duplicate '{0}' argument '{1}'", LongName, value));
+                this.reporter(string.Format("Duplicate '{0}' argument '{1}'", (object)this.LongName, (object)value));
             }
 
             public bool SetValue(string value, object destination)
             {
-                if (SeenValue && !AllowMultiple)
+                if (this.SeenValue && !this.AllowMultiple)
                 {
-                    reporter(string.Format("Duplicate '{0}' argument", LongName));
+                    this.reporter(string.Format("Duplicate '{0}' argument", (object)this.LongName));
                     return false;
                 }
-                seenValue = true;
+                this.seenValue = true;
                 object obj;
-                if (!ParseValue(ValueType, value, out obj))
+                if (!this.ParseValue(this.ValueType, value, out obj))
                     return false;
-                if (IsCollection)
+                if (this.IsCollection)
                 {
-                    if (Unique && collectionValues.Contains(obj))
+                    if (this.Unique && this.collectionValues.Contains(obj))
                     {
-                        ReportDuplicateArgumentValue(value);
+                        this.ReportDuplicateArgumentValue(value);
                         return false;
                     }
-                    collectionValues.Add(obj);
+                    this.collectionValues.Add(obj);
                 }
                 else
-                    field.SetValue(destination, obj);
+                    this.field.SetValue(destination, obj);
                 return true;
             }
 
@@ -629,15 +635,15 @@ namespace Rex
             {
                 get
                 {
-                    if (!IsCollection)
-                        return Type;
-                    return elementType;
+                    if (!this.IsCollection)
+                        return this.Type;
+                    return this.elementType;
                 }
             }
 
             private void ReportBadArgumentValue(string value)
             {
-                reporter(string.Format("'{0}' is not a valid value for the '{1}' command line option", value, LongName));
+                this.reporter(string.Format("'{0}' is not a valid value for the '{1}' command line option", (object)value, (object)this.LongName));
             }
 
             private bool ParseValue(Type type, string stringData, out object value)
@@ -653,19 +659,19 @@ namespace Rex
                     {
                         if (type == typeof(string))
                         {
-                            value = stringData;
+                            value = (object)stringData;
                             return true;
                         }
                         if (type == typeof(bool))
                         {
                             if (stringData == null || stringData == "+")
                             {
-                                value = true;
+                                value = (object)true;
                                 return true;
                             }
                             if (stringData == "-")
                             {
-                                value = false;
+                                value = (object)false;
                                 return true;
                             }
                         }
@@ -673,12 +679,12 @@ namespace Rex
                         {
                             if (type == typeof(int))
                             {
-                                value = int.Parse(stringData);
+                                value = (object)int.Parse(stringData);
                                 return true;
                             }
                             if (type == typeof(uint))
                             {
-                                value = uint.Parse(stringData);
+                                value = (object)uint.Parse(stringData);
                                 return true;
                             }
                             value = Enum.Parse(type, stringData, true);
@@ -690,8 +696,8 @@ namespace Rex
                     }
                 }
                 label_16:
-                ReportBadArgumentValue(stringData);
-                value = null;
+                this.ReportBadArgumentValue(stringData);
+                value = (object)null;
                 return false;
             }
 
@@ -710,7 +716,7 @@ namespace Rex
                     {
                         if (!flag)
                             builder.Append(", ");
-                        AppendValue(builder, obj);
+                        this.AppendValue(builder, obj);
                         flag = false;
                     }
                 }
@@ -720,7 +726,7 @@ namespace Rex
             {
                 get
                 {
-                    return longName;
+                    return this.longName;
                 }
             }
 
@@ -728,7 +734,7 @@ namespace Rex
             {
                 get
                 {
-                    return explicitShortName;
+                    return this.explicitShortName;
                 }
             }
 
@@ -736,7 +742,7 @@ namespace Rex
             {
                 get
                 {
-                    return shortName;
+                    return this.shortName;
                 }
             }
 
@@ -744,20 +750,20 @@ namespace Rex
             {
                 get
                 {
-                    return shortName != null;
+                    return this.shortName != null;
                 }
             }
 
             public void ClearShortName()
             {
-                shortName = null;
+                this.shortName = (string)null;
             }
 
             public bool HasHelpText
             {
                 get
                 {
-                    return hasHelpText;
+                    return this.hasHelpText;
                 }
             }
 
@@ -765,7 +771,7 @@ namespace Rex
             {
                 get
                 {
-                    return helpText;
+                    return this.helpText;
                 }
             }
 
@@ -773,7 +779,7 @@ namespace Rex
             {
                 get
                 {
-                    return defaultValue;
+                    return this.defaultValue;
                 }
             }
 
@@ -781,7 +787,7 @@ namespace Rex
             {
                 get
                 {
-                    return null != defaultValue;
+                    return null != this.defaultValue;
                 }
             }
 
@@ -789,23 +795,23 @@ namespace Rex
             {
                 get
                 {
-                    var builder = new StringBuilder();
-                    if (HasHelpText)
-                        builder.Append(HelpText);
-                    if (HasDefaultValue)
+                    StringBuilder builder = new StringBuilder();
+                    if (this.HasHelpText)
+                        builder.Append(this.HelpText);
+                    if (this.HasDefaultValue)
                     {
                         if (builder.Length > 0)
                             builder.Append(" ");
                         builder.Append("Default value: '");
-                        AppendValue(builder, DefaultValue);
+                        this.AppendValue(builder, this.DefaultValue);
                         builder.Append('\'');
                     }
-                    if (HasShortName)
+                    if (this.HasShortName)
                     {
                         if (builder.Length > 0)
                             builder.Append(" ");
                         builder.Append("(Short form: /");
-                        builder.Append(ShortName);
+                        builder.Append(this.ShortName);
                         builder.Append(")");
                     }
                     return builder.ToString();
@@ -816,20 +822,20 @@ namespace Rex
             {
                 get
                 {
-                    var stringBuilder = new StringBuilder();
-                    if (IsDefault)
+                    StringBuilder stringBuilder = new StringBuilder();
+                    if (this.IsDefault)
                     {
                         stringBuilder.Append("<");
-                        stringBuilder.Append(LongName);
+                        stringBuilder.Append(this.LongName);
                         stringBuilder.Append(">");
                     }
                     else
                     {
-                        if (!IsRequired)
+                        if (!this.IsRequired)
                             stringBuilder.Append("[");
                         stringBuilder.Append("/");
-                        stringBuilder.Append(LongName);
-                        Type valueType = ValueType;
+                        stringBuilder.Append(this.LongName);
+                        Type valueType = this.ValueType;
                         if (valueType == typeof(int))
                             stringBuilder.Append(":<int>");
                         else if (valueType == typeof(uint))
@@ -857,12 +863,12 @@ namespace Rex
                             }
                             stringBuilder.Append('}');
                         }
-                        if (!IsRequired)
+                        if (!this.IsRequired)
                             stringBuilder.Append("]");
                     }
-                    if (AllowMultiple)
+                    if (this.AllowMultiple)
                     {
-                        if (IsRequired)
+                        if (this.IsRequired)
                             stringBuilder.Append("+");
                         else
                             stringBuilder.Append("*");
@@ -875,7 +881,7 @@ namespace Rex
             {
                 get
                 {
-                    return ArgumentType.AtMostOnce != (flags & ArgumentType.Required);
+                    return ArgumentType.AtMostOnce != (this.flags & ArgumentType.Required);
                 }
             }
 
@@ -883,7 +889,7 @@ namespace Rex
             {
                 get
                 {
-                    return seenValue;
+                    return this.seenValue;
                 }
             }
 
@@ -891,7 +897,7 @@ namespace Rex
             {
                 get
                 {
-                    return ArgumentType.AtMostOnce != (flags & ArgumentType.Multiple);
+                    return ArgumentType.AtMostOnce != (this.flags & ArgumentType.Multiple);
                 }
             }
 
@@ -899,7 +905,7 @@ namespace Rex
             {
                 get
                 {
-                    return ArgumentType.AtMostOnce != (flags & ArgumentType.Unique);
+                    return ArgumentType.AtMostOnce != (this.flags & ArgumentType.Unique);
                 }
             }
 
@@ -907,7 +913,7 @@ namespace Rex
             {
                 get
                 {
-                    return field.FieldType;
+                    return this.field.FieldType;
                 }
             }
 
@@ -915,7 +921,7 @@ namespace Rex
             {
                 get
                 {
-                    return CommandLineParser.IsCollectionType(Type);
+                    return CommandLineParser.IsCollectionType(this.Type);
                 }
             }
 
@@ -923,7 +929,7 @@ namespace Rex
             {
                 get
                 {
-                    return isDefault;
+                    return this.isDefault;
                 }
             }
         }

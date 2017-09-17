@@ -1,35 +1,107 @@
 ﻿using System;
-using EnumsNET;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     [AttributeUsage(AttributeTargets.Field)]
     internal class ArgumentAttribute : Attribute
     {
+        private string shortName;
+        private string longName;
+        private string helpText;
+        private object defaultValue;
+        private ArgumentType type;
+
         public ArgumentAttribute(ArgumentType type)
         {
-            if (!type.IsValid())
-                throw new ArgumentException($"The given { nameof(ArgumentType) } is not a valid enum.", nameof(type));
-
-            Type = type;
+            this.type = type;
         }
 
-        public ArgumentType Type { get; }
+        public ArgumentType Type
+        {
+            get
+            {
+                return this.type;
+            }
+        }
 
-        public bool DefaultShortName => ShortName == null;
+        public bool DefaultShortName
+        {
+            get
+            {
+                return null == this.shortName;
+            }
+        }
 
-        public string ShortName { get; set; }
+        public string ShortName
+        {
+            get
+            {
+                return this.shortName;
+            }
+            set
+            {
+                this.shortName = value;
+            }
+        }
 
-        public bool DefaultLongName => LongName == null;
+        public bool DefaultLongName
+        {
+            get
+            {
+                return null == this.longName;
+            }
+        }
 
-        public string LongName { get; set; }
+        public string LongName
+        {
+            get
+            {
+                return this.longName;
+            }
+            set
+            {
+                this.longName = value;
+            }
+        }
 
-        public object DefaultValue { get; set; }
+        public object DefaultValue
+        {
+            get
+            {
+                return this.defaultValue;
+            }
+            set
+            {
+                this.defaultValue = value;
+            }
+        }
 
-        public bool HasDefaultValue() => DefaultValue != null;
+        public bool HasDefaultValue
+        {
+            get
+            {
+                return null != this.defaultValue;
+            }
+        }
 
-        public bool HasHelpText => HelpText != null;
+        public bool HasHelpText
+        {
+            get
+            {
+                return null != this.helpText;
+            }
+        }
 
-        public string HelpText { get; set; }
+        public string HelpText
+        {
+            get
+            {
+                return this.helpText;
+            }
+            set
+            {
+                this.helpText = value;
+            }
+        }
     }
 }

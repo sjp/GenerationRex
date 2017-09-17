@@ -1,30 +1,39 @@
 ﻿using System;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     internal class Chooser
     {
+        private Random rand;
+        private int seed;
+
         public Chooser()
         {
-            seed = new Random().Next();
-            rand = new Random(seed);
+            this.seed = new Random().Next();
+            this.rand = new Random(this.seed);
         }
 
         public int RandomSeed
         {
-            get => seed;
+            get
+            {
+                return this.seed;
+            }
             set
             {
-                seed = value;
-                rand = new Random(value);
+                this.seed = value;
+                this.rand = new Random(value);
             }
         }
 
-        public int Choose(int n) => rand.Next(0, n);
+        public int Choose(int n)
+        {
+            return this.rand.Next(0, n);
+        }
 
-        public bool ChooseBoolean() => rand.Next(0, 2) == 1;
-
-        private Random rand;
-        private int seed;
+        public bool ChooseTrueOrFalse()
+        {
+            return this.rand.Next(0, 2) == 1;
+        }
     }
 }

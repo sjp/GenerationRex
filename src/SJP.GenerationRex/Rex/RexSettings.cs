@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     public sealed class RexSettings
     {
@@ -25,15 +25,15 @@ namespace Rex
 
         internal RexSettings()
         {
-            regexes = null;
-            options = null;
-            k = 1;
-            file = null;
-            regexfile = null;
-            dot = null;
-            encoding = CharacterEncoding.Unicode;
-            seed = -1;
-            intersect = false;
+            this.regexes = (string[])null;
+            this.options = (RegexOptions[])null;
+            this.k = 1;
+            this.file = (string)null;
+            this.regexfile = (string)null;
+            this.dot = (string)null;
+            this.encoding = CharacterEncoding.Unicode;
+            this.seed = -1;
+            this.intersect = false;
         }
 
         public RexSettings(params string[] regexes)
@@ -41,11 +41,11 @@ namespace Rex
             if (regexes.Length < 1)
                 throw new RexException("At least one regex must be specified");
             this.regexes = regexes;
-            options = null;
-            k = 1;
-            file = null;
-            encoding = CharacterEncoding.Unicode;
-            seed = -1;
+            this.options = (RegexOptions[])null;
+            this.k = 1;
+            this.file = (string)null;
+            this.encoding = CharacterEncoding.Unicode;
+            this.seed = -1;
         }
     }
 }

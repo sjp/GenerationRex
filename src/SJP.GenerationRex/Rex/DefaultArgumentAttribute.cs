@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     [AttributeUsage(AttributeTargets.Field)]
     internal class DefaultArgumentAttribute : ArgumentAttribute

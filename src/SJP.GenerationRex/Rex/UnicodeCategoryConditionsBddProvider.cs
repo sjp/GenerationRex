@@ -1,30 +1,62 @@
-﻿namespace Rex
+﻿namespace SJP.GenerationRex
 {
-    internal class UnicodeCategoryConditionsBddProvider : IUnicodeCategoryConditions<BinaryDecisionDiagram>
+    internal class UnicodeCategoryConditionsBddProvider : IUnicodeCategoryConditions<BDD>
     {
-        private BinaryDecisionDiagram[] catConditions = new BinaryDecisionDiagram[30];
-        private BinaryDecisionDiagramBuilder bddb;
-        private BinaryDecisionDiagram whiteSpaceCondition;
-        private BinaryDecisionDiagram wordLetterCondition;
+        private BDD[] catConditions = new BDD[30];
+        private BddBuilder bddb;
+        private BDD whiteSpaceCondition;
+        private BDD wordLetterCondition;
 
-        internal UnicodeCategoryConditionsBddProvider(BinaryDecisionDiagramBuilder bddb)
+        internal UnicodeCategoryConditionsBddProvider(BddBuilder bddb)
         {
             this.bddb = bddb;
-            InitializeUnicodeCategoryDefinitions();
+            this.InitializeUnicodeCategoryDefinitions();
         }
 
         private void InitializeUnicodeCategoryDefinitions()
         {
-            for (int index = 0; index < 30; ++index)
-                catConditions[index] = bddb.DeserializeCompact(UnicodeCategoryRanges.UnicodeBdd[index]);
-            whiteSpaceCondition = bddb.DeserializeCompact(UnicodeCategoryRanges.UnicodeWhitespaceBdd);
-            wordLetterCondition = bddb.DeserializeCompact(UnicodeCategoryRanges.UnicodeWordCharacterBdd);
+            if (this.bddb.NrOfBits == 7)
+            {
+                for (int index = 0; index < 30; ++index)
+                    this.catConditions[index] = UnicodeCategoryRanges.ASCIIBdd[index] != null ? this.bddb.DeserializeCompact(UnicodeCategoryRanges.ASCIIBdd[index]) : BDD.False;
+                this.whiteSpaceCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.ASCIIWhitespaceBdd);
+                this.wordLetterCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.ASCIIWordCharacterBdd);
+            }
+            else if (this.bddb.NrOfBits == 8)
+            {
+                for (int index = 0; index < 30; ++index)
+                    this.catConditions[index] = UnicodeCategoryRanges.CP437Bdd[index] != null ? this.bddb.DeserializeCompact(UnicodeCategoryRanges.CP437Bdd[index]) : BDD.False;
+                this.whiteSpaceCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.CP437WhitespaceBdd);
+                this.wordLetterCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.CP437WordCharacterBdd);
+            }
+            else
+            {
+                for (int index = 0; index < 30; ++index)
+                    this.catConditions[index] = this.bddb.DeserializeCompact(UnicodeCategoryRanges.UnicodeBdd[index]);
+                this.whiteSpaceCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.UnicodeWhitespaceBdd);
+                this.wordLetterCondition = this.bddb.DeserializeCompact(UnicodeCategoryRanges.UnicodeWordCharacterBdd);
+            }
         }
 
-        public BinaryDecisionDiagram CategoryCondition(int cat) => catConditions[cat];
+        public BDD CategoryCondition(int cat)
+        {
+            return this.catConditions[cat];
+        }
 
-        public BinaryDecisionDiagram WhiteSpaceCondition => whiteSpaceCondition;
+        public BDD WhiteSpaceCondition
+        {
+            get
+            {
+                return this.whiteSpaceCondition;
+            }
+        }
 
-        public BinaryDecisionDiagram WordLetterCondition => wordLetterCondition;
+        public BDD WordLetterCondition
+        {
+            get
+            {
+                return this.wordLetterCondition;
+            }
+        }
     }
 }

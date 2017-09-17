@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     [Flags]
     internal enum ArgumentType
     {
-        AtMostOnce = 0,
         Required = 1,
         Unique = 2,
         Multiple = 4,
+        AtMostOnce = 0,
         LastOccurenceWins = Multiple,
+        MultipleUnique = LastOccurenceWins | Unique,
         AtLeastOnce = LastOccurenceWins | Required,
-        MultipleUnique = LastOccurenceWins | Unique
     }
 }

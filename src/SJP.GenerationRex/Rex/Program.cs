@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     internal static class Program
     {
@@ -15,17 +15,17 @@ namespace Rex
             }
             catch (RexException ex)
             {
-                Console.Error.WriteLine(string.Format("Rex error: {0}", ex.Message));
+                Console.Error.WriteLine(string.Format("Rex error: {0}", (object)ex.Message));
                 return -1;
             }
             catch (ArgumentException ex)
             {
-                Console.Error.WriteLine(string.Format("Regex parsing error: {0}", ex.Message));
+                Console.Error.WriteLine(string.Format("Regex parsing error: {0}", (object)ex.Message));
                 return -1;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(string.Format("Unexpected error: {0}", ex.ToString()));
+                Console.Error.WriteLine(string.Format("Unexpected error: {0}", (object)ex.ToString()));
                 return -1;
             }
         }

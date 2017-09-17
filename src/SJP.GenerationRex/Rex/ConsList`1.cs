@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
-    internal class ConsList<E> : IEnumerable<E>
+    internal class ConsList<E> : IEnumerable<E>, IEnumerable
     {
         public E car;
         public ConsList<E> cdr;
@@ -16,9 +16,9 @@ namespace Rex
             this.car = car;
             this.cdr = cdr;
             if (cdr == null)
-                last = this;
+                this.last = this;
             else
-                last = cdr.last;
+                this.last = cdr.last;
         }
 
         public int Length
@@ -26,7 +26,7 @@ namespace Rex
             get
             {
                 int num = 1;
-                for (var cdr = this.cdr; cdr != null; cdr = cdr.cdr)
+                for (ConsList<E> cdr = this.cdr; cdr != null; cdr = cdr.cdr)
                     ++num;
                 return num;
             }
@@ -34,8 +34,8 @@ namespace Rex
 
         public E[] ToArray()
         {
-            var eArray = new E[Length];
-            eArray[0] = car;
+            E[] eArray = new E[this.Length];
+            eArray[0] = this.car;
             ConsList<E> cdr = this.cdr;
             int num = 1;
             for (; cdr != null; cdr = cdr.cdr)
@@ -44,13 +44,13 @@ namespace Rex
         }
 
         public ConsList(E elem)
-          : this(elem, null)
+          : this(elem, (ConsList<E>)null)
         {
         }
 
         public static ConsList<E> Create(IEnumerable<E> elems)
         {
-            ConsList<E> consList = null;
+            ConsList<E> consList = (ConsList<E>)null;
             foreach (E elem in elems)
             {
                 if (consList == null)
@@ -63,25 +63,25 @@ namespace Rex
 
         public bool Exists(Func<E, bool> check)
         {
-            if (check(car))
+            if (check(this.car))
                 return true;
-            if (cdr == null)
+            if (this.cdr == null)
                 return false;
-            return cdr.Exists(check);
+            return this.cdr.Exists(check);
         }
 
         public static ConsList<E> RemoveAll(ConsList<E> list, Func<E, bool> check)
         {
             if (list == null)
-                return null;
+                return (ConsList<E>)null;
             if (check(list.car))
-                return RemoveAll(list.cdr, check);
-            return new ConsList<E>(list.car, RemoveAll(list.cdr, check));
+                return ConsList<E>.RemoveAll(list.cdr, check);
+            return new ConsList<E>(list.car, ConsList<E>.RemoveAll(list.cdr, check));
         }
 
         public void DeleteAllFromRest(Func<E, bool> check)
         {
-            var consList = this;
+            ConsList<E> consList = this;
             ConsList<E> cdr = this.cdr;
             while (cdr != null)
             {
@@ -100,110 +100,119 @@ namespace Rex
 
         public void Add(E elem)
         {
-            var consList = new ConsList<E>(elem);
-            last.cdr = consList;
-            last = consList;
+            ConsList<E> consList = new ConsList<E>(elem);
+            this.last.cdr = consList;
+            this.last = consList;
         }
 
         public void Append(ConsList<E> l)
         {
             if (l == null)
                 return;
-            last.cdr = l;
-            last = l.last;
+            this.last.cdr = l;
+            this.last = l.last;
         }
 
         public override string ToString()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append("(");
-            AddElems(sb);
+            this.AddElems(sb);
             sb.Append(")");
             return sb.ToString();
         }
 
         public ConsList<E> Reverse()
         {
-            var cdr1 = new ConsList<E>(car);
-            for (ConsList<E> cdr2 = cdr; cdr2 != null; cdr2 = cdr2.cdr)
+            ConsList<E> cdr1 = new ConsList<E>(this.car);
+            for (ConsList<E> cdr2 = this.cdr; cdr2 != null; cdr2 = cdr2.cdr)
                 cdr1 = new ConsList<E>(cdr2.car, cdr1);
             return cdr1;
         }
 
         private void AddElems(StringBuilder sb)
         {
-            sb.Append(car.ToString());
-            if (cdr == null)
+            sb.Append(this.car.ToString());
+            if (this.cdr == null)
                 return;
             sb.Append(",");
-            cdr.AddElems(sb);
+            this.cdr.AddElems(sb);
         }
 
-        public IEnumerator<E> GetEnumerator() => new SimpleListEnumerator<E>(this);
+        public IEnumerator<E> GetEnumerator()
+        {
+            return (IEnumerator<E>)new ConsList<E>.SimpleListEnumerator<E>(this);
+        }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return (IEnumerator)this.GetEnumerator();
         }
 
         public static IEnumerable<ConsList<Pair<bool, E>>> GenerateChoiceLists(ConsList<E> tl)
         {
             if (tl != null)
             {
-                foreach (var choiceList in GenerateChoiceLists(tl.cdr))
+                foreach (ConsList<Pair<bool, E>> choiceList in ConsList<E>.GenerateChoiceLists(tl.cdr))
                 {
                     yield return new ConsList<Pair<bool, E>>(new Pair<bool, E>(true, tl.car), choiceList);
                     yield return new ConsList<Pair<bool, E>>(new Pair<bool, E>(false, tl.car), choiceList);
                 }
             }
             else
-                yield return null;
+                yield return (ConsList<Pair<bool, E>>)null;
         }
 
-        private class SimpleListEnumerator<E1> : IEnumerator<E1>
+        private class SimpleListEnumerator<E1> : IEnumerator<E1>, IDisposable, IEnumerator
         {
+            private ConsList<E1> tl;
+            private bool initialized;
+
             internal SimpleListEnumerator(ConsList<E1> tl)
             {
-                _list = tl;
+                this.tl = tl;
             }
 
             public E1 Current
             {
                 get
                 {
-                    if (_list == null || !initialized)
-                        throw new InvalidOperationException(nameof(Current) + " is undefined");
-
-                    return _list.car;
+                    if (this.tl == null || !this.initialized)
+                        throw new InvalidOperationException("Current is undefined");
+                    return this.tl.car;
                 }
             }
 
-            object IEnumerator.Current => Current;
-
             public void Dispose()
             {
-                _list = null;
+                this.tl = (ConsList<E1>)null;
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    return (object)this.Current;
+                }
             }
 
             public bool MoveNext()
             {
-                if (_list == null)
+                if (this.tl == null)
                     return false;
-
-                if (!initialized)
+                if (!this.initialized)
                 {
-                    initialized = true;
+                    this.initialized = true;
                     return true;
                 }
-
-                _list = _list.cdr;
-                return _list != null;
+                this.tl = this.tl.cdr;
+                return this.tl != null;
             }
 
-            public void Reset() => throw new NotSupportedException();
-
-            private ConsList<E1> _list;
-            private bool initialized;
+            public void Reset()
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }

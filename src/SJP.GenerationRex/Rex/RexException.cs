@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Rex
+namespace SJP.GenerationRex
 {
     public class RexException : Exception
     {
