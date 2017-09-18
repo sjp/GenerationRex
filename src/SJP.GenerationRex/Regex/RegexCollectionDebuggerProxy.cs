@@ -10,8 +10,6 @@ namespace SJP.GenerationRex.RegularExpressions
 {
     internal sealed class RegexCollectionDebuggerProxy<T>
     {
-        private readonly ICollection<T> _collection;
-
         public RegexCollectionDebuggerProxy(ICollection<T> collection)
         {
             _collection = collection ?? throw new ArgumentNullException(nameof(collection));
@@ -22,10 +20,12 @@ namespace SJP.GenerationRex.RegularExpressions
         {
             get
             {
-                T[] items = new T[_collection.Count];
+                var items = new T[_collection.Count];
                 _collection.CopyTo(items, 0);
                 return items;
             }
         }
+
+        private readonly ICollection<T> _collection;
     }
 }

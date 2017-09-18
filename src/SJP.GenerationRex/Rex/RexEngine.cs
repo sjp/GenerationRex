@@ -8,12 +8,6 @@ namespace SJP.GenerationRex
 {
     public class RexEngine
     {
-        private const int TryLimitMin = 100;
-        private const int TryLimitMax = 200;
-        private Chooser _chooser;
-        private BddBuilder _solver;
-        private RegexToSFA<BinaryDecisionDiagram> _converter;
-
         internal RexEngine(BddBuilder solver)
         {
             _solver = solver;
@@ -27,7 +21,7 @@ namespace SJP.GenerationRex
             _chooser = new Chooser();
             if (randomSeed > -1)
                 _chooser.RandomSeed = randomSeed;
-            this._converter = new RegexToSFA<BinaryDecisionDiagram>(this._solver, new UnicodeCategoryConditionsBddProvider(this._solver));
+            _converter = new RegexToSFA<BinaryDecisionDiagram>(this._solver, new UnicodeCategoryConditionsBddProvider(this._solver));
         }
 
         public int RandomSeed => _chooser.RandomSeed;
@@ -47,7 +41,7 @@ namespace SJP.GenerationRex
 
         public IEnumerable<string> GenerateMembers(RegexOptions options, int k, params string[] regexes)
         {
-            return this.GenerateMembers(this.CreateSFAFromRegexes(options, regexes), k);
+            return GenerateMembers(CreateSFAFromRegexes(options, regexes), k);
         }
 
         internal IEnumerable<string> GenerateMembers(SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfa, int k)
@@ -128,8 +122,14 @@ namespace SJP.GenerationRex
 
         private static string ToUnicodeRepr(int i)
         {
-            string str = string.Format("{0:X}", (object)i);
-            return str.Length != 1 ? (str.Length != 2 ? (str.Length != 3 ? "\\u" + str : "\\u0" + str) : "\\u00" + str) : "\\u000" + str;
+            var str = string.Format("{0:X}", i);
+            return str.Length != 1
+                ? (str.Length != 2
+                    ? (str.Length != 3
+                        ? "\\u" + str
+                        : "\\u0" + str)
+                    : "\\u00" + str)
+                : "\\u000" + str;
         }
 
         public static string Escape(string s)
@@ -146,5 +146,11 @@ namespace SJP.GenerationRex
         {
             _converter.ToDot(sfa, "SFA", dot, DotRankDir.LR, 12);
         }
+
+        private const int TryLimitMin = 100;
+        private const int TryLimitMax = 200;
+        private readonly Chooser _chooser;
+        private readonly BddBuilder _solver;
+        private readonly RegexToSFA<BinaryDecisionDiagram> _converter;
     }
 }
