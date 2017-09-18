@@ -15,7 +15,7 @@ namespace SJP.GenerationRex.RegularExpressions
     /// capture zero, one, or more strings in a single match because of quantifiers, so
     /// Group supplies a collection of Capture objects.
     /// </summary>
-    public class Group : Capture
+    internal class Group : Capture
     {
         // the empty group object
         internal static readonly Group s_emptyGroup = new Group(string.Empty, Array.Empty<int>(), 0, string.Empty);

@@ -23,7 +23,7 @@ namespace SJP.GenerationRex.RegularExpressions
     /// </summary>
     [DebuggerDisplay("Count = {Count}")]
     [DebuggerTypeProxy(typeof(RegexCollectionDebuggerProxy<Capture>))]
-    public class CaptureCollection : IList<Capture>, IReadOnlyList<Capture>, IList
+    internal class CaptureCollection : IList<Capture>, IReadOnlyList<Capture>, IList
     {
         private readonly Group _group;
         private readonly int _capcount;

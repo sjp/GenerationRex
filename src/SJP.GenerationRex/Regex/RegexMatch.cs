@@ -27,14 +27,13 @@
 
 using System;
 using System.Collections;
-using System.Globalization;
 
 namespace SJP.GenerationRex.RegularExpressions
 {
     /// <summary>
     /// Represents the results from a single regular expression match.
     /// </summary>
-    public class Match : Group
+    internal class Match : Group
     {
         internal static readonly Match s_empty = new Match(null, 1, string.Empty, 0, 0, 0);
         internal GroupCollection _groupcoll;

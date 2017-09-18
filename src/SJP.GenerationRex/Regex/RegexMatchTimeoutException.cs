@@ -9,7 +9,7 @@ namespace SJP.GenerationRex.RegularExpressions
     /// <summary>
     /// This is the exception that is thrown when a RegEx matching timeout occurs.
     /// </summary>
-    public class RegexMatchTimeoutException : TimeoutException
+    internal class RegexMatchTimeoutException : TimeoutException
     {
         /// <summary>
         /// Constructs a new RegexMatchTimeoutException.

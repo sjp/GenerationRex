@@ -15,13 +15,10 @@
 // backtracked results from) the Match instance.
 
 using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.Text;
 
 namespace SJP.GenerationRex.RegularExpressions
 {
-    public abstract class RegexRunner
+    internal abstract class RegexRunner
     {
         protected internal int runtextbeg;         // beginning of text to search
         protected internal int runtextend;         // end of text to search

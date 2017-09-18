@@ -6,7 +6,7 @@
 
 namespace SJP.GenerationRex.RegularExpressions
 {
-    public abstract class RegexRunnerFactory
+    internal abstract class RegexRunnerFactory
     {
         protected RegexRunnerFactory() { }
 

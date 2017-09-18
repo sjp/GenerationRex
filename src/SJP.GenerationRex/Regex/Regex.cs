@@ -20,7 +20,7 @@ namespace SJP.GenerationRex.RegularExpressions
     /// contains static methods that allow use of regular expressions without instantiating
     /// a Regex explicitly.
     /// </summary>
-    public class Regex
+    internal class Regex
     {
         protected internal string pattern;                   // The string pattern provided
         protected internal RegexOptions roptions;            // the top-level options from the options string
@@ -51,8 +51,6 @@ namespace SJP.GenerationRex.RegularExpressions
         internal static readonly TimeSpan DefaultMatchTimeout = InitDefaultMatchTimeout();
 
         // *********** } match timeout fields ***********
-
-        protected internal RegexRunnerFactory factory;
 
         protected internal Hashtable caps;          // if captures are sparse, this is the hashtable capnum->index
         protected internal Hashtable capnames;      // if named captures are used, this maps names->index
@@ -896,10 +894,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
             if (runner == null)
             {
-                if (factory != null)
-                    runner = factory.CreateInstance();
-                else
-                    runner = new RegexInterpreter(_code, UseOptionInvariant() ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture);
+                runner = new RegexInterpreter(_code, UseOptionInvariant() ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture);
             }
 
             try
@@ -994,7 +989,7 @@ namespace SJP.GenerationRex.RegularExpressions
     /*
      * Callback class
      */
-    public delegate string MatchEvaluator(Match match);
+    internal delegate string MatchEvaluator(Match match);
 
     /*
      * Used as a key for CacheCodeEntry

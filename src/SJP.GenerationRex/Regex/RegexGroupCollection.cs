@@ -18,7 +18,7 @@ namespace SJP.GenerationRex.RegularExpressions
     /// </summary>
     [DebuggerDisplay("Count = {Count}")]
     [DebuggerTypeProxy(typeof(RegexCollectionDebuggerProxy<Group>))]
-    public class GroupCollection : IList<Group>, IReadOnlyList<Group>, IList
+    internal class GroupCollection : IList<Group>, IReadOnlyList<Group>, IList
     {
         private readonly Match _match;
         private readonly Hashtable _captureMap;

@@ -13,7 +13,7 @@ namespace SJP.GenerationRex.RegularExpressions
     /// Represents the results from a single subexpression capture. The object represents
     /// one substring for a single successful capture.
     /// </summary>
-    public class Capture
+    internal class Capture
     {
         internal string _text;
         internal int _index;
