@@ -182,7 +182,6 @@ namespace SJP.GenerationRex.Tests
 
         // TODO: Fix unicode character ranges on generation, i.e. need to regenerate. Mongolian vowel separator messing things up at the moment.
         //       Currently they're categorised as whitespace, due to the old source, but in newer versions of .NET they are recognised as belonging to the Cf category
-        /*
         [Test]
         public void GenerateMembers_WithWhiteSpaceAndDigitsForUnicodeEncodingWithLargeSuite_ExecutesRoundTrip()
         {
@@ -201,6 +200,5 @@ namespace SJP.GenerationRex.Tests
                 }
             });
         }
-        */
     }
 }

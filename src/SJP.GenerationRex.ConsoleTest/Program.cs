@@ -8,12 +8,14 @@ namespace SJP.GenerationRex.ConsoleTest
         private static void Main()
         {
             //const string path = @"C:\Users\sjp\Downloads";
-            //UnicodeCategoryRangesGenerator.Generate("Rex", "UnicodeCategoryRanges", path);
+            //UnicodeCategoryRangesGenerator.Generate("SJP.GenerationRex", "UnicodeCategoryRanges", path);
 
             var engine = new RexEngine(CharacterEncoding.Unicode, 234);
-            const string str = @"^\d\d\d\-\d\d\d\d$";
+            const string str = @"^\d{5}-\d\d\d\d$";
             var results = engine.GenerateMembers(new System.Text.RegularExpressions.RegexOptions(), 4, str);
             var resultList = results.ToList();
+            var x = 1;
+            x++;
         }
     }
 }
