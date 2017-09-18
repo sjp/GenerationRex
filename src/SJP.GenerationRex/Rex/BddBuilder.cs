@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace SJP.GenerationRex
 {
@@ -19,6 +20,22 @@ namespace SJP.GenerationRex
         private int _k;
 
         public int NrOfBits => _k;
+
+        public BddBuilder(Encoding encoding)
+        {
+            var k = encoding == Encoding.ASCII
+                ? 7
+                : encoding.IsSingleByte ? 8 : 16;
+
+            _bitOrder = new int[k];
+            _bitMaps = new int[k];
+            for (int index = 0; index < k; ++index)
+            {
+                _bitOrder[index] = k - 1 - index;
+                _bitMaps[index] = 1 << k - 1 - index;
+            }
+            _k = k;
+        }
 
         public BddBuilder(int k)
         {
@@ -383,9 +400,9 @@ namespace SJP.GenerationRex
                 return BinaryDecisionDiagram.False;
             if (arcs.Length == 2)
                 return BinaryDecisionDiagram.True;
-            Dictionary<int, int> dictionary1 = new Dictionary<int, int>();
-            Dictionary<int, int> dictionary2 = new Dictionary<int, int>();
-            BinaryDecisionDiagram[] bddArray = new BinaryDecisionDiagram[arcs.Length];
+            var dictionary1 = new Dictionary<int, int>();
+            var dictionary2 = new Dictionary<int, int>();
+            var bddArray = new BinaryDecisionDiagram[arcs.Length];
             bddArray[0] = BinaryDecisionDiagram.False;
             bddArray[1] = BinaryDecisionDiagram.True;
             for (int index = 2; index < arcs.Length; ++index)
@@ -393,8 +410,7 @@ namespace SJP.GenerationRex
                 int x = arcs[index] >> 28 & 15;
                 int num1 = arcs[index] >> 14 & 16383;
                 int num2 = arcs[index] & 16383;
-                BinaryDecisionDiagram bdd = new BinaryDecisionDiagram(MkId(), x);
-                bddArray[index] = bdd;
+                bddArray[index] = new BinaryDecisionDiagram(MkId(), x);
                 dictionary1[index] = num1;
                 dictionary2[index] = num2;
             }

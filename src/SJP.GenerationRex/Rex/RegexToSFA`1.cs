@@ -274,15 +274,15 @@ namespace SJP.GenerationRex
 
         private static List<Pair<char, char>> ComputeRanges(string set)
         {
-            int capacity = (int)set[1];
-            List<Pair<char, char>> pairList = new List<Pair<char, char>>(capacity);
+            int capacity = set[1];
+            var pairList = new List<Pair<char, char>>(capacity);
             int index1 = 3;
             int num = index1 + capacity;
             while (index1 < num)
             {
                 char first = set[index1];
                 int index2 = index1 + 1;
-                char second = index2 >= num ? char.MaxValue : (char)((uint)set[index2] - 1U);
+                char second = index2 >= num ? char.MaxValue : (char)(set[index2] - 1U);
                 index1 = index2 + 1;
                 pairList.Add(new Pair<char, char>(first, second));
             }
@@ -326,13 +326,7 @@ namespace SJP.GenerationRex
                 throw new RexException("The anchor \\z, \\Z or $ is not supported if it is followed by other regex patterns or is nested in a loop");
             if (!isStart)
                 return SymbolicFiniteAutomaton<TConstraint>.Epsilon;
-            return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, (IEnumerable<int>)new int[1]
-            {
-        minStateId
-            }, (IEnumerable<Move<TConstraint>>)new Move<TConstraint>[1]
-            {
-        Move<TConstraint>.To(minStateId, minStateId, this.solver.True)
-            });
+            return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId }, new[] { Move<TConstraint>.To(minStateId, minStateId, solver.True) });
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEndZ(RegexNode node, int minStateId, bool isStart, bool isEnd)
@@ -341,13 +335,7 @@ namespace SJP.GenerationRex
                 throw new RexException("The anchor \\z, \\Z or $ is not supported if it is followed by other regex patterns or is nested in a loop");
             if (!isStart)
                 return SymbolicFiniteAutomaton<TConstraint>.Epsilon;
-            return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, (IEnumerable<int>)new int[1]
-            {
-        minStateId
-            }, (IEnumerable<Move<TConstraint>>)new Move<TConstraint>[1]
-            {
-        Move<TConstraint>.To(minStateId, minStateId, this.solver.True)
-            });
+            return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId }, new[] { Move<TConstraint>.To(minStateId, minStateId, solver.True) });
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeBeginning(RegexNode node, int minStateId, bool isStart, bool isEnd)
@@ -356,13 +344,7 @@ namespace SJP.GenerationRex
                 throw new RexException("The anchor \\A or ^ is not supported if it is preceded by other regex patterns or is nested in a loop");
             if (!isEnd)
                 return SymbolicFiniteAutomaton<TConstraint>.Epsilon;
-            return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, (IEnumerable<int>)new int[1]
-            {
-        minStateId
-            }, (IEnumerable<Move<TConstraint>>)new Move<TConstraint>[1]
-            {
-        Move<TConstraint>.To(minStateId, minStateId, this.solver.True)
-            });
+            return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId }, new[] { Move<TConstraint>.To(minStateId, minStateId, solver.True) });
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeBol(RegexNode node, int minStateId, bool isStart, bool isEnd)
@@ -457,8 +439,8 @@ namespace SJP.GenerationRex
                     break;
                 }
             }
-            bool flag2 = !sfas.Exists(new Predicate<SymbolicFiniteAutomaton<TConstraint>>(RegexToSFA<TConstraint>.IsNonDeterministic));
-            sfas.Exists(new Predicate<SymbolicFiniteAutomaton<TConstraint>>(RegexToSFA<TConstraint>.HasEpsilons));
+            bool flag2 = !sfas.Exists(IsNonDeterministic);
+            sfas.Exists(HasEpsilons);
             bool flag3 = true;
             int val2 = int.MinValue;
             foreach (SymbolicFiniteAutomaton<TConstraint> sfa in sfas)

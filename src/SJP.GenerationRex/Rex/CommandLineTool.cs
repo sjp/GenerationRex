@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SJP.GenerationRex
@@ -13,7 +14,7 @@ namespace SJP.GenerationRex
             //if (!CommandLineParser.ParseArgumentsWithUsage(args, (object) rexSettings))
             //  return;
             //TextWriter textWriter = rexSettings.file == null || rexSettings.file == "" ? Console.Out : (TextWriter) new StreamWriter(rexSettings.file);
-            RexEngine rexEngine = new RexEngine(rexSettings.encoding, rexSettings.seed);
+            RexEngine rexEngine = new RexEngine(Encoding.Unicode, rexSettings.seed);
             RegexOptions options = RegexOptions.None;
             if (rexSettings.options != null)
             {

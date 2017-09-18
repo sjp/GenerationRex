@@ -12,16 +12,16 @@ namespace SJP.GenerationRex
         {
             _solver = solver;
             _chooser = new Chooser();
-            _converter = new RegexToSFA<BinaryDecisionDiagram>(solver, new UnicodeCategoryConditionsBddProvider(solver));
+            _converter = new RegexToSFA<BinaryDecisionDiagram>(solver, new UnicodeCategoryConditionsBddProvider(Encoding.Unicode, solver.NrOfBits));
         }
 
-        public RexEngine(CharacterEncoding encoding, int randomSeed)
+        public RexEngine(Encoding encoding, int randomSeed)
         {
-            _solver = new BddBuilder((int)encoding);
+            _solver = new BddBuilder(encoding);
             _chooser = new Chooser();
             if (randomSeed > -1)
                 _chooser.RandomSeed = randomSeed;
-            _converter = new RegexToSFA<BinaryDecisionDiagram>(this._solver, new UnicodeCategoryConditionsBddProvider(this._solver));
+            _converter = new RegexToSFA<BinaryDecisionDiagram>(_solver, new UnicodeCategoryConditionsBddProvider(encoding, _solver.NrOfBits));
         }
 
         public int RandomSeed => _chooser.RandomSeed;
@@ -78,7 +78,7 @@ namespace SJP.GenerationRex
 
         public static IEnumerable<string> GenerateMembers(RexSettings settings)
         {
-            var rexEngine = new RexEngine(settings.encoding, settings.seed);
+            var rexEngine = new RexEngine(Encoding.Unicode, settings.seed);
             var options = RegexOptions.None;
             if (settings.options != null)
             {
