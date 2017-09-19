@@ -41,7 +41,7 @@ namespace SJP.GenerationRex
         {
             var stringBuilder = new StringBuilder();
             Move<BinaryDecisionDiagram> nthMoveFrom;
-            for (int index = fa.InitialState; !fa.IsFinalState(index) || fa.OutDegree(index) > 0 && this._chooser.ChooseBoolean(); index = nthMoveFrom.TargetState)
+            for (int index = fa.InitialState; !fa.IsFinalState(index) || (fa.OutDegree(index) > 0 && _chooser.ChooseBoolean()); index = nthMoveFrom.TargetState)
             {
                 nthMoveFrom = fa.GetNthMoveFrom(index, this._chooser.Choose(fa.GetMovesCountFrom(index)));
                 if (!nthMoveFrom.IsEpsilon)

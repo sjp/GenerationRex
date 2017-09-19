@@ -76,29 +76,44 @@ namespace SJP.GenerationRex
             var whitepaceRanges = new Ranges();
             var unicode = Encoding.Unicode;
             var bitMaxValue = (1 << _bits) - 1;
-            for (var n = 0; n <= bitMaxValue; n++)
-            {
-                var sourceC = (char)n;
-                var bytes = unicode.GetBytes(new[] { sourceC });
-                var convertedBytes = Encoding.Convert(unicode, _encoding, bytes);
-                var str = _encoding.GetString(convertedBytes);
 
-                UnicodeCategory category;
-                if (string.IsNullOrWhiteSpace(str))
+            if (_encoding == unicode)
+            {
+                for (var n = 0; n <= bitMaxValue; n++)
                 {
-                    category = UnicodeCategory.OtherNotAssigned;
-                }
-                else
-                {
-                    var c = str[0];
+                    var c = (char)n;
                     if (char.IsWhiteSpace(c))
                         whitepaceRanges.Add(n);
-                    category = c == questionMark && n != questionMarkIndex
-                        ? UnicodeCategory.OtherNotAssigned
-                        : char.GetUnicodeCategory(c);
+                    var category = char.GetUnicodeCategory(c);
+                    categoryRange[category].Add(n);
                 }
+            }
+            else
+            {
+                for (var n = 0; n <= bitMaxValue; n++)
+                {
+                    var sourceC = (char)n;
+                    var bytes = unicode.GetBytes(new[] { sourceC });
+                    var convertedBytes = Encoding.Convert(unicode, _encoding, bytes);
+                    var str = _encoding.GetString(convertedBytes);
 
-                categoryRange[category].Add(n);
+                    UnicodeCategory category;
+                    if (string.IsNullOrEmpty(str))
+                    {
+                        category = UnicodeCategory.OtherNotAssigned;
+                    }
+                    else
+                    {
+                        var c = str[0];
+                        if (char.IsWhiteSpace(c))
+                            whitepaceRanges.Add(n);
+                        category = c == questionMark && n != questionMarkIndex
+                            ? UnicodeCategory.OtherNotAssigned
+                            : char.GetUnicodeCategory(c);
+                    }
+
+                    categoryRange[category].Add(n);
+                }
             }
 
             return new Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges>(categoryRange, whitepaceRanges);
