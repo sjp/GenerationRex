@@ -15,12 +15,23 @@ namespace SJP.GenerationRex
             _converter = new RegexToSFA<BinaryDecisionDiagram>(solver, new UnicodeCategoryConditionsBddProvider(Encoding.Unicode, solver.NrOfBits));
         }
 
+        public RexEngine(CharacterEncoding encoding, int randomSeed)
+        {
+            _solver = new BddBuilder(encoding);
+            _chooser = new Chooser();
+            if (randomSeed > -1)
+                _chooser.RandomSeed = randomSeed;
+
+            _converter = new RegexToSFA<BinaryDecisionDiagram>(_solver, new UnicodeCategoryConditionsBddProvider(Encoding.Unicode, _solver.NrOfBits));
+        }
+
         public RexEngine(Encoding encoding, int randomSeed)
         {
             _solver = new BddBuilder(encoding);
             _chooser = new Chooser();
             if (randomSeed > -1)
                 _chooser.RandomSeed = randomSeed;
+
             _converter = new RegexToSFA<BinaryDecisionDiagram>(_solver, new UnicodeCategoryConditionsBddProvider(encoding, _solver.NrOfBits));
         }
 

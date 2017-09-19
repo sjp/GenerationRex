@@ -3,26 +3,46 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using EnumsNET;
 
 namespace SJP.GenerationRex
 {
     internal class BddBuilder : ICharacterConstraintSolver<BinaryDecisionDiagram>
     {
-        private Dictionary<long, BinaryDecisionDiagram> _restrictCache = new Dictionary<long, BinaryDecisionDiagram>();
-        private Dictionary<BddPair, BinaryDecisionDiagram> _orCache = new Dictionary<BddPair, BinaryDecisionDiagram>();
-        private Dictionary<BddPair, BinaryDecisionDiagram> _andCache = new Dictionary<BddPair, BinaryDecisionDiagram>();
-        private Dictionary<int, BinaryDecisionDiagram> _intCache = new Dictionary<int, BinaryDecisionDiagram>();
-        private Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram> _notCache = new Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram>();
+        private readonly Dictionary<long, BinaryDecisionDiagram> _restrictCache = new Dictionary<long, BinaryDecisionDiagram>();
+        private readonly Dictionary<BddPair, BinaryDecisionDiagram> _orCache = new Dictionary<BddPair, BinaryDecisionDiagram>();
+        private readonly Dictionary<BddPair, BinaryDecisionDiagram> _andCache = new Dictionary<BddPair, BinaryDecisionDiagram>();
+        private readonly Dictionary<int, BinaryDecisionDiagram> _intCache = new Dictionary<int, BinaryDecisionDiagram>();
+        private readonly Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram> _notCache = new Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram>();
         private int _id = 2;
         private const int maxChar = 65535;
-        private int[] _bitOrder;
-        private int[] _bitMaps;
-        private int _k;
+        private readonly int[] _bitOrder;
+        private readonly int[] _bitMaps;
 
-        public int NrOfBits => _k;
+        public int NrOfBits { get; }
+
+        public BddBuilder(CharacterEncoding encoding)
+        {
+            if (!encoding.IsValid())
+                throw new ArgumentException($"The { nameof(CharacterEncoding) } provided must be a valid enum.", nameof(encoding));
+
+            var k = (int)encoding;
+
+            _bitOrder = new int[k];
+            _bitMaps = new int[k];
+            for (int index = 0; index < k; ++index)
+            {
+                _bitOrder[index] = k - 1 - index;
+                _bitMaps[index] = 1 << k - 1 - index;
+            }
+            NrOfBits = k;
+        }
 
         public BddBuilder(Encoding encoding)
         {
+            if (encoding == null)
+                throw new ArgumentNullException(nameof(encoding));
+
             var k = encoding == Encoding.ASCII
                 ? 7
                 : encoding.IsSingleByte ? 8 : 16;
@@ -34,7 +54,7 @@ namespace SJP.GenerationRex
                 _bitOrder[index] = k - 1 - index;
                 _bitMaps[index] = 1 << k - 1 - index;
             }
-            _k = k;
+            NrOfBits = k;
         }
 
         public BddBuilder(int k)
@@ -46,19 +66,7 @@ namespace SJP.GenerationRex
                 _bitOrder[index] = k - 1 - index;
                 _bitMaps[index] = 1 << k - 1 - index;
             }
-            _k = k;
-        }
-
-        public BddBuilder(int k, int randomSeed)
-        {
-            _bitOrder = new int[k];
-            _bitMaps = new int[k];
-            for (int index = 0; index < k; ++index)
-            {
-                _bitOrder[index] = k - 1 - index;
-                _bitMaps[index] = 1 << k - 1 - index;
-            }
-            _k = k;
+            NrOfBits = k;
         }
 
         private int MkId()
@@ -217,7 +225,7 @@ namespace SJP.GenerationRex
             if (_intCache.TryGetValue(n, out bdd1))
                 return bdd1;
             BinaryDecisionDiagram bdd2 = BinaryDecisionDiagram.True;
-            for (int x = _k - 1; x >= 0; --x)
+            for (int x = NrOfBits - 1; x >= 0; --x)
                 bdd2 = (n & _bitMaps[x]) != 0 ? new BinaryDecisionDiagram(MkId(), x, bdd2, BinaryDecisionDiagram.False) : new BinaryDecisionDiagram(MkId(), x, BinaryDecisionDiagram.False, bdd2);
             _intCache[n] = bdd2;
             return bdd2;
@@ -245,9 +253,9 @@ namespace SJP.GenerationRex
 
         public BinaryDecisionDiagram MkRangeConstraint(bool caseInsensitive, char lower, char upper)
         {
-            if (_k == 7)
+            if (NrOfBits == 7)
                 return MkRangeConstraint1(caseInsensitive, (int)lower < (int)sbyte.MaxValue ? lower : '\x007F', (int)upper < (int)sbyte.MaxValue ? upper : '\x007F');
-            if (_k == 8)
+            if (NrOfBits == 8)
                 return MkRangeConstraint1(caseInsensitive, (int)lower < (int)byte.MaxValue ? lower : 'ÿ', (int)upper < (int)byte.MaxValue ? upper : 'ÿ');
             int num1 = (int)lower;
             int num2 = (int)upper;
@@ -283,7 +291,7 @@ namespace SJP.GenerationRex
         public char GenerateMember(Chooser chooser, BinaryDecisionDiagram bdd)
         {
             int num = 0;
-            for (int index = 0; index < _k; ++index)
+            for (int index = 0; index < NrOfBits; ++index)
             {
                 if (index < bdd.Ordinal)
                     num |= chooser.ChooseBoolean() ? _bitMaps[index] : 0;
@@ -341,10 +349,10 @@ namespace SJP.GenerationRex
             if (bdd == BinaryDecisionDiagram.True)
                 return new int[2];
             int[] numArray = new int[bdd.CalculateSize()];
-            Dictionary<BinaryDecisionDiagram, int> dictionary = new Dictionary<BinaryDecisionDiagram, int>();
+            var dictionary = new Dictionary<BinaryDecisionDiagram, int>();
             dictionary[BinaryDecisionDiagram.False] = 0;
             dictionary[BinaryDecisionDiagram.True] = 1;
-            Stack<BinaryDecisionDiagram> bddStack = new Stack<BinaryDecisionDiagram>();
+            var bddStack = new Stack<BinaryDecisionDiagram>();
             bddStack.Push(bdd);
             dictionary[bdd] = 2;
             int num1 = 3;
@@ -371,13 +379,13 @@ namespace SJP.GenerationRex
 
         public BinaryDecisionDiagram Deserialize(IEnumerable<int[]> arcs)
         {
-            BinaryDecisionDiagram bdd1 = (BinaryDecisionDiagram)null;
-            Dictionary<int, int> dictionary1 = new Dictionary<int, int>();
-            Dictionary<int, int> dictionary2 = new Dictionary<int, int>();
-            Dictionary<int, BinaryDecisionDiagram> dictionary3 = new Dictionary<int, BinaryDecisionDiagram>();
+            var bdd1 = (BinaryDecisionDiagram)null;
+            var dictionary1 = new Dictionary<int, int>();
+            var dictionary2 = new Dictionary<int, int>();
+            var dictionary3 = new Dictionary<int, BinaryDecisionDiagram>();
             foreach (int[] arc in arcs)
             {
-                BinaryDecisionDiagram bdd2 = new BinaryDecisionDiagram(MkId(), arc[0]);
+                var bdd2 = new BinaryDecisionDiagram(MkId(), arc[0]);
                 dictionary3[arc[1]] = bdd2;
                 dictionary1[arc[1]] = arc[2];
                 dictionary2[arc[1]] = arc[3];
@@ -424,50 +432,20 @@ namespace SJP.GenerationRex
             return bddArray[2];
         }
 
-        public static void Display(BinaryDecisionDiagram bdd, string name, DotRankDir dir, int fontsize, bool showgraph, string format)
-        {
-            string currentDirectory = Environment.CurrentDirectory;
-            string str = string.Format("{1}\\{0}.dot", (object)name, (object)currentDirectory);
-            string fileName = string.Format("{2}\\{0}.{1}", (object)name, (object)format, (object)currentDirectory);
-            FileInfo fileInfo1 = new FileInfo(str);
-            if (fileInfo1.Exists)
-                fileInfo1.IsReadOnly = false;
-            FileInfo fileInfo2 = new FileInfo(fileName);
-            if (fileInfo2.Exists)
-                fileInfo2.IsReadOnly = false;
-            ToDot(bdd, name, str, dir, fontsize);
-            Process process = new Process();
-            process.StartInfo = new ProcessStartInfo("dot.exe", string.Format("-T{2} {0} -o {1}", (object)str, (object)fileName, (object)format));
-            try
-            {
-                process.Start();
-                process.WaitForExit();
-                if (!showgraph)
-                    return;
-                process.StartInfo = new ProcessStartInfo(fileName);
-                process.Start();
-            }
-            catch (Exception ex)
-            {
-                throw new RexException("Dot viewer is not installed", ex);
-            }
-        }
-
         public static void ToDot(BinaryDecisionDiagram bdd, string bddName, string filename, DotRankDir rankdir, int fontsize)
         {
-            StreamWriter tw = new StreamWriter(filename);
-            ToDot(bdd, bddName, tw, rankdir, fontsize);
-            tw.Close();
+            using (StreamWriter tw = new StreamWriter(filename))
+                ToDot(bdd, bddName, tw, rankdir, fontsize);
         }
 
         public static void ToDot(BinaryDecisionDiagram bdd, string bddName, StreamWriter tw, DotRankDir rankdir, int fontsize)
         {
             if (bdd.Id < 2)
                 throw new ArgumentOutOfRangeException(nameof(bdd), "Must be different from BDD.True and BDD.False");
-            Dictionary<BinaryDecisionDiagram, int> dictionary1 = new Dictionary<BinaryDecisionDiagram, int>();
-            Dictionary<int, int> dictionary2 = new Dictionary<int, int>();
-            List<Move<string>> moveList = new List<Move<string>>();
-            Stack<BinaryDecisionDiagram> bddStack = new Stack<BinaryDecisionDiagram>();
+            var dictionary1 = new Dictionary<BinaryDecisionDiagram, int>();
+            var dictionary2 = new Dictionary<int, int>();
+            var moveList = new List<Move<string>>();
+            var bddStack = new Stack<BinaryDecisionDiagram>();
             bddStack.Push(bdd);
             dictionary1.Add(BinaryDecisionDiagram.False, 0);
             dictionary1.Add(BinaryDecisionDiagram.True, 1);

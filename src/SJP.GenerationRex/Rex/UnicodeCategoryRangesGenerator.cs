@@ -11,9 +11,7 @@ namespace SJP.GenerationRex
     {
         public UnicodeCategoryRangeGenerator(Encoding encoding, int bits)
         {
-            if (encoding == null)
-                throw new ArgumentNullException(nameof(encoding));
-
+            _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
             _bits = bits;
 
             _categoryLoader = new Lazy<IReadOnlyDictionary<UnicodeCategory, BinaryDecisionDiagram>>(GenerateCategory);
@@ -73,15 +71,33 @@ namespace SJP.GenerationRex
             foreach (var category in Enums.GetValues<UnicodeCategory>())
                 categoryRange[category] = new Ranges();
 
+            const char questionMark = '?';
+            const int questionMarkIndex = questionMark;
             var whitepaceRanges = new Ranges();
-
+            var unicode = Encoding.Unicode;
             var bitMaxValue = (1 << _bits) - 1;
             for (var n = 0; n <= bitMaxValue; n++)
             {
-                var c = (char)n;
-                if (char.IsWhiteSpace(c))
-                    whitepaceRanges.Add(n);
-                var category = char.GetUnicodeCategory(c);
+                var sourceC = (char)n;
+                var bytes = unicode.GetBytes(new[] { sourceC });
+                var convertedBytes = Encoding.Convert(unicode, _encoding, bytes);
+                var str = _encoding.GetString(convertedBytes);
+
+                UnicodeCategory category;
+                if (string.IsNullOrWhiteSpace(str))
+                {
+                    category = UnicodeCategory.OtherNotAssigned;
+                }
+                else
+                {
+                    var c = str[0];
+                    if (char.IsWhiteSpace(c))
+                        whitepaceRanges.Add(n);
+                    category = c == questionMark && n != questionMarkIndex
+                        ? UnicodeCategory.OtherNotAssigned
+                        : char.GetUnicodeCategory(c);
+                }
+
                 categoryRange[category].Add(n);
             }
 
@@ -92,6 +108,7 @@ namespace SJP.GenerationRex
         private readonly Lazy<BinaryDecisionDiagram> _whitespaceLoader;
         private readonly Lazy<BinaryDecisionDiagram> _wordCharacterLoader;
         private readonly Lazy<Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges>> _rangesLoader;
+        private readonly Encoding _encoding;
         private readonly int _bits;
 
         private class Ranges
