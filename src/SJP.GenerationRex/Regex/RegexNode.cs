@@ -41,9 +41,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SJP.GenerationRex.RegularExpressions
@@ -573,6 +571,7 @@ namespace SJP.GenerationRex.RegularExpressions
             _children.Add(reducedChild);
             reducedChild._next = this;
         }
+
         internal RegexNode Child(int i)
         {
             return _children[i];

@@ -24,7 +24,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 namespace SJP.GenerationRex.RegularExpressions
@@ -32,8 +31,8 @@ namespace SJP.GenerationRex.RegularExpressions
     internal sealed class RegexCharClass
     {
         // instance data
-        private List<SingleRange> _rangelist;
-        private StringBuilder _categories;
+        private readonly List<SingleRange> _rangelist;
+        private readonly StringBuilder _categories;
         private bool _canonical;
         private bool _negate;
         private RegexCharClass _subtractor;
@@ -951,11 +950,11 @@ namespace SJP.GenerationRex.RegularExpressions
             if (category == null)
                 return null;
 
-            StringBuilder sb = new StringBuilder(category.Length);
+            var sb = new StringBuilder(category.Length);
 
             for (int i = 0; i < category.Length; i++)
             {
-                short ch = (short)category[i];
+                var ch = (short)category[i];
                 sb.Append(unchecked((char)-ch));
             }
             return sb.ToString();
@@ -972,7 +971,7 @@ namespace SJP.GenerationRex.RegularExpressions
             int myCategoryLength = charClass[start + CATEGORYLENGTH];
             int myEndPosition = start + SETSTART + mySetLength + myCategoryLength;
 
-            List<SingleRange> ranges = new List<SingleRange>(mySetLength);
+            var ranges = new List<SingleRange>(mySetLength);
             int i = start + SETSTART;
             int end = i + mySetLength;
             while (i < end)
