@@ -28,7 +28,7 @@ namespace SJP.GenerationRex
         {
             get
             {
-                return null == this.shortName;
+                return this.shortName == null;
             }
         }
 

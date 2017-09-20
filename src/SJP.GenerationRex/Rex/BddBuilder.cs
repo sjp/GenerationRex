@@ -413,11 +413,15 @@ namespace SJP.GenerationRex
             var bddArray = new BinaryDecisionDiagram[arcs.Length];
             bddArray[0] = BinaryDecisionDiagram.False;
             bddArray[1] = BinaryDecisionDiagram.True;
+
+            const int maxBitIndex = 15;
+            const int midPoint = (2 << maxBitIndex) - 1;
+
             for (int index = 2; index < arcs.Length; ++index)
             {
                 int x = arcs[index] >> 28 & 15;
-                int num1 = arcs[index] >> 14 & 16383;
-                int num2 = arcs[index] & 16383;
+                int num1 = arcs[index] >> 14 & midPoint;
+                int num2 = arcs[index] & midPoint;
                 bddArray[index] = new BinaryDecisionDiagram(MkId(), x);
                 dictionary1[index] = num1;
                 dictionary2[index] = num2;
@@ -434,7 +438,7 @@ namespace SJP.GenerationRex
 
         public static void ToDot(BinaryDecisionDiagram bdd, string bddName, string filename, DotRankDir rankdir, int fontsize)
         {
-            using (StreamWriter tw = new StreamWriter(filename))
+            using (var tw = new StreamWriter(filename))
                 ToDot(bdd, bddName, tw, rankdir, fontsize);
         }
 

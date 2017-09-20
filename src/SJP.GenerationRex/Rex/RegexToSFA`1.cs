@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using EnumsNET;
 using SJP.GenerationRex.RegularExpressions;
 
 namespace SJP.GenerationRex
@@ -26,7 +27,7 @@ namespace SJP.GenerationRex
 
         public SymbolicFiniteAutomaton<TConstraint> Convert(string regex, RegexOptions options)
         {
-            RegexOptions op = options & ~RegexOptions.RightToLeft;
+            RegexOptions op = options.RemoveFlags(RegexOptions.RightToLeft);
             return this.ConvertNode(RegexParser.Parse(regex, op).Root, 0, true, true);
         }
 
@@ -124,7 +125,7 @@ namespace SJP.GenerationRex
         {
             string str = node._str;
             int length = str.Length;
-            bool caseInsensitive = (node._options & RegexOptions.IgnoreCase) != RegexOptions.None;
+            bool caseInsensitive = node._options.HasAnyFlags(RegexOptions.IgnoreCase);
             int num1 = minStateId;
             int num2 = num1 + length;
             int[] numArray = new int[1] { num2 };
@@ -154,7 +155,7 @@ namespace SJP.GenerationRex
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeNotone(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            TConstraint index = this.solver.MkNot(this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch));
+            TConstraint index = this.solver.MkNot(this.solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch));
             if (!this.description.ContainsKey(index))
                 this.description[index] = string.Format("[^{0}]", (object)RexEngine.Escape(node._ch));
             SymbolicFiniteAutomaton<TConstraint> sfa = SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, (IEnumerable<int>)new int[1]
@@ -177,7 +178,7 @@ namespace SJP.GenerationRex
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeOne(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            TConstraint index = this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch);
+            TConstraint index = this.solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch);
             if (!this.description.ContainsKey(index))
                 this.description[index] = RexEngine.Escape(node._ch);
             SymbolicFiniteAutomaton<TConstraint> sfa = SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, (IEnumerable<int>)new int[1]
@@ -201,7 +202,7 @@ namespace SJP.GenerationRex
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeSet(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             string str = node._str;
-            TConstraint conditionFromSet = this.CreateConditionFromSet((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, str);
+            TConstraint conditionFromSet = this.CreateConditionFromSet(node._options.HasAnyFlags(RegexOptions.IgnoreCase), str);
             if (conditionFromSet.Equals((object)this.solver.False))
                 return SymbolicFiniteAutomaton<TConstraint>.Empty;
             int num = minStateId + 1;
@@ -697,7 +698,7 @@ namespace SJP.GenerationRex
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeNotoneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            TConstraint index = this.solver.MkNot(this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch));
+            TConstraint index = this.solver.MkNot(this.solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch));
             if (!this.description.ContainsKey(index))
                 this.description[index] = string.Format("[^{0}]", (object)RexEngine.Escape(node._ch));
             SymbolicFiniteAutomaton<TConstraint> loopFromCondition = RegexToSFA<TConstraint>.CreateLoopFromCondition(minStateId, index, node._m, node._n);
@@ -706,7 +707,7 @@ namespace SJP.GenerationRex
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeOneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            TConstraint index = this.solver.MkCharConstraint((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, node._ch);
+            TConstraint index = this.solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch);
             if (!this.description.ContainsKey(index))
                 this.description[index] = string.Format("{0}", (object)RexEngine.Escape(node._ch));
             SymbolicFiniteAutomaton<TConstraint> loopFromCondition = RegexToSFA<TConstraint>.CreateLoopFromCondition(minStateId, index, node._m, node._n);
@@ -716,7 +717,7 @@ namespace SJP.GenerationRex
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeSetloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
             string str = node._str;
-            TConstraint conditionFromSet = this.CreateConditionFromSet((node._options & RegexOptions.IgnoreCase) != RegexOptions.None, str);
+            TConstraint conditionFromSet = this.CreateConditionFromSet(node._options.HasAnyFlags(RegexOptions.IgnoreCase), str);
             if (conditionFromSet.Equals((object)this.solver.False))
             {
                 if (node._m == 0)

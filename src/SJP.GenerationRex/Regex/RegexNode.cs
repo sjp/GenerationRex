@@ -39,6 +39,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using EnumsNET;
 
 namespace SJP.GenerationRex.RegularExpressions
 {
@@ -147,7 +148,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
         internal bool UseOptionR()
         {
-            return (_options & RegexOptions.RightToLeft) != 0;
+            return _options.HasAnyFlags(RegexOptions.RightToLeft);
         }
 
         internal RegexNode ReverseLeft()
@@ -359,7 +360,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     else if (at._type == Set || at._type == One)
                     {
                         // Cannot merge sets if L or I options differ, or if either are negated.
-                        optionsAt = at._options & (RegexOptions.RightToLeft | RegexOptions.IgnoreCase);
+                        optionsAt = at._options.CommonFlags(RegexOptions.RightToLeft.CombineFlags(RegexOptions.IgnoreCase));
 
                         if (at._type == Set)
                         {
@@ -459,7 +460,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     _children[j] = at;
 
                 if (at._type == Concatenate
-                    && ((at._options & RegexOptions.RightToLeft) == (_options & RegexOptions.RightToLeft)))
+                    && ((at._options.CommonFlags(RegexOptions.RightToLeft)) == (_options.CommonFlags(RegexOptions.RightToLeft))))
                 {
                     for (int k = 0; k < at._children.Count; k++)
                         at._children[k]._next = this;
@@ -470,7 +471,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 else if (at._type == Multi || at._type == One)
                 {
                     // Cannot merge strings if L or I options differ
-                    optionsAt = at._options & (RegexOptions.RightToLeft | RegexOptions.IgnoreCase);
+                    optionsAt = at._options.CommonFlags(RegexOptions.RightToLeft.CombineFlags(RegexOptions.IgnoreCase));
 
                     if (!wasLastString || optionsLast != optionsAt)
                     {
@@ -487,7 +488,7 @@ namespace SJP.GenerationRex.RegularExpressions
                         prev._str = Convert.ToString(prev._ch, CultureInfo.InvariantCulture);
                     }
 
-                    if ((optionsAt & RegexOptions.RightToLeft) == 0)
+                    if (!optionsAt.HasAnyFlags(RegexOptions.RightToLeft))
                     {
                         if (at._type == One)
                             prev._str += at._ch.ToString();

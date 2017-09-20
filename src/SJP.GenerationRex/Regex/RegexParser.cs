@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using EnumsNET;
 
 namespace SJP.GenerationRex.RegularExpressions
 {
@@ -44,7 +45,10 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         internal static RegexTree Parse(string re, RegexOptions op)
         {
-            var p = new RegexParser((op & RegexOptions.CultureInvariant) != 0 ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture)
+            var culture = op.HasAnyFlags(RegexOptions.CultureInvariant)
+                ? CultureInfo.InvariantCulture
+                : CultureInfo.CurrentCulture;
+            var p = new RegexParser(culture)
             {
                 _options = op
             };
@@ -1269,7 +1273,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private bool UseOptionN()
         {
-            return (_options & RegexOptions.ExplicitCapture) != 0;
+            return _options.HasAnyFlags(RegexOptions.ExplicitCapture);
         }
 
         /*
@@ -1277,7 +1281,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private bool UseOptionI()
         {
-            return (_options & RegexOptions.IgnoreCase) != 0;
+            return _options.HasAnyFlags(RegexOptions.IgnoreCase);
         }
 
         /*
@@ -1285,7 +1289,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private bool UseOptionM()
         {
-            return (_options & RegexOptions.Multiline) != 0;
+            return _options.HasAnyFlags(RegexOptions.Multiline);
         }
 
         /*
@@ -1293,7 +1297,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private bool UseOptionS()
         {
-            return (_options & RegexOptions.Singleline) != 0;
+            return _options.HasAnyFlags(RegexOptions.Singleline);
         }
 
         /*
@@ -1301,7 +1305,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private bool UseOptionX()
         {
-            return (_options & RegexOptions.IgnorePatternWhitespace) != 0;
+            return _options.HasAnyFlags(RegexOptions.IgnorePatternWhitespace);
         }
 
         /*
@@ -1309,7 +1313,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private bool UseOptionE()
         {
-            return (_options & RegexOptions.ECMAScript) != 0;
+            return _options.HasAnyFlags(RegexOptions.ECMAScript);
         }
 
         internal const byte Q = 5;    // quantifier

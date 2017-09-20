@@ -12,6 +12,7 @@ namespace SJP.GenerationRex.RegularExpressions
         }
 
         public RegexNode Root { get; }
+
         public RegexOptions Options { get; }
     }
 }
