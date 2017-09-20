@@ -1,7 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
 // This RegexParser class is internal to the Regex package.
 // It builds a tree of RegexNodes from a regular expression
 
@@ -11,7 +7,6 @@
 // ScanBlank() calls are just kind of duct-taped in.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -32,20 +27,11 @@ namespace SJP.GenerationRex.RegularExpressions
         internal CultureInfo _culture;
 
         internal int _autocap;
-        internal int _capcount;
-        internal int _captop;
-        internal int _capsize;
-
-        internal Hashtable _caps;
-        internal Hashtable _capnames;
-
-        internal int[] _capnumlist;
-        internal List<string> _capnamelist;
 
         internal RegexOptions _options;
         internal List<RegexOptions> _optionsStack;
 
-        internal bool _ignoreNextParen = false;
+        internal bool _ignoreNextParen;
 
         internal const int MaxValueDiv10 = int.MaxValue / 10;
         internal const int MaxValueMod10 = int.MaxValue % 10;
@@ -58,25 +44,16 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         internal static RegexTree Parse(string re, RegexOptions op)
         {
-            RegexParser p;
-            RegexNode root;
-            string[] capnamelist;
-
-            p = new RegexParser((op & RegexOptions.CultureInvariant) != 0 ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture);
-
-            p._options = op;
+            var p = new RegexParser((op & RegexOptions.CultureInvariant) != 0 ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture)
+            {
+                _options = op
+            };
 
             p.SetPattern(re);
-            p.CountCaptures();
             p.Reset(op);
-            root = p.ScanRegex();
+            var root = p.ScanRegex();
 
-            if (p._capnamelist == null)
-                capnamelist = null;
-            else
-                capnamelist = p._capnamelist.ToArray();
-
-            return new RegexTree(root, p._caps, p._capnumlist, p._captop, p._capnames, capnamelist, op);
+            return new RegexTree(root, op);
         }
 
         /*
@@ -86,13 +63,12 @@ namespace SJP.GenerationRex.RegularExpressions
         {
             _culture = culture;
             _optionsStack = new List<RegexOptions>();
-            _caps = new Hashtable();
         }
 
         /*
          * Drops a string into the pattern buffer.
          */
-        internal void SetPattern(string Re)
+        private void SetPattern(string Re)
         {
             if (Re == null)
                 Re = string.Empty;
@@ -103,7 +79,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Resets parsing to the beginning of the pattern.
          */
-        internal void Reset(RegexOptions topopts)
+        private void Reset(RegexOptions topopts)
         {
             _currentPos = 0;
             _autocap = 1;
@@ -119,7 +95,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * The main parsing function.
          */
-        internal RegexNode ScanRegex()
+        private RegexNode ScanRegex()
         {
             char ch = '@'; // nonspecial ch, means at beginning
             bool isQuantifier = false;
@@ -138,25 +114,33 @@ namespace SJP.GenerationRex.RegularExpressions
                 // move past all of the normal characters.  We'll stop when we hit some kind of control character,
                 // or if IgnorePatternWhiteSpace is on, we'll stop when we see some whitespace.
                 if (UseOptionX())
-                    while (CharsRight() > 0 && (!IsStopperX(ch = RightChar()) || ch == '{' && !IsTrueQuantifier()))
+                {
+                    while (CharsRight() > 0 && (!IsStopperX(ch = RightChar()) || (ch == '{' && !IsTrueQuantifier())))
                         MoveRight();
+                }
                 else
-                    while (CharsRight() > 0 && (!IsSpecial(ch = RightChar()) || ch == '{' && !IsTrueQuantifier()))
+                {
+                    while (CharsRight() > 0 && (!IsSpecial(ch = RightChar()) || (ch == '{' && !IsTrueQuantifier())))
                         MoveRight();
+                }
 
                 int endpos = Textpos();
 
                 ScanBlank();
 
                 if (CharsRight() == 0)
+                {
                     ch = '!'; // nonspecial, means at end
+                }
                 else if (IsSpecial(ch = RightChar()))
                 {
                     isQuantifier = IsQuantifier(ch);
                     MoveRight();
                 }
                 else
+                {
                     ch = ' '; // nonspecial, means at ordinary char
+                }
 
                 if (startpos < endpos)
                 {
@@ -165,7 +149,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     wasPrevQuantifier = false;
 
                     if (cchUnquantified > 0)
-                        AddConcatenate(startpos, cchUnquantified, false);
+                        AddConcatenate(startpos, cchUnquantified);
 
                     if (isQuantifier)
                         AddUnitOne(CharAt(endpos - 1));
@@ -189,7 +173,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
                             PushOptions();
 
-                            if (null == (grouper = ScanGroupOpen()))
+                            if ((grouper = ScanGroupOpen()) == null)
                             {
                                 PopKeepOptions();
                             }
@@ -241,9 +225,12 @@ namespace SJP.GenerationRex.RegularExpressions
                     case '+':
                     case '?':
                         if (Unit() == null)
+                        {
                             throw MakeException(wasPrevQuantifier ?
-                                                SR.Format(SR.NestedQuantify, ch.ToString()) :
-                                                SR.QuantifyAfterNothing);
+                                               SR.Format(SR.NestedQuantify, ch.ToString()) :
+                                               SR.QuantifyAfterNothing);
+                        }
+
                         MoveLeft();
                         break;
 
@@ -318,7 +305,9 @@ namespace SJP.GenerationRex.RegularExpressions
                     ScanBlank();
 
                     if (CharsRight() == 0 || RightChar() != '?')
+                    {
                         lazy = false;
+                    }
                     else
                     {
                         MoveRight();
@@ -347,47 +336,10 @@ namespace SJP.GenerationRex.RegularExpressions
         }
 
         /*
-         * Simple parsing for replacement patterns
-         */
-        internal RegexNode ScanReplacement()
-        {
-            int c;
-            int startpos;
-
-            _concatenation = new RegexNode(RegexNode.Concatenate, _options);
-
-            for (; ;)
-            {
-                c = CharsRight();
-                if (c == 0)
-                    break;
-
-                startpos = Textpos();
-
-                while (c > 0 && RightChar() != '$')
-                {
-                    MoveRight();
-                    c--;
-                }
-
-                AddConcatenate(startpos, Textpos() - startpos, true);
-
-                if (c > 0)
-                {
-                    if (MoveRightGetChar() == '$')
-                        AddUnitNode(ScanDollar());
-                    AddConcatenate();
-                }
-            }
-
-            return _concatenation;
-        }
-
-        /*
          * Scans contents of [] (not including []'s), and converts to a
          * RegexCharClass.
          */
-        internal RegexCharClass ScanCharClass(bool caseInsensitive)
+        private RegexCharClass ScanCharClass(bool caseInsensitive)
         {
             return ScanCharClass(caseInsensitive, false);
         }
@@ -396,7 +348,7 @@ namespace SJP.GenerationRex.RegularExpressions
          * Scans contents of [] (not including []'s), and converts to a
          * RegexCharClass.
          */
-        internal RegexCharClass ScanCharClass(bool caseInsensitive, bool scanOnly)
+        private RegexCharClass ScanCharClass(bool caseInsensitive, bool scanOnly)
         {
             char ch = '\0';
             char chPrev = '\0';
@@ -404,9 +356,7 @@ namespace SJP.GenerationRex.RegularExpressions
             bool firstChar = true;
             bool closed = false;
 
-            RegexCharClass cc;
-
-            cc = scanOnly ? null : new RegexCharClass();
+            var cc = scanOnly ? null : new RegexCharClass();
 
             if (CharsRight() > 0 && RightChar() == '^')
             {
@@ -468,10 +418,12 @@ namespace SJP.GenerationRex.RegularExpressions
                             {
                                 if (inRange)
                                     throw MakeException(SR.Format(SR.BadClassInCharRange, ch.ToString()));
-                                cc.AddCategoryFromName(ParseProperty(), (ch != 'p'), caseInsensitive, _pattern);
+                                cc.AddCategoryFromName(ParseProperty(), ch != 'p', caseInsensitive, _pattern);
                             }
                             else
+                            {
                                 ParseProperty();
+                            }
 
                             continue;
 
@@ -503,7 +455,6 @@ namespace SJP.GenerationRex.RegularExpressions
                         // else lookup name (nyi)
                     }
                 }
-
 
                 if (inRange)
                 {
@@ -576,12 +527,11 @@ namespace SJP.GenerationRex.RegularExpressions
          * a RegexNode for the type of group scanned, or null if the group
          * simply changed options (?cimsx-cimsx) or was a comment (#...).
          */
-        internal RegexNode ScanGroupOpen()
+        private RegexNode ScanGroupOpen()
         {
             char ch = '\0';
             int NodeType;
             char close = '>';
-
 
             // just return a RegexNode if we have:
             // 1. "(" followed by nothing
@@ -595,7 +545,9 @@ namespace SJP.GenerationRex.RegularExpressions
                     return new RegexNode(RegexNode.Group, _options);
                 }
                 else
+                {
                     return new RegexNode(RegexNode.Capture, _options, _autocap++, -1);
+                }
             }
 
             MoveRight();
@@ -654,35 +606,19 @@ namespace SJP.GenerationRex.RegularExpressions
 
                             default:
                                 MoveLeft();
-                                int capnum = -1;
-                                int uncapnum = -1;
+                                const int capnum = -1;
+                                const int uncapnum = -1;
                                 bool proceed = false;
 
                                 // grab part before -
 
                                 if (ch >= '0' && ch <= '9')
                                 {
-                                    capnum = ScanDecimal();
-
-                                    if (!IsCaptureSlot(capnum))
-                                        capnum = -1;
-
-                                    // check if we have bogus characters after the number
-                                    if (CharsRight() > 0 && !(RightChar() == close || RightChar() == '-'))
-                                        throw MakeException(SR.InvalidGroupName);
-                                    if (capnum == 0)
-                                        throw MakeException(SR.CapnumNotZero);
+                                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
                                 }
                                 else if (RegexCharClass.IsWordChar(ch))
                                 {
-                                    string capname = ScanCapname();
-
-                                    if (IsCaptureName(capname))
-                                        capnum = CaptureSlotFromName(capname);
-
-                                    // check if we have bogus character after the name
-                                    if (CharsRight() > 0 && !(RightChar() == close || RightChar() == '-'))
-                                        throw MakeException(SR.InvalidGroupName);
+                                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
                                 }
                                 else if (ch == '-')
                                 {
@@ -696,34 +632,18 @@ namespace SJP.GenerationRex.RegularExpressions
 
                                 // grab part after - if any
 
-                                if ((capnum != -1 || proceed == true) && CharsRight() > 0 && RightChar() == '-')
+                                if ((capnum != -1 || proceed) && CharsRight() > 0 && RightChar() == '-')
                                 {
                                     MoveRight();
                                     ch = RightChar();
 
                                     if (ch >= '0' && ch <= '9')
                                     {
-                                        uncapnum = ScanDecimal();
-
-                                        if (!IsCaptureSlot(uncapnum))
-                                            throw MakeException(SR.Format(SR.UndefinedBackref, uncapnum));
-
-                                        // check if we have bogus characters after the number
-                                        if (CharsRight() > 0 && RightChar() != close)
-                                            throw MakeException(SR.InvalidGroupName);
+                                        throw MakeException(SR.BackRefCaptureGroupNotSupported);
                                     }
                                     else if (RegexCharClass.IsWordChar(ch))
                                     {
-                                        string uncapname = ScanCapname();
-
-                                        if (IsCaptureName(uncapname))
-                                            uncapnum = CaptureSlotFromName(uncapname);
-                                        else
-                                            throw MakeException(SR.Format(SR.UndefinedNameRef, uncapname));
-
-                                        // check if we have bogus character after the name
-                                        if (CharsRight() > 0 && RightChar() != close)
-                                            throw MakeException(SR.InvalidGroupName);
+                                        throw MakeException(SR.BackRefCaptureGroupNotSupported);
                                     }
                                     else
                                     {
@@ -753,23 +673,11 @@ namespace SJP.GenerationRex.RegularExpressions
                             // check if the alternation condition is a backref
                             if (ch >= '0' && ch <= '9')
                             {
-                                int capnum = ScanDecimal();
-                                if (CharsRight() > 0 && MoveRightGetChar() == ')')
-                                {
-                                    if (IsCaptureSlot(capnum))
-                                        return new RegexNode(RegexNode.Testref, _options, capnum);
-                                    else
-                                        throw MakeException(SR.Format(SR.UndefinedReference, capnum.ToString(CultureInfo.CurrentCulture)));
-                                }
-                                else
-                                    throw MakeException(SR.Format(SR.MalformedReference, capnum.ToString(CultureInfo.CurrentCulture)));
+                                throw MakeException(SR.BackRefCaptureGroupNotSupported);
                             }
                             else if (RegexCharClass.IsWordChar(ch))
                             {
-                                string capname = ScanCapname();
-
-                                if (IsCaptureName(capname) && CharsRight() > 0 && MoveRightGetChar() == ')')
-                                    return new RegexNode(RegexNode.Testref, _options, CaptureSlotFromName(capname));
+                                throw MakeException(SR.BackRefCaptureGroupNotSupported);
                             }
                         }
                         // not a backref
@@ -787,16 +695,16 @@ namespace SJP.GenerationRex.RegularExpressions
 
                             // disallow named capture group (?<..>..) in the condition
                             if (rightchar2 == '\'')
-                                throw MakeException(SR.AlternationCantCapture);
-                            else
                             {
-                                if (charsRight >= 4 && (rightchar2 == '<' && RightChar(3) != '!' && RightChar(3) != '='))
-                                    throw MakeException(SR.AlternationCantCapture);
+                                throw MakeException(SR.AlternationCantCapture);
+                            }
+                            else if (charsRight >= 4 && (rightchar2 == '<' && RightChar(3) != '!' && RightChar(3) != '='))
+                            {
+                                throw MakeException(SR.AlternationCantCapture);
                             }
                         }
 
                         break;
-
 
                     default:
                         MoveLeft();
@@ -829,7 +737,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Scans whitespace or x-mode comments.
          */
-        internal void ScanBlank()
+        private void ScanBlank()
         {
             if (UseOptionX())
             {
@@ -846,8 +754,8 @@ namespace SJP.GenerationRex.RegularExpressions
                         while (CharsRight() > 0 && RightChar() != '\n')
                             MoveRight();
                     }
-                    else if (CharsRight() >= 3 && RightChar(2) == '#' &&
-                             RightChar(1) == '?' && RightChar() == '(')
+                    else if (CharsRight() >= 3 && RightChar(2) == '#'
+                             && RightChar(1) == '?' && RightChar() == '(')
                     {
                         while (CharsRight() > 0 && RightChar() != ')')
                             MoveRight();
@@ -856,16 +764,20 @@ namespace SJP.GenerationRex.RegularExpressions
                         MoveRight();
                     }
                     else
+                    {
                         break;
+                    }
                 }
             }
             else
             {
                 for (; ;)
                 {
-                    if (CharsRight() < 3 || RightChar(2) != '#' ||
-                        RightChar(1) != '?' || RightChar() != '(')
+                    if (CharsRight() < 3 || RightChar(2) != '#'
+                        || RightChar(1) != '?' || RightChar() != '(')
+                    {
                         return;
+                    }
 
                     while (CharsRight() > 0 && RightChar() != ')')
                         MoveRight();
@@ -880,7 +792,7 @@ namespace SJP.GenerationRex.RegularExpressions
          * Scans chars following a '\' (not counting the '\'), and returns
          * a RegexNode for the type of atom scanned.
          */
-        internal RegexNode ScanBackslash()
+        private RegexNode ScanBackslash()
         {
             char ch;
             RegexCharClass cc;
@@ -939,7 +851,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 case 'P':
                     MoveRight();
                     cc = new RegexCharClass();
-                    cc.AddCategoryFromName(ParseProperty(), (ch != 'p'), UseOptionI(), _pattern);
+                    cc.AddCategoryFromName(ParseProperty(), ch != 'p', UseOptionI(), _pattern);
                     if (UseOptionI())
                         cc.AddLowercase(_culture);
 
@@ -953,7 +865,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Scans \-style backreferences and character escapes
          */
-        internal RegexNode ScanBasicBackslash()
+        private RegexNode ScanBasicBackslash()
         {
             if (CharsRight() == 0)
                 throw MakeException(SR.IllegalEndEscape);
@@ -961,9 +873,7 @@ namespace SJP.GenerationRex.RegularExpressions
             char ch;
             bool angled = false;
             char close = '\0';
-            int backpos;
-
-            backpos = Textpos();
+            int backpos = Textpos();
             ch = RightChar();
 
             // allow \k<foo> instead of \<foo>, which is now deprecated
@@ -1007,10 +917,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
                 if (CharsRight() > 0 && MoveRightGetChar() == close)
                 {
-                    if (IsCaptureSlot(capnum))
-                        return new RegexNode(RegexNode.Ref, _options, capnum);
-                    else
-                        throw MakeException(SR.Format(SR.UndefinedBackref, capnum.ToString(CultureInfo.CurrentCulture)));
+                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
                 }
             }
 
@@ -1020,42 +927,16 @@ namespace SJP.GenerationRex.RegularExpressions
             {
                 if (UseOptionE())
                 {
-                    int capnum = -1;
-                    int newcapnum = (int)(ch - '0');
-                    int pos = Textpos() - 1;
-                    while (newcapnum <= _captop)
-                    {
-                        if (IsCaptureSlot(newcapnum) && (_caps == null || (int)_caps[newcapnum] < pos))
-                            capnum = newcapnum;
-                        MoveRight();
-                        if (CharsRight() == 0 || (ch = RightChar()) < '0' || ch > '9')
-                            break;
-                        newcapnum = newcapnum * 10 + (int)(ch - '0');
-                    }
-                    if (capnum >= 0)
-                        return new RegexNode(RegexNode.Ref, _options, capnum);
+                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
                 }
                 else
                 {
-                    int capnum = ScanDecimal();
-                    if (IsCaptureSlot(capnum))
-                        return new RegexNode(RegexNode.Ref, _options, capnum);
-                    else if (capnum <= 9)
-                        throw MakeException(SR.Format(SR.UndefinedBackref, capnum.ToString(CultureInfo.CurrentCulture)));
+                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
                 }
             }
-
             else if (angled && RegexCharClass.IsWordChar(ch))
             {
-                string capname = ScanCapname();
-
-                if (CharsRight() > 0 && MoveRightGetChar() == close)
-                {
-                    if (IsCaptureName(capname))
-                        return new RegexNode(RegexNode.Ref, _options, CaptureSlotFromName(capname));
-                    else
-                        throw MakeException(SR.Format(SR.UndefinedNameRef, capname));
-                }
+                throw MakeException(SR.BackRefCaptureGroupNotSupported);
             }
 
             // Not backreference: must be char code
@@ -1070,133 +951,9 @@ namespace SJP.GenerationRex.RegularExpressions
         }
 
         /*
-         * Scans $ patterns recognized within replacement patterns
-         */
-        internal RegexNode ScanDollar()
-        {
-            if (CharsRight() == 0)
-                return new RegexNode(RegexNode.One, _options, '$');
-
-            char ch = RightChar();
-            bool angled;
-            int backpos = Textpos();
-            int lastEndPos = backpos;
-
-            // Note angle
-
-            if (ch == '{' && CharsRight() > 1)
-            {
-                angled = true;
-                MoveRight();
-                ch = RightChar();
-            }
-            else
-            {
-                angled = false;
-            }
-
-            // Try to parse backreference: \1 or \{1} or \{cap}
-
-            if (ch >= '0' && ch <= '9')
-            {
-                if (!angled && UseOptionE())
-                {
-                    int capnum = -1;
-                    int newcapnum = (int)(ch - '0');
-                    MoveRight();
-                    if (IsCaptureSlot(newcapnum))
-                    {
-                        capnum = newcapnum;
-                        lastEndPos = Textpos();
-                    }
-
-                    while (CharsRight() > 0 && (ch = RightChar()) >= '0' && ch <= '9')
-                    {
-                        int digit = (int)(ch - '0');
-                        if (newcapnum > (MaxValueDiv10) || (newcapnum == (MaxValueDiv10) && digit > (MaxValueMod10)))
-                            throw MakeException(SR.CaptureGroupOutOfRange);
-
-                        newcapnum = newcapnum * 10 + digit;
-
-                        MoveRight();
-                        if (IsCaptureSlot(newcapnum))
-                        {
-                            capnum = newcapnum;
-                            lastEndPos = Textpos();
-                        }
-                    }
-                    Textto(lastEndPos);
-                    if (capnum >= 0)
-                        return new RegexNode(RegexNode.Ref, _options, capnum);
-                }
-                else
-                {
-                    int capnum = ScanDecimal();
-                    if (!angled || CharsRight() > 0 && MoveRightGetChar() == '}')
-                    {
-                        if (IsCaptureSlot(capnum))
-                            return new RegexNode(RegexNode.Ref, _options, capnum);
-                    }
-                }
-            }
-            else if (angled && RegexCharClass.IsWordChar(ch))
-            {
-                string capname = ScanCapname();
-
-                if (CharsRight() > 0 && MoveRightGetChar() == '}')
-                {
-                    if (IsCaptureName(capname))
-                        return new RegexNode(RegexNode.Ref, _options, CaptureSlotFromName(capname));
-                }
-            }
-            else if (!angled)
-            {
-                int capnum = 1;
-
-                switch (ch)
-                {
-                    case '$':
-                        MoveRight();
-                        return new RegexNode(RegexNode.One, _options, '$');
-
-                    case '&':
-                        capnum = 0;
-                        break;
-
-                    case '`':
-                        capnum = RegexReplacement.LeftPortion;
-                        break;
-
-                    case '\'':
-                        capnum = RegexReplacement.RightPortion;
-                        break;
-
-                    case '+':
-                        capnum = RegexReplacement.LastGroup;
-                        break;
-
-                    case '_':
-                        capnum = RegexReplacement.WholeString;
-                        break;
-                }
-
-                if (capnum != 1)
-                {
-                    MoveRight();
-                    return new RegexNode(RegexNode.Ref, _options, capnum);
-                }
-            }
-
-            // unrecognized $: literalize
-
-            Textto(backpos);
-            return new RegexNode(RegexNode.One, _options, '$');
-        }
-
-        /*
          * Scans a capture name: consumes word chars
          */
-        internal string ScanCapname()
+        private string ScanCapname()
         {
             int startpos = Textpos();
 
@@ -1212,24 +969,21 @@ namespace SJP.GenerationRex.RegularExpressions
             return _pattern.Substring(startpos, Textpos() - startpos);
         }
 
-
         /*
          * Scans up to three octal digits (stops before exceeding 0377).
          */
-        internal char ScanOctal()
+        private char ScanOctal()
         {
             int d;
             int i;
-            int c;
 
             // Consume octal chars only up to 3 digits and value 0377
 
-            c = 3;
-
+            int c = 3;
             if (c > CharsRight())
                 c = CharsRight();
 
-            for (i = 0; c > 0 && unchecked((uint)(d = RightChar() - '0')) <= 7; c -= 1)
+            for (i = 0; c > 0 && unchecked((uint)(d = RightChar() - '0')) <= 7; c--)
             {
                 MoveRight();
                 i *= 8;
@@ -1248,7 +1002,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Scans any number of decimal digits (pegs value at 2^31-1 if too large)
          */
-        internal int ScanDecimal()
+        private int ScanDecimal()
         {
             int i = 0;
             int d;
@@ -1270,7 +1024,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Scans exactly c hex digits (c=2 for \xFF, c=4 for \uFFFF)
          */
-        internal char ScanHex(int c)
+        private char ScanHex(int c)
         {
             int i;
             int d;
@@ -1279,7 +1033,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
             if (CharsRight() >= c)
             {
-                for (; c > 0 && ((d = HexDigit(MoveRightGetChar())) >= 0); c -= 1)
+                for (; c > 0 && ((d = HexDigit(MoveRightGetChar())) >= 0); c--)
                 {
                     i *= 0x10;
                     i += d;
@@ -1295,7 +1049,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns n <= 0xF for a hex digit.
          */
-        internal static int HexDigit(char ch)
+        private static int HexDigit(char ch)
         {
             int d;
 
@@ -1314,7 +1068,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Grabs and converts an ASCII control character
          */
-        internal char ScanControl()
+        private char ScanControl()
         {
             char ch;
 
@@ -1337,18 +1091,17 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns true for options allowed only at the top level
          */
-        internal bool IsOnlyTopOption(RegexOptions option)
+        private bool IsOnlyTopOption(RegexOptions option)
         {
-            return (option == RegexOptions.RightToLeft
+            return option == RegexOptions.RightToLeft
                 || option == RegexOptions.CultureInvariant
-                || option == RegexOptions.ECMAScript
-            );
+                || option == RegexOptions.ECMAScript;
         }
 
         /*
          * Scans cimsx-cimsx option string, stops at the first unrecognized char.
          */
-        internal void ScanOptions()
+        private void ScanOptions()
         {
             char ch;
             bool off;
@@ -1383,11 +1136,9 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Scans \ code for escape codes that map to single Unicode chars.
          */
-        internal char ScanCharEscape()
+        private char ScanCharEscape()
         {
-            char ch;
-
-            ch = MoveRightGetChar();
+            char ch = MoveRightGetChar();
 
             if (ch >= '0' && ch <= '7')
             {
@@ -1429,7 +1180,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Scans X for \p{X} or \P{X}
          */
-        internal string ParseProperty()
+        private string ParseProperty()
         {
             if (CharsRight() < 3)
             {
@@ -1462,7 +1213,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns ReNode type for zero-length assertions with a \ code.
          */
-        internal int TypeFromCode(char ch)
+        private int TypeFromCode(char ch)
         {
             switch (ch)
             {
@@ -1486,7 +1237,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns option bit from single-char (?cimsx) code.
          */
-        internal static RegexOptions OptionFromCode(char ch)
+        private static RegexOptions OptionFromCode(char ch)
         {
             // case-insensitive
             if (ch >= 'A' && ch <= 'Z')
@@ -1514,280 +1265,9 @@ namespace SJP.GenerationRex.RegularExpressions
         }
 
         /*
-         * a prescanner for deducing the slots used for
-         * captures by doing a partial tokenization of the pattern.
-         */
-        internal void CountCaptures()
-        {
-            char ch;
-
-            NoteCaptureSlot(0, 0);
-
-            _autocap = 1;
-
-            while (CharsRight() > 0)
-            {
-                int pos = Textpos();
-                ch = MoveRightGetChar();
-                switch (ch)
-                {
-                    case '\\':
-                        if (CharsRight() > 0)
-                            MoveRight();
-                        break;
-
-                    case '#':
-                        if (UseOptionX())
-                        {
-                            MoveLeft();
-                            ScanBlank();
-                        }
-                        break;
-
-                    case '[':
-                        ScanCharClass(false, true);
-                        break;
-
-                    case ')':
-                        if (!EmptyOptionsStack())
-                            PopOptions();
-                        break;
-
-                    case '(':
-                        if (CharsRight() >= 2 && RightChar(1) == '#' && RightChar() == '?')
-                        {
-                            MoveLeft();
-                            ScanBlank();
-                        }
-                        else
-                        {
-                            PushOptions();
-                            if (CharsRight() > 0 && RightChar() == '?')
-                            {
-                                // we have (?...
-                                MoveRight();
-
-                                if (CharsRight() > 1 && (RightChar() == '<' || RightChar() == '\''))
-                                {
-                                    // named group: (?<... or (?'...
-
-                                    MoveRight();
-                                    ch = RightChar();
-
-                                    if (ch != '0' && RegexCharClass.IsWordChar(ch))
-                                    {
-                                        //if (_ignoreNextParen)
-                                        //    throw MakeException(SR.AlternationCantCapture);
-                                        if (ch >= '1' && ch <= '9')
-                                            NoteCaptureSlot(ScanDecimal(), pos);
-                                        else
-                                            NoteCaptureName(ScanCapname(), pos);
-                                    }
-                                }
-                                else
-                                {
-                                    // (?...
-
-                                    // get the options if it's an option construct (?cimsx-cimsx...)
-                                    ScanOptions();
-
-                                    if (CharsRight() > 0)
-                                    {
-                                        if (RightChar() == ')')
-                                        {
-                                            // (?cimsx-cimsx)
-                                            MoveRight();
-                                            PopKeepOptions();
-                                        }
-                                        else if (RightChar() == '(')
-                                        {
-                                            // alternation construct: (?(foo)yes|no)
-                                            // ignore the next paren so we don't capture the condition
-                                            _ignoreNextParen = true;
-
-                                            // break from here so we don't reset _ignoreNextParen
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (!UseOptionN() && !_ignoreNextParen)
-                                    NoteCaptureSlot(_autocap++, pos);
-                            }
-                        }
-
-                        _ignoreNextParen = false;
-                        break;
-                }
-            }
-
-            AssignNameSlots();
-        }
-
-        /*
-         * Notes a used capture slot
-         */
-        internal void NoteCaptureSlot(int i, int pos)
-        {
-            if (!_caps.ContainsKey(i))
-            {
-                // the rhs of the hashtable isn't used in the parser
-
-                _caps.Add(i, pos);
-                _capcount++;
-
-                if (_captop <= i)
-                {
-                    if (i == int.MaxValue)
-                        _captop = i;
-                    else
-                        _captop = i + 1;
-                }
-            }
-        }
-
-        /*
-         * Notes a used capture slot
-         */
-        internal void NoteCaptureName(string name, int pos)
-        {
-            if (_capnames == null)
-            {
-                _capnames = new Hashtable();
-                _capnamelist = new List<string>();
-            }
-
-            if (!_capnames.ContainsKey(name))
-            {
-                _capnames.Add(name, pos);
-                _capnamelist.Add(name);
-            }
-        }
-
-        /*
-         * For when all the used captures are known: note them all at once
-         */
-        internal void NoteCaptures(Hashtable caps, int capsize, Hashtable capnames)
-        {
-            _caps = caps;
-            _capsize = capsize;
-            _capnames = capnames;
-        }
-
-        /*
-         * Assigns unused slot numbers to the capture names
-         */
-        internal void AssignNameSlots()
-        {
-            if (_capnames != null)
-            {
-                for (int i = 0; i < _capnamelist.Count; i++)
-                {
-                    while (IsCaptureSlot(_autocap))
-                        _autocap++;
-                    string name = _capnamelist[i];
-                    int pos = (int)_capnames[name];
-                    _capnames[name] = _autocap;
-                    NoteCaptureSlot(_autocap, pos);
-
-                    _autocap++;
-                }
-            }
-
-            // if the caps array has at least one gap, construct the list of used slots
-
-            if (_capcount < _captop)
-            {
-                _capnumlist = new int[_capcount];
-                int i = 0;
-
-                // Manual use of IDictionaryEnumerator instead of foreach to avoid DictionaryEntry box allocations.
-                IDictionaryEnumerator de = _caps.GetEnumerator();
-                while (de.MoveNext())
-                {
-                    _capnumlist[i++] = (int)de.Key;
-                }
-
-                Array.Sort(_capnumlist, Comparer<int>.Default);
-            }
-
-            // merge capsnumlist into capnamelist
-
-            if (_capnames != null || _capnumlist != null)
-            {
-                List<string> oldcapnamelist;
-                int next;
-                int k = 0;
-
-                if (_capnames == null)
-                {
-                    oldcapnamelist = null;
-                    _capnames = new Hashtable();
-                    _capnamelist = new List<string>();
-                    next = -1;
-                }
-                else
-                {
-                    oldcapnamelist = _capnamelist;
-                    _capnamelist = new List<string>();
-                    next = (int)_capnames[oldcapnamelist[0]];
-                }
-
-                for (int i = 0; i < _capcount; i++)
-                {
-                    int j = (_capnumlist == null) ? i : (int)_capnumlist[i];
-
-                    if (next == j)
-                    {
-                        _capnamelist.Add(oldcapnamelist[k++]);
-                        next = (k == oldcapnamelist.Count) ? -1 : (int)_capnames[oldcapnamelist[k]];
-                    }
-                    else
-                    {
-                        string str = Convert.ToString(j, _culture);
-                        _capnamelist.Add(str);
-                        _capnames[str] = j;
-                    }
-                }
-            }
-        }
-
-        /*
-         * Looks up the slot number for a given name
-         */
-        internal int CaptureSlotFromName(string capname)
-        {
-            return (int)_capnames[capname];
-        }
-
-        /*
-         * True if the capture slot was noted
-         */
-        internal bool IsCaptureSlot(int i)
-        {
-            if (_caps != null)
-                return _caps.ContainsKey(i);
-
-            return (i >= 0 && i < _capsize);
-        }
-
-        /*
-         * Looks up the slot number for a given name
-         */
-        internal bool IsCaptureName(string capname)
-        {
-            if (_capnames == null)
-                return false;
-
-            return _capnames.ContainsKey(capname);
-        }
-
-        /*
          * True if N option disabling '(' autocapture is on.
          */
-        internal bool UseOptionN()
+        private bool UseOptionN()
         {
             return (_options & RegexOptions.ExplicitCapture) != 0;
         }
@@ -1795,7 +1275,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * True if I option enabling case-insensitivity is on.
          */
-        internal bool UseOptionI()
+        private bool UseOptionI()
         {
             return (_options & RegexOptions.IgnoreCase) != 0;
         }
@@ -1803,7 +1283,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * True if M option altering meaning of $ and ^ is on.
          */
-        internal bool UseOptionM()
+        private bool UseOptionM()
         {
             return (_options & RegexOptions.Multiline) != 0;
         }
@@ -1811,7 +1291,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * True if S option altering meaning of . is on.
          */
-        internal bool UseOptionS()
+        private bool UseOptionS()
         {
             return (_options & RegexOptions.Singleline) != 0;
         }
@@ -1819,7 +1299,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * True if X option enabling whitespace/comment mode is on.
          */
-        internal bool UseOptionX()
+        private bool UseOptionX()
         {
             return (_options & RegexOptions.IgnorePatternWhitespace) != 0;
         }
@@ -1827,7 +1307,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * True if E option enabling ECMAScript behavior is on.
          */
-        internal bool UseOptionE()
+        private bool UseOptionE()
         {
             return (_options & RegexOptions.ECMAScript) != 0;
         }
@@ -1854,28 +1334,28 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns true for those characters that terminate a string of ordinary chars.
          */
-        internal static bool IsSpecial(char ch)
+        private static bool IsSpecial(char ch)
         {
-            return (ch <= '|' && _category[ch] >= S);
+            return ch <= '|' && _category[ch] >= S;
         }
 
         /*
          * Returns true for those characters that terminate a string of ordinary chars.
          */
-        internal static bool IsStopperX(char ch)
+        private static bool IsStopperX(char ch)
         {
-            return (ch <= '|' && _category[ch] >= X);
+            return ch <= '|' && _category[ch] >= X;
         }
 
         /*
          * Returns true for those characters that begin a quantifier.
          */
-        internal static bool IsQuantifier(char ch)
+        private static bool IsQuantifier(char ch)
         {
-            return (ch <= '{' && _category[ch] >= Q);
+            return ch <= '{' && _category[ch] >= Q;
         }
 
-        internal bool IsTrueQuantifier()
+        private bool IsTrueQuantifier()
         {
             int nChars = CharsRight();
             if (nChars == 0)
@@ -1899,24 +1379,15 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns true for whitespace.
          */
-        internal static bool IsSpace(char ch)
+        private static bool IsSpace(char ch)
         {
-            return (ch <= ' ' && _category[ch] == X);
+            return ch <= ' ' && _category[ch] == X;
         }
-
-        /*
-         * Returns true for chars that should be escaped.
-         */
-        internal static bool IsMetachar(char ch)
-        {
-            return (ch <= '|' && _category[ch] >= E);
-        }
-
 
         /*
          * Add a string to the last concatenate.
          */
-        internal void AddConcatenate(int pos, int cch, bool isReplacement)
+        private void AddConcatenate(int pos, int cch)
         {
             RegexNode node;
 
@@ -1927,7 +1398,7 @@ namespace SJP.GenerationRex.RegularExpressions
             {
                 string str = _pattern.Substring(pos, cch);
 
-                if (UseOptionI() && !isReplacement)
+                if (UseOptionI())
                 {
                     // We do the ToLower character by character for consistency.  With surrogate chars, doing
                     // a ToLower on the entire string could actually change the surrogate pair.  This is more correct
@@ -1945,7 +1416,7 @@ namespace SJP.GenerationRex.RegularExpressions
             {
                 char ch = _pattern[pos];
 
-                if (UseOptionI() && !isReplacement)
+                if (UseOptionI())
                     ch = _culture.TextInfo.ToLower(ch);
 
                 node = new RegexNode(RegexNode.One, _options, ch);
@@ -1957,7 +1428,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Push the parser state (in response to an open paren)
          */
-        internal void PushGroup()
+        private void PushGroup()
         {
             _group._next = _stack;
             _alternation._next = _group;
@@ -1968,7 +1439,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Remember the pushed state (in response to a ')')
          */
-        internal void PopGroup()
+        private void PopGroup()
         {
             _concatenation = _stack;
             _alternation = _concatenation._next;
@@ -1989,7 +1460,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * True if the group stack is empty.
          */
-        internal bool EmptyStack()
+        private bool EmptyStack()
         {
             return _stack == null;
         }
@@ -1997,7 +1468,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Start a new round for the parser state (in response to an open paren or string start)
          */
-        internal void StartGroup(RegexNode openGroup)
+        private void StartGroup(RegexNode openGroup)
         {
             _group = openGroup;
             _alternation = new RegexNode(RegexNode.Alternate, _options);
@@ -2007,7 +1478,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Finish the current concatenation (in response to a |)
          */
-        internal void AddAlternate()
+        private void AddAlternate()
         {
             // The | parts inside a Testgroup group go directly to the group
 
@@ -2026,7 +1497,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Finish the current quantifiable (when a quantifier is not found or is not possible)
          */
-        internal void AddConcatenate()
+        private void AddConcatenate()
         {
             // The first (| inside a Testgroup group goes directly to the group
 
@@ -2037,7 +1508,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Finish the current quantifiable (when a quantifier is found)
          */
-        internal void AddConcatenate(bool lazy, int min, int max)
+        private void AddConcatenate(bool lazy, int min, int max)
         {
             _concatenation.AddChild(_unit.MakeQuantifier(lazy, min, max));
             _unit = null;
@@ -2046,7 +1517,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns the current unit
          */
-        internal RegexNode Unit()
+        private RegexNode Unit()
         {
             return _unit;
         }
@@ -2054,7 +1525,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Sets the current unit to a single char node
          */
-        internal void AddUnitOne(char ch)
+        private void AddUnitOne(char ch)
         {
             if (UseOptionI())
                 ch = _culture.TextInfo.ToLower(ch);
@@ -2065,7 +1536,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Sets the current unit to a single inverse-char node
          */
-        internal void AddUnitNotone(char ch)
+        private void AddUnitNotone(char ch)
         {
             if (UseOptionI())
                 ch = _culture.TextInfo.ToLower(ch);
@@ -2076,7 +1547,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Sets the current unit to a single set node
          */
-        internal void AddUnitSet(string cc)
+        private void AddUnitSet(string cc)
         {
             _unit = new RegexNode(RegexNode.Set, _options, cc);
         }
@@ -2084,7 +1555,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Sets the current unit to a subtree
          */
-        internal void AddUnitNode(RegexNode node)
+        private void AddUnitNode(RegexNode node)
         {
             _unit = node;
         }
@@ -2092,7 +1563,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Sets the current unit to an assertion of the specified type
          */
-        internal void AddUnitType(int type)
+        private void AddUnitType(int type)
         {
             _unit = new RegexNode(type, _options);
         }
@@ -2100,13 +1571,13 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Finish the current group (in response to a ')' or end)
          */
-        internal void AddGroup()
+        private void AddGroup()
         {
             if (_group.Type() == RegexNode.Testgroup || _group.Type() == RegexNode.Testref)
             {
                 _group.AddChild(_concatenation.ReverseLeft());
 
-                if (_group.Type() == RegexNode.Testref && _group.ChildCount() > 2 || _group.ChildCount() > 3)
+                if ((_group.Type() == RegexNode.Testref && _group.ChildCount() > 2) || _group.ChildCount() > 3)
                     throw MakeException(SR.TooManyAlternates);
             }
             else
@@ -2121,7 +1592,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Saves options on a stack.
          */
-        internal void PushOptions()
+        private void PushOptions()
         {
             _optionsStack.Add(_options);
         }
@@ -2129,24 +1600,16 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Recalls options from the stack.
          */
-        internal void PopOptions()
+        private void PopOptions()
         {
             _options = _optionsStack[_optionsStack.Count - 1];
             _optionsStack.RemoveAt(_optionsStack.Count - 1);
         }
 
         /*
-         * True if options stack is empty.
-         */
-        internal bool EmptyOptionsStack()
-        {
-            return (_optionsStack.Count == 0);
-        }
-
-        /*
          * Pops the option stack, but keeps the current options unchanged.
          */
-        internal void PopKeepOptions()
+        private void PopKeepOptions()
         {
             _optionsStack.RemoveAt(_optionsStack.Count - 1);
         }
@@ -2154,7 +1617,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Fills in an ArgumentException
          */
-        internal ArgumentException MakeException(string message)
+        private ArgumentException MakeException(string message)
         {
             return new ArgumentException(SR.Format(SR.MakeException, _pattern, message));
         }
@@ -2162,7 +1625,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns the current parsing position.
          */
-        internal int Textpos()
+        private int Textpos()
         {
             return _currentPos;
         }
@@ -2170,7 +1633,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Zaps to a specific parsing position.
          */
-        internal void Textto(int pos)
+        private void Textto(int pos)
         {
             _currentPos = pos;
         }
@@ -2178,7 +1641,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns the char at the right of the current parsing position and advances to the right.
          */
-        internal char MoveRightGetChar()
+        private char MoveRightGetChar()
         {
             return _pattern[_currentPos++];
         }
@@ -2186,12 +1649,12 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Moves the current position to the right.
          */
-        internal void MoveRight()
+        private void MoveRight()
         {
             MoveRight(1);
         }
 
-        internal void MoveRight(int i)
+        private void MoveRight(int i)
         {
             _currentPos += i;
         }
@@ -2199,7 +1662,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Moves the current parsing position one to the left.
          */
-        internal void MoveLeft()
+        private void MoveLeft()
         {
             --_currentPos;
         }
@@ -2207,7 +1670,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns the char left of the current parsing position.
          */
-        internal char CharAt(int i)
+        private char CharAt(int i)
         {
             return _pattern[i];
         }
@@ -2215,7 +1678,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns the char right of the current parsing position.
          */
-        internal char RightChar()
+        private char RightChar()
         {
             return _pattern[_currentPos];
         }
@@ -2223,7 +1686,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns the char i chars right of the current parsing position.
          */
-        internal char RightChar(int i)
+        private char RightChar(int i)
         {
             return _pattern[_currentPos + i];
         }
@@ -2231,7 +1694,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Number of characters to the right of the current parsing position.
          */
-        internal int CharsRight()
+        private int CharsRight()
         {
             return _pattern.Length - _currentPos;
         }

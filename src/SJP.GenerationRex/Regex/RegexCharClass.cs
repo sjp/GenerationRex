@@ -1,7 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
 // This RegexCharClass class provides the "set of Unicode chars" functionality
 // used by the regexp engine.
 
@@ -50,19 +46,17 @@ namespace SJP.GenerationRex.RegularExpressions
 
         private const char GroupChar = (char)0;
 
-
         private const short SpaceConst = 100;
         private const short NotSpaceConst = -100;
 
         private const char ZeroWidthJoiner = '\u200D';
         private const char ZeroWidthNonJoiner = '\u200C';
 
-
-        private static readonly string s_internalRegexIgnoreCase = "__InternalRegexIgnoreCase__";
-        private static readonly string s_space = "\x64";
-        private static readonly string s_notSpace = "\uFF9C";
-        private static readonly string s_word = "\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
-        private static readonly string s_notWord = "\u0000\uFFFE\uFFFC\uFFFB\uFFFD\uFFFF\uFFFA\uFFF7\uFFED\u0000";
+        private const string s_internalRegexIgnoreCase = "__InternalRegexIgnoreCase__";
+        private const string s_space = "\x64";
+        private const string s_notSpace = "\uFF9C";
+        private const string s_word = "\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
+        private const string s_notWord = "\u0000\uFFFE\uFFFC\uFFFB\uFFFD\uFFFF\uFFFA\uFFF7\uFFED\u0000";
 
         internal static readonly string SpaceClass = "\u0000\u0000\u0001\u0064";
         internal static readonly string NotSpaceClass = "\u0001\u0000\u0001\u0064";
@@ -280,7 +274,6 @@ namespace SJP.GenerationRex.RegularExpressions
                 +"\u3041\u3097\u3099\u30A0\u30A1\u30FB\u30FC\u3100\u3105\u312D\u3131\u318F\u3190\u31B8\u31F0\u321D\u3220\u3244\u3251\u327C\u327F\u32CC\u32D0\u32FF\u3300\u3377\u337B\u33DE\u33E0\u33FF\u3400\u4DB6\u4E00\u9FA6\uA000\uA48D\uA490\uA4C7\uAC00\uD7A4\uF900\uFA2E\uFA30\uFA6B\uFB00\uFB07\uFB13\uFB18\uFB1D\uFB37\uFB38\uFB3D\uFB3E\uFB3F\uFB40\uFB42\uFB43\uFB45\uFB46\uFBB2\uFBD3\uFD3E\uFD50\uFD90\uFD92\uFDC8\uFDF0\uFDFD\uFE00\uFE10\uFE20\uFE24\uFE62\uFE63\uFE64\uFE67\uFE69\uFE6A\uFE70\uFE75\uFE76\uFEFD\uFF04\uFF05\uFF0B\uFF0C\uFF10\uFF1A\uFF1C\uFF1F\uFF21\uFF3B\uFF3E\uFF3F\uFF40\uFF5B\uFF5C\uFF5D\uFF5E\uFF5F\uFF66\uFFBF\uFFC2\uFFC8\uFFCA\uFFD0\uFFD2\uFFD8\uFFDA\uFFDD\uFFE0\uFFE7\uFFE8\uFFEF\uFFFC\uFFFE"},
         };
 
-
         /**************************************************************************
             Let U be the set of Unicode character values and let L be the lowercase
             function, mapping from U to U. To perform case insensitive matching of
@@ -464,9 +457,11 @@ namespace SJP.GenerationRex.RegularExpressions
                 _canonical = false;
             }
             else if (_canonical && RangeCount() > 0 && cc.RangeCount() > 0 && cc.GetRangeAt(0)._first <= GetRangeAt(RangeCount() - 1)._last)
+            {
                 _canonical = false;
+            }
 
-            for (i = 0; i < cc.RangeCount(); i += 1)
+            for (i = 0; i < cc.RangeCount(); i++)
             {
                 _rangelist.Add(cc.GetRangeAt(i));
             }
@@ -479,12 +474,13 @@ namespace SJP.GenerationRex.RegularExpressions
         /// </summary>
         private void AddSet(string set)
         {
-            int i;
-
-            if (_canonical && RangeCount() > 0 && set.Length > 0 &&
-                set[0] <= GetRangeAt(RangeCount() - 1)._last)
+            if (_canonical && RangeCount() > 0 && set.Length > 0
+                && set[0] <= GetRangeAt(RangeCount() - 1)._last)
+            {
                 _canonical = false;
+            }
 
+            int i;
             for (i = 0; i < set.Length - 1; i += 2)
             {
                 _rangelist.Add(new SingleRange(set[i], (char)(set[i + 1] - 1)));
@@ -508,8 +504,8 @@ namespace SJP.GenerationRex.RegularExpressions
         internal void AddRange(char first, char last)
         {
             _rangelist.Add(new SingleRange(first, last));
-            if (_canonical && _rangelist.Count > 0 &&
-                first <= _rangelist[_rangelist.Count - 1]._last)
+            if (_canonical && _rangelist.Count > 0
+                && first <= _rangelist[_rangelist.Count - 1]._last)
             {
                 _canonical = false;
             }
@@ -517,14 +513,15 @@ namespace SJP.GenerationRex.RegularExpressions
 
         internal void AddCategoryFromName(string categoryName, bool invert, bool caseInsensitive, string pattern)
         {
-            string category;
-            if (s_definedCategories.TryGetValue(categoryName, out category) && !categoryName.Equals(s_internalRegexIgnoreCase))
+            if (s_definedCategories.TryGetValue(categoryName, out var category) && !categoryName.Equals(s_internalRegexIgnoreCase))
             {
                 if (caseInsensitive)
                 {
                     if (categoryName.Equals("Ll") || categoryName.Equals("Lu") || categoryName.Equals("Lt"))
+                    {
                         // when RegexOptions.IgnoreCase is specified then {Ll}, {Lu}, and {Lt} cases should all match
                         category = s_definedCategories[s_internalRegexIgnoreCase];
+                    }
                 }
 
                 if (invert)
@@ -533,7 +530,9 @@ namespace SJP.GenerationRex.RegularExpressions
                 _categories.Append(category);
             }
             else
+            {
                 AddSet(SetFromProperty(categoryName, invert, pattern));
+            }
         }
 
         private void AddCategory(string category)
@@ -560,7 +559,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 }
                 else
                 {
-                    AddLowercaseRange(range._first, range._last, culture);
+                    AddLowercaseRange(range._first, range._last);
                 }
             }
         }
@@ -569,7 +568,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /// For a single range that's in the set, adds any additional ranges
         /// necessary to ensure that lowercase equivalents are also included.
         /// </summary>
-        private void AddLowercaseRange(char chMin, char chMax, CultureInfo culture)
+        private void AddLowercaseRange(char chMin, char chMax)
         {
             int i, iMax, iMid;
             char chMinT, chMaxT;
@@ -669,7 +668,9 @@ namespace SJP.GenerationRex.RegularExpressions
                     AddSet(ECMADigitSet);
             }
             else
+            {
                 AddCategoryFromName("Nd", negate, false, pattern);
+            }
         }
 
         internal static string ConvertOldStringsToClass(string set, string category)
@@ -706,7 +707,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
         internal static bool IsMergeable(string charClass)
         {
-            return (!IsNegated(charClass) && !IsSubtraction(charClass));
+            return !IsNegated(charClass) && !IsSubtraction(charClass);
         }
 
         internal static bool IsEmpty(string charClass)
@@ -722,30 +723,30 @@ namespace SJP.GenerationRex.RegularExpressions
         /// </summary>
         internal static bool IsSingleton(string set)
         {
-            if (set[FLAGS] == 0 && set[CATEGORYLENGTH] == 0 && set[SETLENGTH] == 2 && !IsSubtraction(set) &&
-                (set[SETSTART] == LastChar || set[SETSTART] + 1 == set[SETSTART + 1]))
-                return true;
-            else
-                return false;
+            return set[FLAGS] == 0
+                && set[CATEGORYLENGTH] == 0
+                && set[SETLENGTH] == 2
+                && !IsSubtraction(set)
+                && (set[SETSTART] == LastChar || set[SETSTART] + 1 == set[SETSTART + 1]);
         }
 
         internal static bool IsSingletonInverse(string set)
         {
-            if (set[FLAGS] == 1 && set[CATEGORYLENGTH] == 0 && set[SETLENGTH] == 2 && !IsSubtraction(set) &&
-                (set[SETSTART] == LastChar || set[SETSTART] + 1 == set[SETSTART + 1]))
-                return true;
-            else
-                return false;
+            return set[FLAGS] == 1
+                && set[CATEGORYLENGTH] == 0
+                && set[SETLENGTH] == 2
+                && !IsSubtraction(set)
+                && (set[SETSTART] == LastChar || set[SETSTART] + 1 == set[SETSTART + 1]);
         }
 
         private static bool IsSubtraction(string charClass)
         {
-            return (charClass.Length > SETSTART + charClass[SETLENGTH] + charClass[CATEGORYLENGTH]);
+            return charClass.Length > SETSTART + charClass[SETLENGTH] + charClass[CATEGORYLENGTH];
         }
 
         internal static bool IsNegated(string set)
         {
-            return (set != null && set[FLAGS] == 1);
+            return set?[FLAGS] == 1;
         }
 
         internal static bool IsECMAWordChar(char ch)
@@ -771,7 +772,6 @@ namespace SJP.GenerationRex.RegularExpressions
         {
             return CharInClassRecursive(ch, set, 0);
         }
-
 
         internal static bool CharInClassRecursive(char ch, string set, int start)
         {
@@ -825,19 +825,22 @@ namespace SJP.GenerationRex.RegularExpressions
             // reverse this check.
             Debug.Assert((SETSTART & 0x1) == 1, "If SETSTART is not odd, the calculation below this will be reversed");
             if ((min & 0x1) == (start & 0x1))
+            {
                 return true;
+            }
+            else if (myCategoryLength == 0)
+            {
+                return false;
+            }
             else
             {
-                if (myCategoryLength == 0)
-                    return false;
-
                 return CharInCategory(ch, set, start, mySetLength, myCategoryLength);
             }
         }
 
         private static bool CharInCategory(char ch, string set, int start, int mySetLength, int myCategoryLength)
         {
-            UnicodeCategory chcategory = CharUnicodeInfo.GetUnicodeCategory(ch);
+            var chcategory = char.GetUnicodeCategory(ch);
 
             int i = start + SETSTART + mySetLength;
             int end = i + myCategoryLength;
@@ -848,7 +851,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 if (curcat == 0)
                 {
                     // zero is our marker for a group of categories - treated as a unit
-                    if (CharInCategoryGroup(ch, chcategory, set, ref i))
+                    if (CharInCategoryGroup(chcategory, set, ref i))
                         return true;
                 }
                 else if (curcat > 0)
@@ -858,7 +861,9 @@ namespace SJP.GenerationRex.RegularExpressions
                     if (curcat == SpaceConst)
                     {
                         if (char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
@@ -876,7 +881,9 @@ namespace SJP.GenerationRex.RegularExpressions
                     if (curcat == NotSpaceConst)
                     {
                         if (!char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
@@ -900,7 +907,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /// This is used for categories which are composed of other categories - L, N, Z, W...
         /// These groups need special treatment when they are negated
         /// </summary>
-        private static bool CharInCategoryGroup(char ch, UnicodeCategory chcategory, string category, ref int i)
+        private static bool CharInCategoryGroup(UnicodeCategory chcategory, string category, ref int i)
         {
             i++;
 
@@ -1116,9 +1123,13 @@ namespace SJP.GenerationRex.RegularExpressions
                 int mid = (min + max) / 2;
                 int res = string.Compare(capname, s_propTable[mid][0], StringComparison.Ordinal);
                 if (res < 0)
+                {
                     max = mid;
+                }
                 else if (res > 0)
+                {
                     min = mid + 1;
+                }
                 else
                 {
                     string set = s_propTable[mid][1];

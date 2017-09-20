@@ -1,4 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
 namespace SJP.GenerationRex.RegularExpressions
 {
     internal static class RegexReplacement

@@ -1,7 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
 // This RegexNode class is internal to the Regex package.
 // It is built into a parsed tree for a regular expression.
 
@@ -179,38 +175,28 @@ namespace SJP.GenerationRex.RegularExpressions
         /// </summary>
         internal RegexNode Reduce()
         {
-            RegexNode n;
-
             switch (Type())
             {
                 case Alternate:
-                    n = ReduceAlternation();
-                    break;
+                    return ReduceAlternation();
 
                 case Concatenate:
-                    n = ReduceConcatenation();
-                    break;
+                    return ReduceConcatenation();
 
                 case Loop:
                 case Lazyloop:
-                    n = ReduceRep();
-                    break;
+                    return ReduceRep();
 
                 case Group:
-                    n = ReduceGroup();
-                    break;
+                    return ReduceGroup();
 
                 case Set:
                 case Setloop:
-                    n = ReduceSet();
-                    break;
+                    return ReduceSet();
 
                 default:
-                    n = this;
-                    break;
+                    return this;
             }
-
-            return n;
         }
 
         /// <summary>
@@ -274,14 +260,16 @@ namespace SJP.GenerationRex.RegularExpressions
                 {
                     int childType = child.Type();
 
-                    if (!(childType >= Oneloop && childType <= Setloop && type == Loop ||
-                          childType >= Onelazy && childType <= Setlazy && type == Lazyloop))
+                    if (!((childType >= Oneloop && childType <= Setloop && type == Loop)
+                          || (childType >= Onelazy && childType <= Setlazy && type == Lazyloop)))
+                    {
                         break;
+                    }
                 }
 
                 // child can be too lumpy to blur, e.g., (a {100,105}) {3} or (a {2,})?
                 // [but things like (a {2,})+ are not too lumpy...]
-                if (u._m == 0 && child._m > 1 || child._n < child._m * 2)
+                if ((u._m == 0 && child._m > 1) || child._n < child._m * 2)
                     break;
 
                 u = child;
@@ -373,7 +361,6 @@ namespace SJP.GenerationRex.RegularExpressions
                         // Cannot merge sets if L or I options differ, or if either are negated.
                         optionsAt = at._options & (RegexOptions.RightToLeft | RegexOptions.IgnoreCase);
 
-
                         if (at._type == Set)
                         {
                             if (!wasLastSet || optionsLast != optionsAt || lastNodeCannotMerge || !RegexCharClass.IsMergeable(at._str))
@@ -391,7 +378,6 @@ namespace SJP.GenerationRex.RegularExpressions
                             optionsLast = optionsAt;
                             break;
                         }
-
 
                         // The last node was a Set or a One, we're a Set or One and our options are the same.
                         // Merge the two nodes.
@@ -472,8 +458,8 @@ namespace SJP.GenerationRex.RegularExpressions
                 if (j < i)
                     _children[j] = at;
 
-                if (at._type == Concatenate &&
-                    ((at._options & RegexOptions.RightToLeft) == (_options & RegexOptions.RightToLeft)))
+                if (at._type == Concatenate
+                    && ((at._options & RegexOptions.RightToLeft) == (_options & RegexOptions.RightToLeft)))
                 {
                     for (int k = 0; k < at._children.Count; k++)
                         at._children[k]._next = this;
@@ -481,8 +467,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     _children.InsertRange(i + 1, at._children);
                     j--;
                 }
-                else if (at._type == Multi ||
-                         at._type == One)
+                else if (at._type == Multi || at._type == One)
                 {
                     // Cannot merge strings if L or I options differ
                     optionsAt = at._options & (RegexOptions.RightToLeft | RegexOptions.IgnoreCase);
@@ -579,7 +564,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
         internal int ChildCount()
         {
-            return _children == null ? 0 : _children.Count;
+            return _children?.Count ?? 0;
         }
 
         internal int Type()

@@ -10,7 +10,6 @@
 
 namespace SJP.GenerationRex.RegularExpressions {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -33,7 +32,7 @@ namespace SJP.GenerationRex.RegularExpressions {
         internal SR() {
         }
 
-        public static string Format(string format, params object[] args) => string.Format(format, args);
+        internal static string Format(string format, params object[] args) => string.Format(format, args);
 
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
@@ -42,7 +41,7 @@ namespace SJP.GenerationRex.RegularExpressions {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SJP.GenerationRex.Regex.SR", typeof(SR).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SJP.GenerationRex.Regex.SR", typeof(SR).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -87,6 +86,15 @@ namespace SJP.GenerationRex.RegularExpressions {
         internal static string Arg_ArrayPlusOffTooSmall {
             get {
                 return ResourceManager.GetString("Arg_ArrayPlusOffTooSmall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported regular expression feature in use. Regular expressions cannot be generated when replacement references or capture groups are used..
+        /// </summary>
+        internal static string BackRefCaptureGroupNotSupported {
+            get {
+                return ResourceManager.GetString("BackRefCaptureGroupNotSupported", resourceCulture);
             }
         }
         

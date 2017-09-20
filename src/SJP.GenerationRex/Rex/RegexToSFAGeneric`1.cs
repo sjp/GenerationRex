@@ -27,7 +27,7 @@ namespace SJP.GenerationRex
         public SymbolicFiniteAutomaton<TConstraint> Convert(string regex, RegexOptions options)
         {
             RegexOptions op = options & ~RegexOptions.RightToLeft;
-            return this.ConvertNode(RegexParser.Parse(regex, op)._root, 0, true, true);
+            return this.ConvertNode(RegexParser.Parse(regex, op).Root, 0, true, true);
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNode(RegexNode node, int minStateId, bool isStart, bool isEnd)
