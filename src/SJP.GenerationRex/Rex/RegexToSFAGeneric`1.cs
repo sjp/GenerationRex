@@ -36,73 +36,73 @@ namespace SJP.GenerationRex
         {
             switch (node._type)
             {
-                case 3:
+                case RegexNode.Oneloop:
                     return ConvertNodeOneloop(node, minStateId, isStart, isEnd);
-                case 4:
+                case RegexNode.Notoneloop:
                     return ConvertNodeNotoneloop(node, minStateId, isStart, isEnd);
-                case 5:
+                case RegexNode.Setloop:
                     return ConvertNodeSetloop(node, minStateId, isStart, isEnd);
-                case 6:
+                case RegexNode.Onelazy:
                     return ConvertNodeOnelazy(node, minStateId, isStart, isEnd);
-                case 7:
+                case RegexNode.Notonelazy:
                     return ConvertNodeNotonelazy(node, minStateId, isStart, isEnd);
-                case 8:
+                case RegexNode.Setlazy:
                     return ConvertNodeSetlazy(node, minStateId, isStart, isEnd);
-                case 9:
+                case RegexNode.One:
                     return ConvertNodeOne(node, minStateId, isStart, isEnd);
-                case 10:
+                case RegexNode.Notone:
                     return ConvertNodeNotone(node, minStateId, isStart, isEnd);
-                case 11:
+                case RegexNode.Set:
                     return ConvertNodeSet(node, minStateId, isStart, isEnd);
-                case 12:
+                case RegexNode.Multi:
                     return ConvertNodeMulti(node, minStateId, isStart, isEnd);
-                case 13:
+                case RegexNode.Ref:
                     return ConvertNodeRef(node, minStateId, isStart, isEnd);
-                case 14:
+                case RegexNode.Bol:
                     return ConvertNodeBol(node, minStateId, isStart, isEnd);
-                case 15:
+                case RegexNode.Eol:
                     return ConvertNodeEol(node, minStateId, isStart, isEnd);
-                case 16:
+                case RegexNode.Boundary:
                     return ConvertNodeBoundary(node, minStateId, isStart, isEnd);
-                case 17:
+                case RegexNode.Nonboundary:
                     return ConvertNodeNonboundary(node, minStateId, isStart, isEnd);
-                case 18:
+                case RegexNode.Beginning:
                     return ConvertNodeBeginning(node, minStateId, isStart, isEnd);
-                case 19:
+                case RegexNode.Start:
                     return ConvertNodeStart(node, minStateId, isStart, isEnd);
-                case 20:
+                case RegexNode.EndZ:
                     return ConvertNodeEndZ(node, minStateId, isStart, isEnd);
-                case 21:
+                case RegexNode.End:
                     return ConvertNodeEnd(node, minStateId, isStart, isEnd);
-                case 22:
+                case RegexNode.Nothing:
                     return ConvertNodeNothing(node, minStateId, isStart, isEnd);
-                case 23:
+                case RegexNode.Empty:
                     return ConvertNodeEmpty(node, minStateId, isStart, isEnd);
-                case 24:
+                case RegexNode.Alternate:
                     return ConvertNodeAlternate(node, minStateId, isStart, isEnd);
-                case 25:
+                case RegexNode.Concatenate:
                     return ConvertNodeConcatenate(node, minStateId, isStart, isEnd);
-                case 26:
+                case RegexNode.Loop:
                     return ConvertNodeLoop(node, minStateId, isStart, isEnd);
-                case 27:
+                case RegexNode.Lazyloop:
                     return ConvertNodeLazyloop(node, minStateId, isStart, isEnd);
-                case 28:
+                case RegexNode.Capture:
                     return ConvertNode(node.Child(0), minStateId, isStart, isEnd);
-                case 29:
+                case RegexNode.Group:
                     return ConvertNodeGroup(node, minStateId, isStart, isEnd);
-                case 30:
+                case RegexNode.Require:
                     return ConvertNodeRequire(node, minStateId, isStart, isEnd);
-                case 31:
+                case RegexNode.Prevent:
                     return ConvertNodePrevent(node, minStateId, isStart, isEnd);
-                case 32:
+                case RegexNode.Greedy:
                     return ConvertNodeGreedy(node, minStateId, isStart, isEnd);
-                case 33:
+                case RegexNode.Testref:
                     return ConvertNodeTestref(node, minStateId, isStart, isEnd);
-                case 34:
+                case RegexNode.Testgroup:
                     return ConvertNodeTestgroup(node, minStateId, isStart, isEnd);
-                case 41:
+                case RegexNode.ECMABoundary:
                     return ConvertNodeECMABoundary(node, minStateId, isStart, isEnd);
-                case 42:
+                case RegexNode.NonECMABoundary:
                     return ConvertNodeNonECMABoundary(node, minStateId, isStart, isEnd);
                 default:
                     throw new RexException("Unrecognized regex construct");
