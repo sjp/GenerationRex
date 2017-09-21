@@ -30,6 +30,23 @@ namespace SJP.GenerationRex
 
         public bool IsEpsilon => ReferenceEquals(Condition, null);
 
+        public bool Equals(Move<TCondition> other)
+        {
+            if (ReferenceEquals(other, null))
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            if (SourceState != other.SourceState || TargetState != other.TargetState)
+                return false;
+
+            if (ReferenceEquals(Condition, null) && ReferenceEquals(other.Condition, null))
+                return true;
+
+            return other.Condition != null && other.Condition.Equals(Condition);
+        }
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(obj, null))
@@ -49,23 +66,6 @@ namespace SJP.GenerationRex
         public override string ToString()
         {
             return "(" + SourceState + "," + (ReferenceEquals(Condition, null) ? "" : (object)(Condition + ",")) + TargetState + ")";
-        }
-
-        public bool Equals(Move<TCondition> other)
-        {
-            if (ReferenceEquals(other, null))
-                return false;
-
-            if (ReferenceEquals(this, other))
-                return true;
-
-            if (SourceState != other.SourceState || TargetState != other.TargetState)
-                return false;
-
-            if (ReferenceEquals(Condition, null) && ReferenceEquals(other.Condition, null))
-                return true;
-
-            return other.Condition != null && other.Condition.Equals(Condition);
         }
     }
 }

@@ -6,25 +6,25 @@ namespace SJP.GenerationRex
     {
         public Chooser()
         {
-            seed = new Random().Next();
-            rand = new Random(seed);
+            _seed = new Random().Next();
+            _rand = new Random(_seed);
         }
 
         public int RandomSeed
         {
-            get => seed;
+            get => _seed;
             set
             {
-                seed = value;
-                rand = new Random(value);
+                _seed = value;
+                _rand = new Random(value);
             }
         }
 
-        public int Choose(int n) => rand.Next(0, n);
+        public int Choose(int n) => _rand.Next(0, n);
 
-        public bool ChooseBoolean() => rand.Next(0, 2) == 1;
+        public bool ChooseBoolean() => _rand.Next(0, 2) == 1;
 
-        private Random rand;
-        private int seed;
+        private Random _rand;
+        private int _seed;
     }
 }

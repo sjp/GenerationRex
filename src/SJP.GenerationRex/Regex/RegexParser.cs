@@ -1408,7 +1408,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     // a ToLower on the entire string could actually change the surrogate pair.  This is more correct
                     // linguistically, but since Regex doesn't support surrogates, it's more important to be
                     // consistent.
-                    StringBuilder sb = new StringBuilder(str.Length);
+                    var sb = new StringBuilder(str.Length);
                     for (int i = 0; i < str.Length; i++)
                         sb.Append(_culture.TextInfo.ToLower(str[i]));
                     str = sb.ToString();

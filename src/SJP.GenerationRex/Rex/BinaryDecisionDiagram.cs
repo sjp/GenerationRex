@@ -7,16 +7,16 @@ namespace SJP.GenerationRex
     /// </summary>
     public class BinaryDecisionDiagram
     {
-        public BinaryDecisionDiagram(int id, int x)
+        public BinaryDecisionDiagram(int id, int ordinalValue)
         {
             Id = id;
-            Ordinal = x;
+            Ordinal = ordinalValue;
         }
 
-        public BinaryDecisionDiagram(int id, int x, BinaryDecisionDiagram trueCase, BinaryDecisionDiagram falseCase)
+        public BinaryDecisionDiagram(int id, int ordinalValue, BinaryDecisionDiagram trueCase, BinaryDecisionDiagram falseCase)
         {
             Id = id;
-            Ordinal = x;
+            Ordinal = ordinalValue;
             TrueCase = trueCase;
             FalseCase = falseCase;
         }
@@ -38,10 +38,10 @@ namespace SJP.GenerationRex
             if (TrueCase == null)
                 return 1;
 
-            var bddSet = new HashSet<BinaryDecisionDiagram>();
+            var bddSet = new HashSet<BinaryDecisionDiagram> { this };
             var bddStack = new Stack<BinaryDecisionDiagram>();
             bddStack.Push(this);
-            bddSet.Add(this);
+
             while (bddStack.Count > 0)
             {
                 var bdd = bddStack.Pop();
@@ -59,6 +59,7 @@ namespace SJP.GenerationRex
                     bddStack.Push(bdd.FalseCase);
                 }
             }
+
             return bddSet.Count;
         }
 

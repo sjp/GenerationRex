@@ -21,23 +21,6 @@ namespace SJP.GenerationRex
 
         public int NrOfBits { get; }
 
-        public BddBuilder(CharacterEncoding encoding)
-        {
-            if (!encoding.IsValid())
-                throw new ArgumentException($"The { nameof(CharacterEncoding) } provided must be a valid enum.", nameof(encoding));
-
-            var k = (int)encoding;
-
-            _bitOrder = new int[k];
-            _bitMaps = new int[k];
-            for (int index = 0; index < k; ++index)
-            {
-                _bitOrder[index] = k - 1 - index;
-                _bitMaps[index] = 1 << k - 1 - index;
-            }
-            NrOfBits = k;
-        }
-
         public BddBuilder(Encoding encoding)
         {
             if (encoding == null)
@@ -182,7 +165,7 @@ namespace SJP.GenerationRex
             BinaryDecisionDiagram bdd1;
             if (_notCache.TryGetValue(constraint, out bdd1))
                 return bdd1;
-            BinaryDecisionDiagram bdd2 = new BinaryDecisionDiagram(MkId(), constraint.Ordinal, MkNot(constraint.TrueCase), MkNot(constraint.FalseCase));
+            var bdd2 = new BinaryDecisionDiagram(MkId(), constraint.Ordinal, MkNot(constraint.TrueCase), MkNot(constraint.FalseCase));
             _notCache[constraint] = bdd2;
             return bdd2;
         }
@@ -257,8 +240,8 @@ namespace SJP.GenerationRex
                 return MkRangeConstraint1(caseInsensitive, (int)lower < (int)sbyte.MaxValue ? lower : '\x007F', (int)upper < (int)sbyte.MaxValue ? upper : '\x007F');
             if (NrOfBits == 8)
                 return MkRangeConstraint1(caseInsensitive, (int)lower < (int)byte.MaxValue ? lower : 'ÿ', (int)upper < (int)byte.MaxValue ? upper : 'ÿ');
-            int num1 = (int)lower;
-            int num2 = (int)upper;
+            var num1 = (int)lower;
+            var num2 = (int)upper;
             if (num2 - num1 < (int)ushort.MaxValue - num2 + num1 || caseInsensitive)
                 return MkRangeConstraint1(caseInsensitive, lower, upper);
             return MkNot(MkOr((int)lower > 0 ? MkRangeConstraint1(caseInsensitive, char.MinValue, (char)((uint)lower - 1U)) : BinaryDecisionDiagram.False, (int)upper < (int)ushort.MaxValue ? MkRangeConstraint1(caseInsensitive, (char)((uint)upper + 1U), char.MaxValue) : BinaryDecisionDiagram.False));
@@ -311,70 +294,6 @@ namespace SJP.GenerationRex
                     bdd = bdd.FalseCase;
             }
             return (char)num;
-        }
-
-        public IEnumerable<int[]> Serialize(BinaryDecisionDiagram bdd)
-        {
-            HashSet<BinaryDecisionDiagram> done = new HashSet<BinaryDecisionDiagram>();
-            Stack<BinaryDecisionDiagram> stack = new Stack<BinaryDecisionDiagram>();
-            if (bdd.Id > 1)
-                stack.Push(bdd);
-            while (stack.Count > 0)
-            {
-                BinaryDecisionDiagram b = stack.Pop();
-                yield return new[]
-                {
-                      b.Ordinal,
-                      b.Id,
-                      b.TrueCase.Id,
-                      b.FalseCase.Id
-                };
-                if (b.TrueCase.Id > 1 && !done.Contains(b.TrueCase))
-                {
-                    done.Add(b.TrueCase);
-                    stack.Push(b.TrueCase);
-                }
-                if (b.FalseCase.Id > 1 && !done.Contains(b.FalseCase))
-                {
-                    done.Add(b.FalseCase);
-                    stack.Push(b.FalseCase);
-                }
-            }
-        }
-
-        public int[] SerializeCompact(BinaryDecisionDiagram bdd)
-        {
-            if (bdd == BinaryDecisionDiagram.False)
-                return new int[1];
-            if (bdd == BinaryDecisionDiagram.True)
-                return new int[2];
-            int[] numArray = new int[bdd.CalculateSize()];
-            var dictionary = new Dictionary<BinaryDecisionDiagram, int>();
-            dictionary[BinaryDecisionDiagram.False] = 0;
-            dictionary[BinaryDecisionDiagram.True] = 1;
-            var bddStack = new Stack<BinaryDecisionDiagram>();
-            bddStack.Push(bdd);
-            dictionary[bdd] = 2;
-            int num1 = 3;
-            while (bddStack.Count > 0)
-            {
-                BinaryDecisionDiagram index1 = bddStack.Pop();
-                if (!dictionary.ContainsKey(index1.TrueCase))
-                {
-                    dictionary[index1.TrueCase] = num1++;
-                    bddStack.Push(index1.TrueCase);
-                }
-                if (!dictionary.ContainsKey(index1.FalseCase))
-                {
-                    dictionary[index1.FalseCase] = num1++;
-                    bddStack.Push(index1.FalseCase);
-                }
-                int index2 = dictionary[index1];
-                int num2 = dictionary[index1.FalseCase];
-                int num3 = dictionary[index1.TrueCase];
-                numArray[index2] = index1.Ordinal << 28 | num3 << 14 | num2;
-            }
-            return numArray;
         }
 
         public BinaryDecisionDiagram Deserialize(IEnumerable<int[]> arcs)

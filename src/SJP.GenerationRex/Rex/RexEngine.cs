@@ -15,16 +15,6 @@ namespace SJP.GenerationRex
             _converter = new RegexToSFA<BinaryDecisionDiagram>(solver, new UnicodeCategoryConditionsBddProvider(Encoding.Unicode, solver.NrOfBits));
         }
 
-        public RexEngine(CharacterEncoding encoding, int randomSeed)
-        {
-            _solver = new BddBuilder(encoding);
-            _chooser = new Chooser();
-            if (randomSeed > -1)
-                _chooser.RandomSeed = randomSeed;
-
-            _converter = new RegexToSFA<BinaryDecisionDiagram>(_solver, new UnicodeCategoryConditionsBddProvider(Encoding.Unicode, _solver.NrOfBits));
-        }
-
         public RexEngine(Encoding encoding, int randomSeed)
         {
             _solver = new BddBuilder(encoding);
@@ -74,6 +64,7 @@ namespace SJP.GenerationRex
             }
         }
 
+        // TODO RENAME TO INTERSECTION AS THIS IS AN INTERSECTION OF REGEXES
         internal SymbolicFiniteAutomaton<BinaryDecisionDiagram> CreateSFAFromRegexes(RegexOptions options, params string[] regexes)
         {
             SymbolicFiniteAutomaton<BinaryDecisionDiagram> a = null;
@@ -101,8 +92,8 @@ namespace SJP.GenerationRex
 
         public static string Escape(char c)
         {
-            int i = (int)c;
-            if (i > (int)sbyte.MaxValue)
+            var i = (int)c;
+            if (i > sbyte.MaxValue)
                 return ToUnicodeRepr(i);
             switch (c)
             {
@@ -145,7 +136,7 @@ namespace SJP.GenerationRex
 
         public static string Escape(string s)
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             stringBuilder.Append("\"");
             foreach (char c in s)
                 stringBuilder.Append(RexEngine.Escape(c));

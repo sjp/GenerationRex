@@ -20,7 +20,7 @@ namespace SJP.GenerationRex
             WordLetterCondition = builder.WordCharacter;
         }
 
-        public BinaryDecisionDiagram CategoryCondition(int cat) => _catConditions[(UnicodeCategory)cat];
+        public BinaryDecisionDiagram CategoryCondition(UnicodeCategory category) => _catConditions[category];
 
         public BinaryDecisionDiagram WhiteSpaceCondition { get; }
 

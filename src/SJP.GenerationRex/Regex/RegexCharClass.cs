@@ -675,7 +675,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
         internal static string ConvertOldStringsToClass(string set, string category)
         {
-            StringBuilder sb = new StringBuilder(set.Length + category.Length + 3);
+            var sb = new StringBuilder(set.Length + category.Length + 3);
 
             if (set.Length >= 2 && set[0] == '\0' && set[1] == '\0')
             {
@@ -1022,7 +1022,7 @@ namespace SJP.GenerationRex.RegularExpressions
             // This is important because if the last range ends in LastChar, we won't append
             // LastChar to the list.
             int rangeLen = _rangelist.Count * 2;
-            StringBuilder sb = new StringBuilder(rangeLen + _categories.Length + 3);
+            var sb = new StringBuilder(rangeLen + _categories.Length + 3);
 
             int flags;
             if (_negate)

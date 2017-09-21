@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SJP.GenerationRex
 {
@@ -12,8 +13,8 @@ namespace SJP.GenerationRex
         private int _initialState;
         private HashSet<int> _finalStateSet;
         private int _maxState;
-        internal bool isEpsilonFree;
-        internal bool isDeterministic;
+        internal bool _isEpsilonFree;
+        internal bool _isDeterministic;
 
         public int FinalState
         {
@@ -24,43 +25,19 @@ namespace SJP.GenerationRex
                     if (enumerator.MoveNext())
                         return enumerator.Current;
                 }
-                throw new RexException("There is no final state");
+                throw new RexException(RexException.NoFinalState);
             }
         }
 
-        public bool HasMoreThanOneFinalState
-        {
-            get
-            {
-                return _finalStateSet.Count > 1;
-            }
-        }
+        public bool HasMoreThanOneFinalState => _finalStateSet.Count > 1;
 
-        public int OutDegree(int state)
-        {
-            return _delta[state].Count;
-        }
+        public int OutDegree(int state) => _delta[state].Count;
 
-        public Move<TConstraint> GetMoveFrom(int state)
-        {
-            return _delta[state][0];
-        }
+        public Move<TConstraint> GetMoveFrom(int state) => _delta[state][0];
 
-        public bool InitialStateIsSource
-        {
-            get
-            {
-                return _deltaInv[_initialState].Count == 0;
-            }
-        }
+        public bool InitialStateIsSource => _deltaInv[_initialState].Count == 0;
 
-        public bool IsEpsilonFree
-        {
-            get
-            {
-                return isEpsilonFree;
-            }
-        }
+        public bool IsEpsilonFree => _isEpsilonFree;
 
         public int MoveCount
         {
@@ -73,67 +50,54 @@ namespace SJP.GenerationRex
             }
         }
 
-        public bool IsDeterministic
-        {
-            get
-            {
-                return this.isDeterministic;
-            }
-        }
+        public bool IsDeterministic => _isDeterministic;
 
         public IEnumerable<int> GetEpsilonClosure(int state)
         {
-            var stack = new Stack<int>();
             var done = new HashSet<int> { state };
+            var stack = new Stack<int>();
             stack.Push(state);
+
             while (stack.Count > 0)
             {
-                int s = stack.Pop();
+                var s = stack.Pop();
                 yield return s;
-                foreach (Move<TConstraint> move in this._delta[s])
+
+                var epsilonMoves = _delta[s].Where(m => m.IsEpsilon && !done.Contains(m.TargetState));
+                foreach (var move in epsilonMoves)
                 {
-                    if (move.IsEpsilon && !done.Contains(move.TargetState))
-                    {
-                        done.Add(move.TargetState);
-                        stack.Push(move.TargetState);
-                    }
+                    done.Add(move.TargetState);
+                    stack.Push(move.TargetState);
                 }
             }
         }
 
         public IEnumerable<int> GetInvEpsilonClosure(int state)
         {
-            Stack<int> stack = new Stack<int>();
-            HashSet<int> done = new HashSet<int>();
-            done.Add(state);
+            var stack = new Stack<int>();
             stack.Push(state);
+
+            var done = new HashSet<int> { state };
             while (stack.Count > 0)
             {
-                int s = stack.Pop();
+                var s = stack.Pop();
                 yield return s;
-                foreach (Move<TConstraint> move in this._deltaInv[s])
+
+                var epsilonMoves = _deltaInv[s].Where(m => m.IsEpsilon && !done.Contains(m.SourceState));
+                foreach (var move in epsilonMoves)
                 {
-                    if (move.IsEpsilon && !done.Contains(move.SourceState))
-                    {
-                        done.Add(move.SourceState);
-                        stack.Push(move.SourceState);
-                    }
+                    done.Add(move.SourceState);
+                    stack.Push(move.SourceState);
                 }
             }
         }
 
-        public bool IsEmpty
-        {
-            get
-            {
-                return this._finalStateSet.Count == 0;
-            }
-        }
+        public bool IsEmpty => _finalStateSet.Count == 0;
 
         public static SymbolicFiniteAutomaton<TConstraint> Create(int initialState, IEnumerable<int> finalStates, IEnumerable<Move<TConstraint>> moves)
         {
-            Dictionary<int, List<Move<TConstraint>>> dictionary1 = new Dictionary<int, List<Move<TConstraint>>>();
-            Dictionary<int, List<Move<TConstraint>>> dictionary2 = new Dictionary<int, List<Move<TConstraint>>>();
+            var dictionary1 = new Dictionary<int, List<Move<TConstraint>>>();
+            var dictionary2 = new Dictionary<int, List<Move<TConstraint>>>();
             dictionary1[initialState] = new List<Move<TConstraint>>();
             dictionary2[initialState] = new List<Move<TConstraint>>();
             bool flag1 = true;
@@ -156,18 +120,18 @@ namespace SJP.GenerationRex
                 flag2 = flag2 && dictionary1[move.SourceState].Count < 2;
                 val1 = Math.Max(val1, Math.Max(move.SourceState, move.TargetState));
             }
-            HashSet<int> intSet = new HashSet<int>(finalStates);
-            if (!intSet.IsSubsetOf((IEnumerable<int>)dictionary1.Keys))
-                throw new RexException("The set of final states must be a subset of all states");
-            return new SymbolicFiniteAutomaton<TConstraint>()
+            var intSet = new HashSet<int>(finalStates);
+            if (!intSet.IsSubsetOf(dictionary1.Keys))
+                throw new RexException(RexException.InvalidFinalStates);
+            return new SymbolicFiniteAutomaton<TConstraint>
             {
                 _initialState = initialState,
                 _finalStateSet = intSet,
-                isEpsilonFree = flag1,
+                _isEpsilonFree = flag1,
                 _maxState = val1,
                 _delta = dictionary1,
                 _deltaInv = dictionary2,
-                isDeterministic = flag2
+                _isDeterministic = flag2
             };
         }
 
@@ -304,8 +268,8 @@ namespace SJP.GenerationRex
                 }
                 if (this._finalStateSet.Contains(this._initialState))
                     this._initialState = fa._initialState;
-                this.isEpsilonFree = this.isEpsilonFree && fa.isEpsilonFree;
-                this.isDeterministic = this.isDeterministic && fa.isDeterministic;
+                this._isEpsilonFree = this._isEpsilonFree && fa._isEpsilonFree;
+                this._isDeterministic = this._isDeterministic && fa._isDeterministic;
             }
             else
             {
@@ -315,8 +279,8 @@ namespace SJP.GenerationRex
                     this._delta[finalState].Add(move);
                     this._deltaInv[fa._initialState].Add(move);
                 }
-                this.isEpsilonFree = false;
-                this.isDeterministic = false;
+                this._isEpsilonFree = false;
+                this._isDeterministic = false;
             }
             this._finalStateSet = fa._finalStateSet;
             this._maxState = Math.Max(this._maxState, fa._maxState);
@@ -354,8 +318,8 @@ namespace SJP.GenerationRex
             this._delta[move.SourceState].Add(move);
             this._deltaInv[move.TargetState].Add(move);
             this._maxState = Math.Max(this._maxState, Math.Max(move.SourceState, move.TargetState));
-            this.isEpsilonFree = this.isEpsilonFree && !move.IsEpsilon;
-            this.isDeterministic = false;
+            this._isEpsilonFree = this._isEpsilonFree && !move.IsEpsilon;
+            this._isDeterministic = false;
         }
 
         public bool IsKleeneClosure()
@@ -411,8 +375,8 @@ namespace SJP.GenerationRex
             _delta[newInitialState] = moveList;
             _deltaInv[newInitialState] = new List<Move<TConstraint>>();
             _deltaInv[_initialState].Add(moveList[0]);
-            isDeterministic = false;
-            isEpsilonFree = false;
+            _isDeterministic = false;
+            _isEpsilonFree = false;
             _maxState = Math.Max(_maxState, newInitialState);
             _initialState = newInitialState;
         }
@@ -471,7 +435,7 @@ namespace SJP.GenerationRex
                 if (move.TargetState == target)
                     return move.Condition;
             }
-            throw new RexException("Internal error");
+            throw new RexException(RexException.InternalError);
         }
 
         public static SymbolicFiniteAutomaton<TConstraint> MkProduct(SymbolicFiniteAutomaton<TConstraint> a, SymbolicFiniteAutomaton<TConstraint> b, Func<TConstraint, TConstraint, TConstraint> conj, Func<TConstraint, TConstraint, TConstraint> disj, Func<TConstraint, bool> isSat)
@@ -566,24 +530,20 @@ namespace SJP.GenerationRex
             if (intList4.Count == 0)
                 return Empty;
             var sfa = Create(0, intList2, EnumerateMoves(delta));
-            sfa.isEpsilonFree = true;
-            sfa.isDeterministic = a.IsDeterministic || b.IsDeterministic;
+            sfa._isEpsilonFree = true;
+            sfa._isDeterministic = a.IsDeterministic || b.IsDeterministic;
             return sfa;
         }
 
         private static IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<int, List<Move<TConstraint>>> delta)
         {
-            foreach (KeyValuePair<int, List<Move<TConstraint>>> keyValuePair in delta)
-            {
-                foreach (Move<TConstraint> move in keyValuePair.Value)
-                    yield return move;
-            }
+            return delta.SelectMany(kv => kv.Value);
         }
 
         public SymbolicFiniteAutomaton<TConstraint> RemoveEpsilonLoops(Func<TConstraint, TConstraint, TConstraint> disj)
         {
             var dictionary = new Dictionary<int, int>();
-            foreach (int state in this.States)
+            foreach (int state in States)
             {
                 var intSet = new IntSet(GetEpsilonClosure(state));
                 dictionary[state] = intSet.Intersect(GetInvEpsilonClosure(state)).Choice;
@@ -614,10 +574,8 @@ namespace SJP.GenerationRex
 
         private IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<Pair<int, int>, TConstraint> conditionMap, HashSet<Move<TConstraint>> eMoves)
         {
-            foreach (KeyValuePair<Pair<int, int>, TConstraint> condition in conditionMap)
-                yield return Move<TConstraint>.To(condition.Key.First, condition.Key.Second, condition.Value);
-            foreach (Move<TConstraint> eMove in eMoves)
-                yield return eMove;
+            var conditionMoves = conditionMap.Select(condition => Move<TConstraint>.To(condition.Key.First, condition.Key.Second, condition.Value));
+            return conditionMoves.Concat(eMoves);
         }
 
         public SymbolicFiniteAutomaton<TConstraint> RemoveEpsilons(Func<TConstraint, TConstraint, TConstraint> disj)
@@ -691,7 +649,7 @@ namespace SJP.GenerationRex
                 }
             }
             var sfa2 = Create(sfa1.InitialState, intList2, EnumerateMoves(delta));
-            sfa2.isEpsilonFree = true;
+            sfa2._isEpsilonFree = true;
             return sfa2;
         }
     }
