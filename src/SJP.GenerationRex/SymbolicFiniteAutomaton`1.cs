@@ -447,7 +447,6 @@ namespace SJP.GenerationRex
                 {
                     var key = new Pair<int, int>(state, move.TargetState);
                     dictionary[key] = !dictionary.TryGetValue(key, out var s) || s.Equals(move.Condition) ? move.Condition : disj(move.Condition, s);
-
                 }
             }
             var delta = new Dictionary<int, List<Move<TConstraint>>>();

@@ -55,20 +55,24 @@ namespace SJP.GenerationRex
 
         internal IEnumerable<string> GenerateMembers(SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfa, int k)
         {
-            if (sfa != null && !sfa.IsEmpty)
+            if (sfa == null)
+                throw new ArgumentNullException(nameof(sfa));
+            if (sfa.IsEmpty)
+                throw new ArgumentException("Cannot generate a member for an empty state machine.", nameof(sfa));
+            if (k < 0)
+                throw new ArgumentOutOfRangeException(nameof(k), "The number of values to generate must be non-negative.");
+
+            var generatedValues = new HashSet<string>();
+            for (var i = 0; i < k; ++i)
             {
-                var old = new HashSet<string>();
-                for (int i = 0; i < k; ++i)
-                {
-                    string member = GenerateMember(sfa);
-                    int tryCount = Math.Min(100 + old.Count, 200);
-                    while (old.Contains(member) && tryCount-- > 0)
-                        member = GenerateMember(sfa);
-                    if (tryCount < 0 && old.Contains(member))
-                        break;
-                    old.Add(member);
-                    yield return member;
-                }
+                string member = GenerateMember(sfa);
+                int tryCount = Math.Min(100 + generatedValues.Count, 200);
+                while (generatedValues.Contains(member) && tryCount-- > 0)
+                    member = GenerateMember(sfa);
+                if (tryCount < 0 && generatedValues.Contains(member))
+                    break;
+                generatedValues.Add(member);
+                yield return member;
             }
         }
 

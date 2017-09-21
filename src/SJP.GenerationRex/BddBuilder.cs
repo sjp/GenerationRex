@@ -12,7 +12,7 @@ namespace SJP.GenerationRex
         private readonly Dictionary<int, BinaryDecisionDiagram> _intCache = new Dictionary<int, BinaryDecisionDiagram>();
         private readonly Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram> _notCache = new Dictionary<BinaryDecisionDiagram, BinaryDecisionDiagram>();
         private int _id = 2;
-        private const int maxChar = 65535;
+        private const int maxChar = ushort.MaxValue;
         private readonly int[] _bitOrder;
         private readonly int[] _bitMaps;
 
@@ -67,12 +67,13 @@ namespace SJP.GenerationRex
         private BinaryDecisionDiagram Restrict(int v, bool makeTrue, BinaryDecisionDiagram bdd)
         {
             long key = MkRestrictKey(v, makeTrue, bdd);
-            BinaryDecisionDiagram bdd1;
-            if (_restrictCache.TryGetValue(key, out bdd1))
+            if (_restrictCache.TryGetValue(key, out var bdd1))
                 return bdd1;
             BinaryDecisionDiagram bdd2;
             if (v < bdd.Ordinal)
+            {
                 bdd2 = bdd;
+            }
             else if (bdd.Ordinal < v)
             {
                 BinaryDecisionDiagram t = Restrict(v, makeTrue, bdd.TrueCase);
@@ -80,7 +81,10 @@ namespace SJP.GenerationRex
                 bdd2 = f == t ? t : (f != bdd.FalseCase || t != bdd.TrueCase ? new BinaryDecisionDiagram(MkId(), bdd.Ordinal, t, f) : bdd);
             }
             else
+            {
                 bdd2 = makeTrue ? bdd.TrueCase : bdd.FalseCase;
+            }
+
             _restrictCache[key] = bdd2;
             return bdd2;
         }
@@ -94,8 +98,7 @@ namespace SJP.GenerationRex
             if (constraint1 == BinaryDecisionDiagram.True || constraint2 == BinaryDecisionDiagram.True)
                 return BinaryDecisionDiagram.True;
             BddPair key = MkApplyKey(constraint1, constraint2);
-            BinaryDecisionDiagram bdd;
-            if (_orCache.TryGetValue(key, out bdd))
+            if (_orCache.TryGetValue(key, out var bdd))
                 return bdd;
             if (constraint2.Ordinal < constraint1.Ordinal)
             {
@@ -128,8 +131,7 @@ namespace SJP.GenerationRex
             if (constraint1 == BinaryDecisionDiagram.False || constraint2 == BinaryDecisionDiagram.False)
                 return BinaryDecisionDiagram.False;
             BddPair key = MkApplyKey(constraint1, constraint2);
-            BinaryDecisionDiagram bdd;
-            if (_andCache.TryGetValue(key, out bdd))
+            if (_andCache.TryGetValue(key, out var bdd))
                 return bdd;
             if (constraint2.Ordinal < constraint1.Ordinal)
             {
@@ -159,8 +161,7 @@ namespace SJP.GenerationRex
                 return BinaryDecisionDiagram.True;
             if (constraint == BinaryDecisionDiagram.True)
                 return BinaryDecisionDiagram.False;
-            BinaryDecisionDiagram bdd1;
-            if (_notCache.TryGetValue(constraint, out bdd1))
+            if (_notCache.TryGetValue(constraint, out var bdd1))
                 return bdd1;
             var bdd2 = new BinaryDecisionDiagram(MkId(), constraint.Ordinal, MkNot(constraint.TrueCase), MkNot(constraint.FalseCase));
             _notCache[constraint] = bdd2;
@@ -201,8 +202,7 @@ namespace SJP.GenerationRex
 
         public BinaryDecisionDiagram MkBddForInt(int n)
         {
-            BinaryDecisionDiagram bdd1;
-            if (_intCache.TryGetValue(n, out bdd1))
+            if (_intCache.TryGetValue(n, out var bdd1))
                 return bdd1;
             BinaryDecisionDiagram bdd2 = BinaryDecisionDiagram.True;
             for (int x = NrOfBits - 1; x >= 0; --x)
@@ -274,82 +274,29 @@ namespace SJP.GenerationRex
             for (int index = 0; index < NrOfBits; ++index)
             {
                 if (index < bdd.Ordinal)
+                {
                     num |= chooser.ChooseBoolean() ? _bitMaps[index] : 0;
+                }
                 else if (bdd.FalseCase == BinaryDecisionDiagram.False)
                 {
                     num |= _bitMaps[index];
                     bdd = bdd.TrueCase;
                 }
                 else if (bdd.TrueCase == BinaryDecisionDiagram.False)
+                {
                     bdd = bdd.FalseCase;
+                }
                 else if (chooser.ChooseBoolean())
                 {
                     num |= _bitMaps[index];
                     bdd = bdd.TrueCase;
                 }
                 else
+                {
                     bdd = bdd.FalseCase;
+                }
             }
             return (char)num;
-        }
-
-        public BinaryDecisionDiagram Deserialize(IEnumerable<int[]> arcs)
-        {
-            var bdd1 = (BinaryDecisionDiagram)null;
-            var dictionary1 = new Dictionary<int, int>();
-            var dictionary2 = new Dictionary<int, int>();
-            var dictionary3 = new Dictionary<int, BinaryDecisionDiagram>();
-            foreach (int[] arc in arcs)
-            {
-                var bdd2 = new BinaryDecisionDiagram(MkId(), arc[0]);
-                dictionary3[arc[1]] = bdd2;
-                dictionary1[arc[1]] = arc[2];
-                dictionary2[arc[1]] = arc[3];
-                if (bdd1 == null)
-                    bdd1 = bdd2;
-            }
-            foreach (int key in dictionary3.Keys)
-            {
-                int index1 = dictionary1[key];
-                int index2 = dictionary2[key];
-                dictionary3[key].TrueCase = index1 == 0 ? BinaryDecisionDiagram.False : (index1 == 1 ? BinaryDecisionDiagram.True : dictionary3[index1]);
-                dictionary3[key].FalseCase = index2 == 0 ? BinaryDecisionDiagram.False : (index2 == 1 ? BinaryDecisionDiagram.True : dictionary3[index2]);
-            }
-            return bdd1 ?? BinaryDecisionDiagram.True;
-        }
-
-        public BinaryDecisionDiagram DeserializeCompact(int[] arcs)
-        {
-            if (arcs.Length == 1)
-                return BinaryDecisionDiagram.False;
-            if (arcs.Length == 2)
-                return BinaryDecisionDiagram.True;
-            var dictionary1 = new Dictionary<int, int>();
-            var dictionary2 = new Dictionary<int, int>();
-            var bddArray = new BinaryDecisionDiagram[arcs.Length];
-            bddArray[0] = BinaryDecisionDiagram.False;
-            bddArray[1] = BinaryDecisionDiagram.True;
-
-            const int maxBitIndex = 15;
-            const int midPoint = (2 << maxBitIndex) - 1;
-
-            for (int index = 2; index < arcs.Length; ++index)
-            {
-                int x = arcs[index] >> 28 & 15;
-                int num1 = arcs[index] >> 14 & midPoint;
-                int num2 = arcs[index] & midPoint;
-                bddArray[index] = new BinaryDecisionDiagram(MkId(), x);
-                dictionary1[index] = num1;
-                dictionary2[index] = num2;
-            }
-            for (int index1 = 2; index1 < bddArray.Length; ++index1)
-            {
-                int index2 = dictionary1[index1];
-                int index3 = dictionary2[index1];
-                bddArray[index1].TrueCase = bddArray[index2];
-                bddArray[index1].FalseCase = bddArray[index3];
-            }
-            return bddArray[2];
         }
 
         private class BddPair : IEquatable<BddPair>
