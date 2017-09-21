@@ -25,6 +25,14 @@ namespace SJP.GenerationRex
             _converter = new RegexToSFA<BinaryDecisionDiagram>(_solver, new UnicodeCategoryConditionsBddProvider(encoding, _solver.NrOfBits));
         }
 
+        // TODO:
+        // Make sure that the following behaviour can be integrated:
+        // - enumerable of regexes
+        // - count of regexes to generate (or infinite?)
+        // - produce an intersection of regular expressions? might not be useful though
+        // - provide encoding
+        // - provide seed for deterministic generation of regexes
+
         public int RandomSeed => _chooser.RandomSeed;
 
         internal string GenerateMember(SymbolicFiniteAutomaton<BinaryDecisionDiagram> fa)
@@ -76,11 +84,6 @@ namespace SJP.GenerationRex
                     break;
             }
             return a;
-        }
-
-        internal void ToDot(TextWriter dot, SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfa)
-        {
-            _converter.ToDot(sfa, "SFA", dot, DotRankDir.LR, 12);
         }
 
         private const int TryLimitMin = 100;

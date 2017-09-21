@@ -727,43 +727,5 @@ namespace SJP.GenerationRex
             var eMoves = epsilonMoves.Select(eMove => Move<TConstraint>.Epsilon(eMove.First, eMove.Second));
             return moves.Concat(eMoves);
         }
-
-        public void ToDot(SymbolicFiniteAutomaton<TConstraint> fa, string faName, string filename, DotRankDir rankdir, int fontsize)
-        {
-            var streamWriter = new StreamWriter(filename);
-            ToDot(fa, faName, streamWriter, rankdir, fontsize);
-            streamWriter.Close();
-        }
-
-        public void ToDot(SymbolicFiniteAutomaton<TConstraint> fa, string faName, TextWriter tw, DotRankDir rankdir, int fontsize)
-        {
-            tw.WriteLine("digraph \"" + faName + "\" {");
-            tw.WriteLine(string.Format("rankdir={0};", rankdir.ToString()));
-            tw.WriteLine();
-            tw.WriteLine("//Initial state");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = {0}, fillcolor = \"#d3d3d3ff\", fontsize = {1}]", fa.IsFinalState(fa.InitialState) ? "2" : "1", fontsize));
-            tw.WriteLine(fa.InitialState);
-            tw.WriteLine();
-            tw.WriteLine("//Final states");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 2, fillcolor = white, fontsize = {0}]", fontsize));
-            foreach (int finalState in fa.GetFinalStates())
-            {
-                if (finalState != fa.InitialState)
-                    tw.WriteLine(finalState);
-            }
-            tw.WriteLine();
-            tw.WriteLine("//Other states");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", fontsize));
-            foreach (int state in fa.States)
-            {
-                if (state != fa.InitialState && !fa.IsFinalState(state))
-                    tw.WriteLine(state);
-            }
-            tw.WriteLine();
-            tw.WriteLine("//Transitions");
-            foreach (Move<TConstraint> move in fa.GetMoves())
-                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\"{3}, fontsize = {4} ];", move.SourceState, move.TargetState, string.Empty, move.IsEpsilon ? ", style = dashed" : string.Empty, fontsize));
-            tw.WriteLine("}");
-        }
     }
 }

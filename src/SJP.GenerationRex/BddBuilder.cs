@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Text;
-using EnumsNET;
 
 namespace SJP.GenerationRex
 {
@@ -353,68 +350,6 @@ namespace SJP.GenerationRex
                 bddArray[index1].FalseCase = bddArray[index3];
             }
             return bddArray[2];
-        }
-
-        public static void ToDot(BinaryDecisionDiagram bdd, string bddName, string filename, DotRankDir rankdir, int fontsize)
-        {
-            using (var tw = new StreamWriter(filename))
-                ToDot(bdd, bddName, tw, rankdir, fontsize);
-        }
-
-        public static void ToDot(BinaryDecisionDiagram bdd, string bddName, StreamWriter tw, DotRankDir rankdir, int fontsize)
-        {
-            if (bdd.Id < 2)
-                throw new ArgumentOutOfRangeException(nameof(bdd), "Must be different from BDD.True and BDD.False");
-            var dictionary1 = new Dictionary<BinaryDecisionDiagram, int>();
-            var dictionary2 = new Dictionary<int, int>();
-            var moveList = new List<Move<string>>();
-            var bddStack = new Stack<BinaryDecisionDiagram>();
-            bddStack.Push(bdd);
-            dictionary1.Add(BinaryDecisionDiagram.False, 0);
-            dictionary1.Add(BinaryDecisionDiagram.True, 1);
-            dictionary1.Add(bdd, 2);
-            int num = 3;
-            int val2 = 0;
-            while (bddStack.Count > 0)
-            {
-                BinaryDecisionDiagram index = bddStack.Pop();
-                int sourceState = dictionary1[index];
-                dictionary2[sourceState] = index.Ordinal;
-                val2 = Math.Max(index.Ordinal, val2);
-                if (!dictionary1.ContainsKey(index.FalseCase))
-                {
-                    dictionary1[index.FalseCase] = num++;
-                    bddStack.Push(index.FalseCase);
-                }
-                if (!dictionary1.ContainsKey(index.TrueCase))
-                {
-                    dictionary1[index.TrueCase] = num++;
-                    bddStack.Push(index.TrueCase);
-                }
-                moveList.Add(Move<string>.To(sourceState, dictionary1[index.FalseCase], "0"));
-                moveList.Add(Move<string>.To(sourceState, dictionary1[index.TrueCase], "1"));
-            }
-            dictionary2[0] = val2 + 1;
-            dictionary2[1] = val2 + 1;
-            tw.WriteLine("digraph \"" + bddName + "\" {");
-            tw.WriteLine(string.Format("rankdir={0};", rankdir.ToString()));
-            tw.WriteLine();
-            tw.WriteLine("//Nodes");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", fontsize));
-            foreach (int key in dictionary2.Keys)
-            {
-                if (key > 1)
-                    tw.WriteLine("{0} [label = {1}, group = {1}]", key, dictionary2[key]);
-            }
-            tw.WriteLine("//True and False");
-            tw.WriteLine(string.Format("node [style = filled, shape= polygon, sides=4, fillcolor = white, fontsize = {0}]", fontsize));
-            tw.WriteLine("0 [label = False, group = {0}]", val2);
-            tw.WriteLine("1 [label = True, group = {0}]", val2);
-            tw.WriteLine();
-            tw.WriteLine("//Links");
-            foreach (var move in moveList)
-                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\", fontsize = {3} ];", move.SourceState, move.TargetState, move.Condition, fontsize));
-            tw.WriteLine("}");
         }
 
         private class BddPair : IEquatable<BddPair>
