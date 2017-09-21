@@ -131,13 +131,6 @@ namespace SJP.GenerationRex.RegularExpressions
             _str = str;
         }
 
-        internal RegexNode(int type, RegexOptions options, int m)
-        {
-            _type = type;
-            _options = options;
-            _m = m;
-        }
-
         internal RegexNode(int type, RegexOptions options, int m, int n)
         {
             _type = type;

@@ -5,7 +5,7 @@ namespace SJP.GenerationRex
     /// <summary>
     /// Represents a binary decision diagram
     /// </summary>
-    public class BinaryDecisionDiagram
+    internal class BinaryDecisionDiagram
     {
         public BinaryDecisionDiagram(int id, int ordinalValue)
         {

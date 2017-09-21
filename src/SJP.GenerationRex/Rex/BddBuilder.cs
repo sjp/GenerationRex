@@ -59,7 +59,7 @@ namespace SJP.GenerationRex
 
         private static long MkRestrictKey(int v, bool makeTrue, BinaryDecisionDiagram bdd)
         {
-            return ((long)bdd.Id << 16) + (long)(v << 4) + (makeTrue ? 1L : 0L);
+            return ((long)bdd.Id << 16) + (v << 4) + (makeTrue ? 1L : 0L);
         }
 
         private static BddPair MkApplyKey(BinaryDecisionDiagram bdd1, BinaryDecisionDiagram bdd2)
@@ -219,11 +219,11 @@ namespace SJP.GenerationRex
             if (caseInsensitive)
             {
                 if (char.IsUpper(c))
-                    return MkOr(MkBddForInt((int)c), MkBddForInt((int)char.ToLower(c)));
+                    return MkOr(MkBddForInt(c), MkBddForInt(char.ToLower(c)));
                 if (char.IsLower(c))
-                    return MkOr(MkBddForInt((int)c), MkBddForInt((int)char.ToUpper(c)));
+                    return MkOr(MkBddForInt(c), MkBddForInt(char.ToUpper(c)));
             }
-            return MkBddForInt((int)c);
+            return MkBddForInt(c);
         }
 
         public BinaryDecisionDiagram MkBddForIntRange(int m, int n)
@@ -237,20 +237,20 @@ namespace SJP.GenerationRex
         public BinaryDecisionDiagram MkRangeConstraint(bool caseInsensitive, char lower, char upper)
         {
             if (NrOfBits == 7)
-                return MkRangeConstraint1(caseInsensitive, (int)lower < (int)sbyte.MaxValue ? lower : '\x007F', (int)upper < (int)sbyte.MaxValue ? upper : '\x007F');
+                return MkRangeConstraint1(caseInsensitive, lower < sbyte.MaxValue ? lower : '\x007F', upper < sbyte.MaxValue ? upper : '\x007F');
             if (NrOfBits == 8)
-                return MkRangeConstraint1(caseInsensitive, (int)lower < (int)byte.MaxValue ? lower : 'ÿ', (int)upper < (int)byte.MaxValue ? upper : 'ÿ');
+                return MkRangeConstraint1(caseInsensitive, lower < byte.MaxValue ? lower : 'ÿ', upper < byte.MaxValue ? upper : 'ÿ');
             var num1 = (int)lower;
             var num2 = (int)upper;
-            if (num2 - num1 < (int)ushort.MaxValue - num2 + num1 || caseInsensitive)
+            if (num2 - num1 < ushort.MaxValue - num2 + num1 || caseInsensitive)
                 return MkRangeConstraint1(caseInsensitive, lower, upper);
-            return MkNot(MkOr((int)lower > 0 ? MkRangeConstraint1(caseInsensitive, char.MinValue, (char)((uint)lower - 1U)) : BinaryDecisionDiagram.False, (int)upper < (int)ushort.MaxValue ? MkRangeConstraint1(caseInsensitive, (char)((uint)upper + 1U), char.MaxValue) : BinaryDecisionDiagram.False));
+            return MkNot(MkOr(lower > 0 ? MkRangeConstraint1(caseInsensitive, char.MinValue, (char)(lower - 1U)) : BinaryDecisionDiagram.False, upper < ushort.MaxValue ? MkRangeConstraint1(caseInsensitive, (char)(upper + 1U), char.MaxValue) : BinaryDecisionDiagram.False));
         }
 
         public BinaryDecisionDiagram MkRangeConstraint1(bool ignoreCase, char c, char d)
         {
             BinaryDecisionDiagram a = BinaryDecisionDiagram.False;
-            for (char c1 = c; (int)c1 <= (int)d; ++c1)
+            for (char c1 = c; c1 <= d; ++c1)
                 a = MkOr(a, MkCharConstraint(ignoreCase, c1));
             return a;
         }
@@ -397,23 +397,23 @@ namespace SJP.GenerationRex
             dictionary2[0] = val2 + 1;
             dictionary2[1] = val2 + 1;
             tw.WriteLine("digraph \"" + bddName + "\" {");
-            tw.WriteLine(string.Format("rankdir={0};", (object)rankdir.ToString()));
+            tw.WriteLine(string.Format("rankdir={0};", rankdir.ToString()));
             tw.WriteLine();
             tw.WriteLine("//Nodes");
-            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", (object)fontsize));
+            tw.WriteLine(string.Format("node [style = filled, shape = ellipse, peripheries = 1, fillcolor = white, fontsize = {0}]", fontsize));
             foreach (int key in dictionary2.Keys)
             {
                 if (key > 1)
-                    tw.WriteLine("{0} [label = {1}, group = {1}]", (object)key, (object)dictionary2[key]);
+                    tw.WriteLine("{0} [label = {1}, group = {1}]", key, dictionary2[key]);
             }
             tw.WriteLine("//True and False");
-            tw.WriteLine(string.Format("node [style = filled, shape= polygon, sides=4, fillcolor = white, fontsize = {0}]", (object)fontsize));
-            tw.WriteLine("0 [label = False, group = {0}]", (object)val2);
-            tw.WriteLine("1 [label = True, group = {0}]", (object)val2);
+            tw.WriteLine(string.Format("node [style = filled, shape= polygon, sides=4, fillcolor = white, fontsize = {0}]", fontsize));
+            tw.WriteLine("0 [label = False, group = {0}]", val2);
+            tw.WriteLine("1 [label = True, group = {0}]", val2);
             tw.WriteLine();
             tw.WriteLine("//Links");
-            foreach (Move<string> move in moveList)
-                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\", fontsize = {3} ];", (object)move.SourceState, (object)move.TargetState, (object)move.Condition, (object)fontsize));
+            foreach (var move in moveList)
+                tw.WriteLine(string.Format("{0} -> {1} [label = \"{2}\", fontsize = {3} ];", move.SourceState, move.TargetState, move.Condition, fontsize));
             tw.WriteLine("}");
         }
 

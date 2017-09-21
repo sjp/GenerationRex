@@ -33,9 +33,9 @@ namespace SJP.GenerationRex
             Move<BinaryDecisionDiagram> nthMoveFrom;
             for (int index = fa.InitialState; !fa.IsFinalState(index) || (fa.OutDegree(index) > 0 && _chooser.ChooseBoolean()); index = nthMoveFrom.TargetState)
             {
-                nthMoveFrom = fa.GetNthMoveFrom(index, this._chooser.Choose(fa.GetMovesCountFrom(index)));
+                nthMoveFrom = fa.GetNthMoveFrom(index, _chooser.Choose(fa.GetMovesCountFrom(index)));
                 if (!nthMoveFrom.IsEpsilon)
-                    stringBuilder.Append(this._solver.GenerateMember(this._chooser, nthMoveFrom.Condition));
+                    stringBuilder.Append(_solver.GenerateMember(_chooser, nthMoveFrom.Condition));
             }
             return stringBuilder.ToString();
         }
@@ -76,72 +76,6 @@ namespace SJP.GenerationRex
                     break;
             }
             return a;
-        }
-
-        public static IEnumerable<string> GenerateMembers(RexSettings settings)
-        {
-            var rexEngine = new RexEngine(Encoding.Unicode, settings.seed);
-            var options = RegexOptions.None;
-            if (settings.options != null)
-            {
-                foreach (RegexOptions option in settings.options)
-                    options |= option;
-            }
-            return rexEngine.GenerateMembers(options, settings.k, settings.regexes);
-        }
-
-        public static string Escape(char c)
-        {
-            var i = (int)c;
-            if (i > sbyte.MaxValue)
-                return ToUnicodeRepr(i);
-            switch (c)
-            {
-                case char.MinValue:
-                    return "\\0";
-                case '\a':
-                    return "\\a";
-                case '\b':
-                    return "\\b";
-                case '\t':
-                    return "\\t";
-                case '\n':
-                    return "\\n";
-                case '\v':
-                    return "\\v";
-                case '\f':
-                    return "\\f";
-                case '\r':
-                    return "\\r";
-                case '\x001B':
-                    return "\\e";
-                case '"':
-                    return "\\\"";
-                default:
-                    return c.ToString();
-            }
-        }
-
-        private static string ToUnicodeRepr(int i)
-        {
-            var str = string.Format("{0:X}", i);
-            return str.Length != 1
-                ? (str.Length != 2
-                    ? (str.Length != 3
-                        ? "\\u" + str
-                        : "\\u0" + str)
-                    : "\\u00" + str)
-                : "\\u000" + str;
-        }
-
-        public static string Escape(string s)
-        {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.Append("\"");
-            foreach (char c in s)
-                stringBuilder.Append(RexEngine.Escape(c));
-            stringBuilder.Append("\"");
-            return stringBuilder.ToString();
         }
 
         internal void ToDot(TextWriter dot, SymbolicFiniteAutomaton<BinaryDecisionDiagram> sfa)

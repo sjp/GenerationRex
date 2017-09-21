@@ -673,29 +673,6 @@ namespace SJP.GenerationRex.RegularExpressions
             }
         }
 
-        internal static string ConvertOldStringsToClass(string set, string category)
-        {
-            var sb = new StringBuilder(set.Length + category.Length + 3);
-
-            if (set.Length >= 2 && set[0] == '\0' && set[1] == '\0')
-            {
-                sb.Append((char)0x1);
-                sb.Append((char)(set.Length - 2));
-                sb.Append((char)category.Length);
-                sb.Append(set.Substring(2));
-            }
-            else
-            {
-                sb.Append((char)0x0);
-                sb.Append((char)set.Length);
-                sb.Append((char)category.Length);
-                sb.Append(set);
-            }
-            sb.Append(category);
-
-            return sb.ToString();
-        }
-
         /// <summary>
         /// Returns the char
         /// </summary>
@@ -747,16 +724,6 @@ namespace SJP.GenerationRex.RegularExpressions
         internal static bool IsNegated(string set)
         {
             return set?[FLAGS] == 1;
-        }
-
-        internal static bool IsECMAWordChar(char ch)
-        {
-            // According to ECMA-262, \s, \S, ., ^, and $ use Unicode-based interpretations of
-            // whitespace and newline, while \d, \D\, \w, \W, \b, and \B use ASCII-only
-            // interpretations of digit, word character, and word boundary.  In other words,
-            // no special treatment of Unicode ZERO WIDTH NON-JOINER (ZWNJ U+200C) and
-            // ZERO WIDTH JOINER (ZWJ U+200D) is required for ECMA word boundaries.
-            return CharInClass(ch, ECMAWordClass);
         }
 
         internal static bool IsWordChar(char ch)

@@ -8,10 +8,10 @@ namespace SJP.GenerationRex
     {
         public static SymbolicFiniteAutomaton<TConstraint> Empty = Create(0, new int[0], new Move<TConstraint>[0]);
         public static SymbolicFiniteAutomaton<TConstraint> Epsilon = Create(0, new int[1], new Move<TConstraint>[0]);
-        private Dictionary<int, List<Move<TConstraint>>> _delta;
-        private Dictionary<int, List<Move<TConstraint>>> _deltaInv;
+        private Dictionary<int, IList<Move<TConstraint>>> _delta; // lookup for state to outbound states (i.e. those that are pointed to by the key)
+        private Dictionary<int, IList<Move<TConstraint>>> _deltaInv; // lookup for state to inbound states (i.e. those that point to the key)
         private int _initialState;
-        private HashSet<int> _finalStateSet;
+        private ISet<int> _finalStateSet;
         private int _maxState;
         internal bool _isEpsilonFree;
         internal bool _isDeterministic;
@@ -20,7 +20,7 @@ namespace SJP.GenerationRex
         {
             get
             {
-                using (HashSet<int>.Enumerator enumerator = _finalStateSet.GetEnumerator())
+                using (var enumerator = _finalStateSet.GetEnumerator())
                 {
                     if (enumerator.MoveNext())
                         return enumerator.Current;
@@ -29,26 +29,11 @@ namespace SJP.GenerationRex
             }
         }
 
-        public bool HasMoreThanOneFinalState => _finalStateSet.Count > 1;
-
         public int OutDegree(int state) => _delta[state].Count;
-
-        public Move<TConstraint> GetMoveFrom(int state) => _delta[state][0];
 
         public bool InitialStateIsSource => _deltaInv[_initialState].Count == 0;
 
         public bool IsEpsilonFree => _isEpsilonFree;
-
-        public int MoveCount
-        {
-            get
-            {
-                int num = 0;
-                foreach (int key in _delta.Keys)
-                    num += _delta[key].Count;
-                return num;
-            }
-        }
 
         public bool IsDeterministic => _isDeterministic;
 
@@ -96,42 +81,42 @@ namespace SJP.GenerationRex
 
         public static SymbolicFiniteAutomaton<TConstraint> Create(int initialState, IEnumerable<int> finalStates, IEnumerable<Move<TConstraint>> moves)
         {
-            var dictionary1 = new Dictionary<int, List<Move<TConstraint>>>();
-            var dictionary2 = new Dictionary<int, List<Move<TConstraint>>>();
-            dictionary1[initialState] = new List<Move<TConstraint>>();
-            dictionary2[initialState] = new List<Move<TConstraint>>();
-            bool flag1 = true;
-            int val1 = initialState;
-            bool flag2 = true;
-            foreach (Move<TConstraint> move in moves)
+            var delta = new Dictionary<int, IList<Move<TConstraint>>>();
+            var deltaInv = new Dictionary<int, IList<Move<TConstraint>>>();
+            delta[initialState] = new List<Move<TConstraint>>();
+            deltaInv[initialState] = new List<Move<TConstraint>>();
+            bool isEpsilonFree = true;
+            int maxState = initialState;
+            bool isDeterministic = true;
+            foreach (var move in moves)
             {
                 if (move.IsEpsilon)
-                    flag1 = false;
-                if (!dictionary1.ContainsKey(move.SourceState))
-                    dictionary1[move.SourceState] = new List<Move<TConstraint>>();
-                if (!dictionary1.ContainsKey(move.TargetState))
-                    dictionary1[move.TargetState] = new List<Move<TConstraint>>();
-                if (!dictionary2.ContainsKey(move.SourceState))
-                    dictionary2[move.SourceState] = new List<Move<TConstraint>>();
-                if (!dictionary2.ContainsKey(move.TargetState))
-                    dictionary2[move.TargetState] = new List<Move<TConstraint>>();
-                dictionary1[move.SourceState].Add(move);
-                dictionary2[move.TargetState].Add(move);
-                flag2 = flag2 && dictionary1[move.SourceState].Count < 2;
-                val1 = Math.Max(val1, Math.Max(move.SourceState, move.TargetState));
+                    isEpsilonFree = false;
+                if (!delta.ContainsKey(move.SourceState))
+                    delta[move.SourceState] = new List<Move<TConstraint>>();
+                if (!delta.ContainsKey(move.TargetState))
+                    delta[move.TargetState] = new List<Move<TConstraint>>();
+                if (!deltaInv.ContainsKey(move.SourceState))
+                    deltaInv[move.SourceState] = new List<Move<TConstraint>>();
+                if (!deltaInv.ContainsKey(move.TargetState))
+                    deltaInv[move.TargetState] = new List<Move<TConstraint>>();
+                delta[move.SourceState].Add(move);
+                deltaInv[move.TargetState].Add(move);
+                isDeterministic = isDeterministic && delta[move.SourceState].Count < 2;
+                maxState = Math.Max(maxState, Math.Max(move.SourceState, move.TargetState));
             }
             var intSet = new HashSet<int>(finalStates);
-            if (!intSet.IsSubsetOf(dictionary1.Keys))
+            if (!intSet.IsSubsetOf(delta.Keys))
                 throw new RexException(RexException.InvalidFinalStates);
             return new SymbolicFiniteAutomaton<TConstraint>
             {
                 _initialState = initialState,
                 _finalStateSet = intSet,
-                _isEpsilonFree = flag1,
-                _maxState = val1,
-                _delta = dictionary1,
-                _deltaInv = dictionary2,
-                _isDeterministic = flag2
+                _isEpsilonFree = isEpsilonFree,
+                _maxState = maxState,
+                _delta = delta,
+                _deltaInv = deltaInv,
+                _isDeterministic = isDeterministic
             };
         }
 
@@ -139,230 +124,115 @@ namespace SJP.GenerationRex
         {
         }
 
-        public int InitialState
-        {
-            get
-            {
-                return this._initialState;
-            }
-        }
+        public int InitialState => _initialState;
 
-        public int MaxState
-        {
-            get
-            {
-                return this._maxState;
-            }
-        }
+        public int MaxState => _maxState;
 
-        public IEnumerable<int> States
-        {
-            get
-            {
-                return (IEnumerable<int>)this._delta.Keys;
-            }
-        }
+        public IEnumerable<int> States => _delta.Keys;
 
-        public int StateCount
-        {
-            get
-            {
-                return this._delta.Count;
-            }
-        }
+        public IEnumerable<Move<TConstraint>> GetMoves() => States.SelectMany(s => _delta[s]);
 
-        public IEnumerable<Move<TConstraint>> GetMoves()
-        {
-            foreach (int state in this.States)
-            {
-                foreach (Move<TConstraint> move in this._delta[state])
-                    yield return move;
-            }
-        }
+        public IEnumerable<int> GetFinalStates() => _finalStateSet;
 
-        public IEnumerable<Move<TConstraint>> GetEpsilonMoves()
-        {
-            foreach (int state in this.States)
-            {
-                foreach (Move<TConstraint> move in this._delta[state])
-                {
-                    if (move.IsEpsilon)
-                        yield return move;
-                }
-            }
-        }
+        public IEnumerable<Move<TConstraint>> GetMovesFrom(int sourceState) => _delta[sourceState];
 
-        public IEnumerable<int> GetEpsilonTargetsFrom(int state)
-        {
-            foreach (Move<TConstraint> move in this._delta[state])
-            {
-                if (move.IsEpsilon)
-                    yield return move.TargetState;
-            }
-        }
+        public int GetMovesCountFrom(int sourceState) => _delta[sourceState].Count;
 
-        public IEnumerable<int> GetFinalStates()
-        {
-            return (IEnumerable<int>)this._finalStateSet;
-        }
+        public Move<TConstraint> GetNthMoveFrom(int sourceState, int n) => _delta[sourceState][n];
 
-        public IEnumerable<Move<TConstraint>> GetMovesFrom(int sourceState)
-        {
-            return (IEnumerable<Move<TConstraint>>)this._delta[sourceState];
-        }
+        public bool IsFinalState(int state) => _finalStateSet.Contains(state);
 
-        public int GetMovesCountFrom(int sourceState)
-        {
-            return this._delta[sourceState].Count;
-        }
-
-        public Move<TConstraint> GetNthMoveFrom(int sourceState, int n)
-        {
-            return this._delta[sourceState][n];
-        }
-
-        public IEnumerable<Move<TConstraint>> GetMovesFromStates(IEnumerable<int> sourceStates)
-        {
-            foreach (int sourceState in sourceStates)
-            {
-                foreach (Move<TConstraint> move in this._delta[sourceState])
-                    yield return move;
-            }
-        }
-
-        public bool IsFinalState(int state)
-        {
-            return this._finalStateSet.Contains(state);
-        }
-
-        public bool HasSingleFinalSink
-        {
-            get
-            {
-                if (this._finalStateSet.Count == 1)
-                    return this._delta[this.FinalState].Count == 0;
-                return false;
-            }
-        }
+        public bool HasSingleFinalSink => _finalStateSet.Count == 1 && _delta[FinalState].Count == 0;
 
         public void Concat(SymbolicFiniteAutomaton<TConstraint> fa)
         {
             foreach (int state in fa.States)
             {
-                this._delta[state] = new List<Move<TConstraint>>((IEnumerable<Move<TConstraint>>)fa._delta[state]);
-                this._deltaInv[state] = new List<Move<TConstraint>>((IEnumerable<Move<TConstraint>>)fa._deltaInv[state]);
+                _delta[state] = new List<Move<TConstraint>>(fa._delta[state]);
+                _deltaInv[state] = new List<Move<TConstraint>>(fa._deltaInv[state]);
             }
-            if (this.HasSingleFinalSink)
+            if (HasSingleFinalSink)
             {
-                foreach (int finalState in this._finalStateSet)
+                foreach (int finalState in _finalStateSet)
                 {
-                    foreach (Move<TConstraint> move1 in this._deltaInv[finalState])
+                    foreach (Move<TConstraint> move1 in _deltaInv[finalState])
                     {
-                        this._delta[move1.SourceState].Remove(move1);
+                        _delta[move1.SourceState].Remove(move1);
                         Move<TConstraint> move2 = Move<TConstraint>.To(move1.SourceState == finalState ? fa.InitialState : move1.SourceState, fa.InitialState, move1.Condition);
-                        this._delta[move2.SourceState].Add(move2);
-                        this._deltaInv[move2.TargetState].Add(move2);
+                        _delta[move2.SourceState].Add(move2);
+                        _deltaInv[move2.TargetState].Add(move2);
                     }
-                    this._delta.Remove(finalState);
-                    this._deltaInv.Remove(finalState);
+                    _delta.Remove(finalState);
+                    _deltaInv.Remove(finalState);
                 }
-                if (this._finalStateSet.Contains(this._initialState))
-                    this._initialState = fa._initialState;
-                this._isEpsilonFree = this._isEpsilonFree && fa._isEpsilonFree;
-                this._isDeterministic = this._isDeterministic && fa._isDeterministic;
+                if (_finalStateSet.Contains(_initialState))
+                    _initialState = fa._initialState;
+                _isEpsilonFree = _isEpsilonFree && fa._isEpsilonFree;
+                _isDeterministic = _isDeterministic && fa._isDeterministic;
             }
             else
             {
-                foreach (int finalState in this._finalStateSet)
+                foreach (int finalState in _finalStateSet)
                 {
                     Move<TConstraint> move = Move<TConstraint>.Epsilon(finalState, fa._initialState);
-                    this._delta[finalState].Add(move);
-                    this._deltaInv[fa._initialState].Add(move);
+                    _delta[finalState].Add(move);
+                    _deltaInv[fa._initialState].Add(move);
                 }
-                this._isEpsilonFree = false;
-                this._isDeterministic = false;
+                _isEpsilonFree = false;
+                _isDeterministic = false;
             }
-            this._finalStateSet = fa._finalStateSet;
-            this._maxState = Math.Max(this._maxState, fa._maxState);
-        }
-
-        private bool AllFinalStatesAreSinks
-        {
-            get
-            {
-                foreach (int finalState in this._finalStateSet)
-                {
-                    if (this._delta[finalState].Count > 0)
-                        return false;
-                }
-                return true;
-            }
-        }
-
-        internal void SetFinalStates(IEnumerable<int> newFinalStates)
-        {
-            this._finalStateSet = new HashSet<int>(newFinalStates);
+            _finalStateSet = fa._finalStateSet;
+            _maxState = Math.Max(_maxState, fa._maxState);
         }
 
         internal void MakeInitialStateFinal()
         {
-            this._finalStateSet.Add(this._initialState);
+            _finalStateSet.Add(_initialState);
         }
 
         internal void AddMove(Move<TConstraint> move)
         {
-            if (!this._delta.ContainsKey(move.SourceState))
-                this._delta[move.SourceState] = new List<Move<TConstraint>>();
-            if (!this._deltaInv.ContainsKey(move.TargetState))
-                this._deltaInv[move.TargetState] = new List<Move<TConstraint>>();
-            this._delta[move.SourceState].Add(move);
-            this._deltaInv[move.TargetState].Add(move);
-            this._maxState = Math.Max(this._maxState, Math.Max(move.SourceState, move.TargetState));
-            this._isEpsilonFree = this._isEpsilonFree && !move.IsEpsilon;
-            this._isDeterministic = false;
+            if (!_delta.ContainsKey(move.SourceState))
+                _delta[move.SourceState] = new List<Move<TConstraint>>();
+            if (!_deltaInv.ContainsKey(move.TargetState))
+                _deltaInv[move.TargetState] = new List<Move<TConstraint>>();
+            _delta[move.SourceState].Add(move);
+            _deltaInv[move.TargetState].Add(move);
+            _maxState = Math.Max(_maxState, Math.Max(move.SourceState, move.TargetState));
+            _isEpsilonFree = _isEpsilonFree && !move.IsEpsilon;
+            _isDeterministic = false;
         }
 
         public bool IsKleeneClosure()
         {
-            if (!this.IsFinalState(this._initialState))
-                return false;
-            foreach (int finalState in this._finalStateSet)
-            {
-                if (finalState != this._initialState && !this._delta[finalState].Exists(new Predicate<Move<TConstraint>>(this.IsEpsilonMoveToInitialState)))
-                    return false;
-            }
-            return true;
+            return IsFinalState(_initialState)
+                && !_finalStateSet.Any(f => f != _initialState && !_delta[f].Any(IsEpsilonMoveToInitialState));
         }
 
-        internal bool IsEpsilonMoveToInitialState(Move<TConstraint> move)
-        {
-            if (move.IsEpsilon)
-                return move.TargetState == this._initialState;
-            return false;
-        }
+        internal bool IsEpsilonMoveToInitialState(Move<TConstraint> move) => move.IsEpsilon && move.TargetState == _initialState;
 
         internal void RenameInitialState(int p)
         {
-            List<Move<TConstraint>> moveList = this._delta[this._initialState];
-            if (!this._delta.ContainsKey(p))
-                this._delta[p] = new List<Move<TConstraint>>();
-            if (!this._deltaInv.ContainsKey(p))
-                this._deltaInv[p] = new List<Move<TConstraint>>();
-            foreach (Move<TConstraint> move1 in moveList)
+            var moveList = _delta[_initialState];
+            if (!_delta.ContainsKey(p))
+                _delta[p] = new List<Move<TConstraint>>();
+            if (!_deltaInv.ContainsKey(p))
+                _deltaInv[p] = new List<Move<TConstraint>>();
+            foreach (var move1 in moveList)
             {
                 Move<TConstraint> move2 = Move<TConstraint>.To(p, move1.TargetState, move1.Condition);
-                this._deltaInv[move1.TargetState].Remove(move1);
-                this._deltaInv[move1.TargetState].Add(move2);
-                this._delta[p].Add(move2);
+                _deltaInv[move1.TargetState].Remove(move1);
+                _deltaInv[move1.TargetState].Add(move2);
+                _delta[p].Add(move2);
             }
-            if (this._finalStateSet.Contains(this._initialState))
+            if (_finalStateSet.Contains(_initialState))
             {
-                this._finalStateSet.Remove(this._initialState);
-                this._finalStateSet.Add(p);
+                _finalStateSet.Remove(_initialState);
+                _finalStateSet.Add(p);
             }
-            this._delta.Remove(this._initialState);
-            this._deltaInv.Remove(this._initialState);
-            this._initialState = p;
+            _delta.Remove(_initialState);
+            _deltaInv.Remove(_initialState);
+            _initialState = p;
         }
 
         internal void AddNewInitialStateThatIsFinal(int newInitialState)
@@ -413,31 +283,6 @@ namespace SJP.GenerationRex
             return Create(newInitialState, intSet, moveList);
         }
 
-        public void RemoveState(int state)
-        {
-            foreach (var move in _delta[state])
-                _deltaInv[move.TargetState].Remove(move);
-            foreach (var move in _deltaInv[state])
-                _delta[move.SourceState].Remove(move);
-            _finalStateSet.Remove(state);
-        }
-
-        internal void RemoveTheMove(Move<TConstraint> move)
-        {
-            _delta[move.SourceState].Remove(move);
-            _deltaInv[move.TargetState].Remove(move);
-        }
-
-        internal TConstraint GetCondition(int source, int target)
-        {
-            foreach (var move in _delta[source])
-            {
-                if (move.TargetState == target)
-                    return move.Condition;
-            }
-            throw new RexException(RexException.InternalError);
-        }
-
         public static SymbolicFiniteAutomaton<TConstraint> MkProduct(SymbolicFiniteAutomaton<TConstraint> a, SymbolicFiniteAutomaton<TConstraint> b, Func<TConstraint, TConstraint, TConstraint> conj, Func<TConstraint, TConstraint, TConstraint> disj, Func<TConstraint, bool> isSat)
         {
             a = a.RemoveEpsilons(disj);
@@ -458,14 +303,14 @@ namespace SJP.GenerationRex
             int num = 1;
             while (pairStack.Count > 0)
             {
-                Pair<int, int> index2 = pairStack.Pop();
-                int sourceState = dictionary1[index2];
-                List<Move<TConstraint>> moveList = delta[sourceState];
-                foreach (Move<TConstraint> move1 in a.GetMovesFrom(index2.First))
+                var index2 = pairStack.Pop();
+                var sourceState = dictionary1[index2];
+                var moveList = delta[sourceState];
+                foreach (var move1 in a.GetMovesFrom(index2.First))
                 {
-                    foreach (Move<TConstraint> move2 in b.GetMovesFrom(index2.Second))
+                    foreach (var move2 in b.GetMovesFrom(index2.Second))
                     {
-                        TConstraint condition = conj(move1.Condition, move2.Condition);
+                        var condition = conj(move1.Condition, move2.Condition);
                         if (isSat(condition))
                         {
                             var key = new Pair<int, int>(move1.TargetState, move2.TargetState);
@@ -490,14 +335,14 @@ namespace SJP.GenerationRex
                 dictionary2[index2] = new List<Move<TConstraint>>();
             foreach (int index2 in intList1)
             {
-                foreach (Move<TConstraint> move in delta[index2])
+                foreach (var move in delta[index2])
                     dictionary2[move.TargetState].Add(move);
             }
             var intStack = new Stack<int>(intList2);
             var intSet = new HashSet<int>(intList2);
             while (intStack.Count > 0)
             {
-                foreach (Move<TConstraint> move in dictionary2[intStack.Pop()])
+                foreach (var move in dictionary2[intStack.Pop()])
                 {
                     if (!intSet.Contains(move.SourceState))
                     {
@@ -516,11 +361,11 @@ namespace SJP.GenerationRex
                 else
                     intList3.Add(key);
             }
-            List<int> intList4 = intList3;
+            var intList4 = intList3;
             foreach (int index2 in intList4)
             {
                 var moveList = new List<Move<TConstraint>>();
-                foreach (Move<TConstraint> move in delta[index2])
+                foreach (var move in delta[index2])
                 {
                     if (intSet.Contains(move.TargetState))
                         moveList.Add(move);
@@ -549,7 +394,7 @@ namespace SJP.GenerationRex
                 dictionary[state] = intSet.Intersect(GetInvEpsilonClosure(state)).Choice;
             }
             var conditionMap = new Dictionary<Pair<int, int>, TConstraint>();
-            var eMoves = new HashSet<Move<TConstraint>>();
+            var epsilonMoves = new HashSet<Move<TConstraint>>();
             foreach (var move in GetMoves())
             {
                 int num1 = dictionary[move.SourceState];
@@ -557,7 +402,7 @@ namespace SJP.GenerationRex
                 if (move.IsEpsilon)
                 {
                     if (num1 != num2)
-                        eMoves.Add(Move<TConstraint>.Epsilon(num1, num2));
+                        epsilonMoves.Add(Move<TConstraint>.Epsilon(num1, num2));
                 }
                 else
                 {
@@ -566,57 +411,53 @@ namespace SJP.GenerationRex
                 }
             }
             int initialState = dictionary[InitialState];
-            var intSet1 = new HashSet<int>();
+            var finalStates = new HashSet<int>();
             foreach (var finalState in GetFinalStates())
-                intSet1.Add(dictionary[finalState]);
-            return Create(initialState, intSet1, EnumerateMoves(conditionMap, eMoves));
+                finalStates.Add(dictionary[finalState]);
+            return Create(initialState, finalStates, EnumerateMoves(conditionMap, epsilonMoves));
         }
 
-        private IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<Pair<int, int>, TConstraint> conditionMap, HashSet<Move<TConstraint>> eMoves)
+        private IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<Pair<int, int>, TConstraint> conditionMap, HashSet<Move<TConstraint>> epsilonMoves)
         {
             var conditionMoves = conditionMap.Select(condition => Move<TConstraint>.To(condition.Key.First, condition.Key.Second, condition.Value));
-            return conditionMoves.Concat(eMoves);
+            return conditionMoves.Concat(epsilonMoves);
         }
 
         public SymbolicFiniteAutomaton<TConstraint> RemoveEpsilons(Func<TConstraint, TConstraint, TConstraint> disj)
         {
-            var sfa1 = this;
-            if (sfa1.IsEpsilonFree)
-                return sfa1;
+            if (IsEpsilonFree)
+                return this;
+
             var dictionary = new Dictionary<Pair<int, int>, TConstraint>();
-            foreach (Move<TConstraint> move in sfa1.GetMoves())
+            var nonEpsilonMoves = GetMoves().Where(m => !m.IsEpsilon);
+            foreach (var move in nonEpsilonMoves)
             {
-                if (!move.IsEpsilon)
-                {
-                    var key = new Pair<int, int>(move.SourceState, move.TargetState);
-                    dictionary[key] = !dictionary.TryGetValue(key, out var s) ? move.Condition : disj(move.Condition, s);
-                }
+                var key = new Pair<int, int>(move.SourceState, move.TargetState);
+                dictionary[key] = !dictionary.TryGetValue(key, out var s) ? move.Condition : disj(move.Condition, s);
             }
-            foreach (int state in sfa1.States)
+
+            foreach (int state in States)
             {
-                foreach (int sourceState in sfa1.GetEpsilonClosure(state))
+                var nonEpsMoves = GetEpsilonClosure(state)
+                    .Where(sourceState => state != sourceState)
+                    .SelectMany(GetMovesFrom)
+                    .Where(m => !m.IsEpsilon);
+
+                foreach (var move in nonEpsMoves)
                 {
-                    if (sourceState != state)
-                    {
-                        foreach (Move<TConstraint> move in sfa1.GetMovesFrom(sourceState))
-                        {
-                            if (!move.IsEpsilon)
-                            {
-                                var key = new Pair<int, int>(state, move.TargetState);
-                                dictionary[key] = !dictionary.TryGetValue(key, out var s) || s.Equals(move.Condition) ? move.Condition : disj(move.Condition, s);
-                            }
-                        }
-                    }
+                    var key = new Pair<int, int>(state, move.TargetState);
+                    dictionary[key] = !dictionary.TryGetValue(key, out var s) || s.Equals(move.Condition) ? move.Condition : disj(move.Condition, s);
+
                 }
             }
             var delta = new Dictionary<int, List<Move<TConstraint>>>();
-            foreach (int state in sfa1.States)
+            foreach (int state in States)
                 delta[state] = new List<Move<TConstraint>>();
             foreach (var kv in dictionary)
                 delta[kv.Key.First].Add(Move<TConstraint>.To(kv.Key.First, kv.Key.Second, kv.Value));
             var intStack = new Stack<int>();
-            intStack.Push(sfa1.InitialState);
-            var intSet = new HashSet<int> { sfa1.InitialState };
+            intStack.Push(InitialState);
+            var intSet = new HashSet<int> { InitialState };
             while (intStack.Count > 0)
             {
                 foreach (Move<TConstraint> move in delta[intStack.Pop()])
@@ -629,7 +470,7 @@ namespace SJP.GenerationRex
                 }
             }
             var intList1 = new List<int>();
-            foreach (int state in sfa1.States)
+            foreach (int state in States)
             {
                 if (intSet.Contains(state))
                     intList1.Add(state);
@@ -639,18 +480,18 @@ namespace SJP.GenerationRex
             var intList2 = new List<int>();
             foreach (int state1 in intList1)
             {
-                foreach (int state2 in sfa1.GetEpsilonClosure(state1))
+                foreach (int state2 in GetEpsilonClosure(state1))
                 {
-                    if (sfa1.IsFinalState(state2))
+                    if (IsFinalState(state2))
                     {
                         intList2.Add(state1);
                         break;
                     }
                 }
             }
-            var sfa2 = Create(sfa1.InitialState, intList2, EnumerateMoves(delta));
-            sfa2._isEpsilonFree = true;
-            return sfa2;
+            var result = Create(InitialState, intList2, EnumerateMoves(delta));
+            result._isEpsilonFree = true;
+            return result;
         }
     }
 }

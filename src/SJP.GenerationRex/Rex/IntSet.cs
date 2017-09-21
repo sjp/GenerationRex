@@ -21,10 +21,6 @@ namespace SJP.GenerationRex
 
         public int Choice { get; } = int.MaxValue;
 
-        public bool IsSingleton => _elems.Count == 1;
-
-        internal bool Contains(int elem) => _elems.Contains(elem);
-
         internal IntSet Intersect(IEnumerable<int> other)
         {
             var intSet = new HashSet<int>(_elems);

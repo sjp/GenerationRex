@@ -109,27 +109,26 @@ namespace SJP.GenerationRex
             string str = node._str;
             int length = str.Length;
             bool caseInsensitive = node._options.HasAnyFlags(RegexOptions.IgnoreCase);
-            int num1 = minStateId;
-            int num2 = num1 + length;
-            var numArray = new int[1] { num2 };
+            int sourceStateId = minStateId;
             var moveList = new List<Move<TConstraint>>();
-            for (int index1 = 0; index1 < length; ++index1)
+            for (int i = 0; i < length;i++)
             {
-                var chArrayList = new List<char[]>();
-                char c = str[index1];
-                chArrayList.Add(new char[2] { c, c });
-                var index2 = _solver.MkRangesConstraint(caseInsensitive, chArrayList);
-                moveList.Add(Move<TConstraint>.To(num1 + index1, num1 + index1 + 1, index2));
+                char c = str[i];
+                var charRanges = new List<char[]> { new[] { c, c } };
+                var index2 = _solver.MkRangesConstraint(caseInsensitive, charRanges);
+                moveList.Add(Move<TConstraint>.To(sourceStateId + i, sourceStateId + i + 1, index2));
             }
-            var sfa = SymbolicFiniteAutomaton<TConstraint>.Create(num1, numArray, moveList);
+            int finalState = sourceStateId + length;
+            var finalStates = new[] { finalState };
+            var sfa = SymbolicFiniteAutomaton<TConstraint>.Create(sourceStateId, finalStates, moveList);
             sfa._isDeterministic = true;
             if (isStart)
             {
-                sfa.AddMove(Move<TConstraint>.To(num1, num1, _solver.True));
+                sfa.AddMove(Move<TConstraint>.To(sourceStateId, sourceStateId, _solver.True));
                 sfa._isDeterministic = false;
             }
             if (isEnd)
-                sfa.AddMove(Move<TConstraint>.To(num2, num2, _solver.True));
+                sfa.AddMove(Move<TConstraint>.To(finalState, finalState, _solver.True));
             sfa._isEpsilonFree = true;
             return sfa;
         }
@@ -187,11 +186,11 @@ namespace SJP.GenerationRex
         private TConstraint CreateConditionFromSet(bool ignoreCase, string set)
         {
             bool isNegated = RegexCharClass.IsNegated(set);
-            var sList = new List<TConstraint>();
+            var stateList = new List<TConstraint>();
             foreach (var range in ComputeRanges(set))
             {
                 var constraint = _solver.MkRangeConstraint(ignoreCase, range.First, range.Second);
-                sList.Add(isNegated ? _solver.MkNot(constraint) : constraint);
+                stateList.Add(isNegated ? _solver.MkNot(constraint) : constraint);
             }
             int num1 = set[1];
             int num2 = set[2];
@@ -199,27 +198,30 @@ namespace SJP.GenerationRex
             int startIndex = num3;
             while (startIndex < num3 + num2)
             {
-                var num4 = (short)set[startIndex++];
-                if (num4 != 0)
+                var codePoint = (short)set[startIndex++];
+                if (codePoint != 0)
                 {
-                    var condition = MapCategoryCodeToCondition(Math.Abs(num4) - 1);
-                    sList.Add(num4 < 0 ^ isNegated ? _solver.MkNot(condition) : condition);
+                    var catNum = Math.Abs(codePoint) - 1;
+                    var condition = catNum == 99
+                        ? _categorizer.WhiteSpaceCondition
+                        : MapCategoryCodeToCondition((UnicodeCategory)catNum);
+                    stateList.Add(codePoint < 0 ^ isNegated ? _solver.MkNot(condition) : condition);
                 }
                 else
                 {
-                    var num5 = (short)set[startIndex++];
-                    if (num5 != 0)
+                    var secondCodePoint = (short)set[startIndex++];
+                    if (secondCodePoint != 0)
                     {
                         var catCodes = new HashSet<UnicodeCategory>();
-                        bool flag2 = num5 < 0;
-                        for (; num5 != 0; num5 = (short)set[startIndex++])
+                        bool isInvalidCodePoint = secondCodePoint < 0;
+                        for (; secondCodePoint != 0; secondCodePoint = (short)set[startIndex++])
                         {
-                            var cat = Math.Abs(num5) - 1;
+                            var cat = Math.Abs(secondCodePoint) - 1;
                             catCodes.Add((UnicodeCategory)cat);
                         }
                         var condition = MapCategoryCodeSetToCondition(catCodes);
-                        var s = isNegated ^ flag2 ? _solver.MkNot(condition) : condition;
-                        sList.Add(s);
+                        var s = isNegated ^ isInvalidCodePoint ? _solver.MkNot(condition) : condition;
+                        stateList.Add(s);
                     }
                 }
             }
@@ -229,10 +231,12 @@ namespace SJP.GenerationRex
                 string set1 = set.Substring(startIndex);
                 constraint1 = CreateConditionFromSet(ignoreCase, set1);
             }
-            var constraint1_1 = sList.Count != 0 ? (isNegated ? _solver.MkAnd(sList) : _solver.MkOr(sList)) : (isNegated ? _solver.False : _solver.True);
+            var result = stateList.Count != 0
+                ? (isNegated ? _solver.MkAnd(stateList) : _solver.MkOr(stateList))
+                : (isNegated ? _solver.False : _solver.True);
             if (constraint1 != null)
-                constraint1_1 = _solver.MkAnd(constraint1_1, _solver.MkNot(constraint1));
-            return constraint1_1;
+                result = _solver.MkAnd(result, _solver.MkNot(constraint1));
+            return result;
         }
 
         private static IEnumerable<Pair<char, char>> ComputeRanges(string set)
@@ -276,7 +280,7 @@ namespace SJP.GenerationRex
                 result = _categorizer.WordLetterCondition;
             }
 
-            foreach (int catCode in catCodes)
+            foreach (var catCode in catCodes)
             {
                 var condition = MapCategoryCodeToCondition(catCode);
                 result = ReferenceEquals(result, null) ? condition : _solver.MkOr(result, condition);
@@ -284,13 +288,12 @@ namespace SJP.GenerationRex
             return result;
         }
 
-        private TConstraint MapCategoryCodeToCondition(int code)
+        private TConstraint MapCategoryCodeToCondition(UnicodeCategory code)
         {
-            if (code == 99)
-                return _categorizer.WhiteSpaceCondition;
-            if (code < 0 || code > 29)
-                throw new ArgumentOutOfRangeException(nameof(code), "Must be in the range 0..29 or equal to 99");
-            return _categorizer.CategoryCondition((UnicodeCategory)code);
+            if (!code.IsValid())
+                throw new ArgumentException($"The { nameof(UnicodeCategory) } provided must be a valid enum.", nameof(code));
+
+            return _categorizer.CategoryCondition(code);
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEnd(RegexNode node, int minStateId, bool isStart, bool isEnd)
@@ -718,11 +721,11 @@ namespace SJP.GenerationRex
 
         private static bool HasEpsilons(SymbolicFiniteAutomaton<TConstraint> sfa) => !sfa._isEpsilonFree;
 
-        private IEnumerable<Move<TConstraint>> GenerateMoves(Dictionary<Pair<int, int>, TConstraint> condMap, IEnumerable<Pair<int, int>> eMoves)
+        private IEnumerable<Move<TConstraint>> GenerateMoves(Dictionary<Pair<int, int>, TConstraint> condMap, IEnumerable<Pair<int, int>> epsilonMoves)
         {
             var moves = condMap.Select(condition => Move<TConstraint>.To(condition.Key.First, condition.Key.Second, condition.Value));
-            var eMoves1 = eMoves.Select(eMove => Move<TConstraint>.Epsilon(eMove.First, eMove.Second));
-            return moves.Concat(eMoves1);
+            var eMoves = epsilonMoves.Select(eMove => Move<TConstraint>.Epsilon(eMove.First, eMove.Second));
+            return moves.Concat(eMoves);
         }
 
         public void ToDot(SymbolicFiniteAutomaton<TConstraint> fa, string faName, string filename, DotRankDir rankdir, int fontsize)

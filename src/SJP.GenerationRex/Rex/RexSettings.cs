@@ -27,11 +27,11 @@ namespace SJP.GenerationRex
             if (regexes.Length < 1)
                 throw new RexException("At least one regex must be specified");
             this.regexes = regexes;
-            this.options = (RegexOptions[])null;
-            this.k = 1;
-            this.file = (string)null;
-            this.encoding = Encoding.Unicode;
-            this.seed = -1;
+            options = null;
+            k = 1;
+            file = null;
+            encoding = Encoding.Unicode;
+            seed = -1;
         }
     }
 }
