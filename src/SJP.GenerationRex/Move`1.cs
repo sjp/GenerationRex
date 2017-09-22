@@ -2,7 +2,7 @@
 
 namespace SJP.GenerationRex
 {
-    public class Move<TCondition> : IEquatable<Move<TCondition>>
+    internal class Move<TCondition> : IEquatable<Move<TCondition>>
     {
         private Move(int sourceState, int targetState, TCondition condition)
         {

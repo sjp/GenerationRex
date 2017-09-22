@@ -2,8 +2,13 @@
 
 namespace SJP.GenerationRex
 {
+    /// <summary>
+    /// The exception that is thrown when an internal error has occurrred. Primarily will be thrown due to an invalid or unsupported regular expression.
+    /// </summary>
     public class RexException : Exception
     {
+        /// <summary>Initializes a new instance of the <see cref="RexException"></see> class with a specified error message.</summary>
+        /// <param name="message">The message that describes the error.</param>
         public RexException(string message)
           : base(message)
         {
