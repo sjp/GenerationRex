@@ -7,7 +7,7 @@
 
 > Efficiently generate data from a regular expression.
 
-[![License (MIT)](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License (MIT)](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![Build status](https://ci.appveyor.com/api/projects/status/qgi6h8l0fnhymdlj?svg=true)](https://ci.appveyor.com/project/sjp/generationrex)
 
 ## Icon
 
