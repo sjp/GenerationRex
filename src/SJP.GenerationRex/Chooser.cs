@@ -10,21 +10,17 @@ namespace SJP.GenerationRex
             _rand = new Random(_seed);
         }
 
-        public int RandomSeed
+        public Chooser(int randomSeed)
         {
-            get => _seed;
-            set
-            {
-                _seed = value;
-                _rand = new Random(value);
-            }
+            _seed = randomSeed;
+            _rand = new Random(_seed);
         }
 
         public int Choose(int n) => _rand.Next(0, n);
 
         public bool ChooseBoolean() => _rand.Next(0, 2) == 1;
 
-        private Random _rand;
-        private int _seed;
+        private readonly Random _rand;
+        private readonly int _seed;
     }
 }

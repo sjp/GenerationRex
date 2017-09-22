@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using EnumsNET;
@@ -115,7 +114,7 @@ namespace SJP.GenerationRex
             {
                 char c = str[i];
                 var charRanges = new List<char[]> { new[] { c, c } };
-                var index2 = _solver.MkRangesConstraint(caseInsensitive, charRanges);
+                var index2 = _solver.CreateRangedConstraint(caseInsensitive, charRanges);
                 moveList.Add(Move<TConstraint>.To(sourceStateId + i, sourceStateId + i + 1, index2));
             }
             int finalState = sourceStateId + length;
@@ -135,7 +134,7 @@ namespace SJP.GenerationRex
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeNotone(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            var index = _solver.MkNot(_solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch));
+            var index = _solver.Not(_solver.CreateCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch));
             var sfa = SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId + 1 }, new[] { Move<TConstraint>.To(minStateId, minStateId + 1, index) });
             sfa._isEpsilonFree = true;
             if (isStart)
@@ -150,7 +149,7 @@ namespace SJP.GenerationRex
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeOne(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            var index = _solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch);
+            var index = _solver.CreateCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch);
             var sfa = SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId + 1 }, new[] { Move<TConstraint>.To(minStateId, minStateId + 1, index) });
             sfa._isEpsilonFree = true;
             if (isStart)
@@ -189,8 +188,8 @@ namespace SJP.GenerationRex
             var stateList = new List<TConstraint>();
             foreach (var range in ComputeRanges(set))
             {
-                var constraint = _solver.MkRangeConstraint(ignoreCase, range.First, range.Second);
-                stateList.Add(isNegated ? _solver.MkNot(constraint) : constraint);
+                var constraint = _solver.CreateRangeConstraint(ignoreCase, range.First, range.Second);
+                stateList.Add(isNegated ? _solver.Not(constraint) : constraint);
             }
             int num1 = set[1];
             int num2 = set[2];
@@ -205,7 +204,7 @@ namespace SJP.GenerationRex
                     var condition = catNum == 99
                         ? _categorizer.WhiteSpaceCondition
                         : MapCategoryCodeToCondition((UnicodeCategory)catNum);
-                    stateList.Add(codePoint < 0 ^ isNegated ? _solver.MkNot(condition) : condition);
+                    stateList.Add(codePoint < 0 ^ isNegated ? _solver.Not(condition) : condition);
                 }
                 else
                 {
@@ -220,7 +219,7 @@ namespace SJP.GenerationRex
                             catCodes.Add((UnicodeCategory)cat);
                         }
                         var condition = MapCategoryCodeSetToCondition(catCodes);
-                        var s = isNegated ^ isInvalidCodePoint ? _solver.MkNot(condition) : condition;
+                        var s = isNegated ^ isInvalidCodePoint ? _solver.Not(condition) : condition;
                         stateList.Add(s);
                     }
                 }
@@ -232,10 +231,10 @@ namespace SJP.GenerationRex
                 constraint1 = CreateConditionFromSet(ignoreCase, set1);
             }
             var result = stateList.Count != 0
-                ? (isNegated ? _solver.MkAnd(stateList) : _solver.MkOr(stateList))
+                ? (isNegated ? _solver.And(stateList) : _solver.Or(stateList))
                 : (isNegated ? _solver.False : _solver.True);
             if (constraint1 != null)
-                result = _solver.MkAnd(result, _solver.MkNot(constraint1));
+                result = _solver.And(result, _solver.Not(constraint1));
             return result;
         }
 
@@ -283,7 +282,7 @@ namespace SJP.GenerationRex
             foreach (var catCode in catCodes)
             {
                 var condition = MapCategoryCodeToCondition(catCode);
-                result = ReferenceEquals(result, null) ? condition : _solver.MkOr(result, condition);
+                result = ReferenceEquals(result, null) ? condition : _solver.Or(result, condition);
             }
             return result;
         }
@@ -332,7 +331,7 @@ namespace SJP.GenerationRex
                 Move<TConstraint>.Epsilon(minStateId, minStateId + 2),
                 Move<TConstraint>.Epsilon(minStateId, minStateId + 1),
                 Move<TConstraint>.To(minStateId + 1, minStateId + 1, _solver.True),
-                Move<TConstraint>.To(minStateId + 1, minStateId + 2, _solver.MkCharConstraint(false, '\n'))
+                Move<TConstraint>.To(minStateId + 1, minStateId + 2, _solver.CreateCharConstraint(false, '\n'))
             });
             if (isEnd)
                 sfa.AddMove(Move<TConstraint>.To(sfa.FinalState, sfa.FinalState, _solver.True));
@@ -348,7 +347,7 @@ namespace SJP.GenerationRex
                 Move<TConstraint>.Epsilon(minStateId, minStateId + 2),
                 Move<TConstraint>.Epsilon(minStateId + 1, minStateId + 2),
                 Move<TConstraint>.To(minStateId + 1, minStateId + 1, _solver.True),
-                Move<TConstraint>.To(minStateId, minStateId + 1, _solver.MkCharConstraint(false, '\n'))
+                Move<TConstraint>.To(minStateId, minStateId + 1, _solver.CreateCharConstraint(false, '\n'))
             });
             if (isStart)
                 sfa.AddMove(Move<TConstraint>.To(sfa.InitialState, sfa.InitialState, _solver.True));
@@ -441,11 +440,11 @@ namespace SJP.GenerationRex
                     {
                         TConstraint constraint1 = _solver.False;
                         foreach (Move<TConstraint> move in sfas[index1].GetMovesFrom(sfas[index1].InitialState))
-                            constraint1 = _solver.MkOr(constraint1, move.Condition);
+                            constraint1 = _solver.Or(constraint1, move.Condition);
                         TConstraint s = _solver.False;
                         foreach (Move<TConstraint> move in sfas[index2].GetMovesFrom(sfas[index2].InitialState))
-                            s = _solver.MkOr(s, move.Condition);
-                        flag2 = _solver.MkAnd(constraint1, s).Equals(_solver.False);
+                            s = _solver.Or(s, move.Condition);
+                        flag2 = _solver.And(constraint1, s).Equals(_solver.False);
                         if (!flag2)
                             break;
                     }
@@ -472,7 +471,7 @@ namespace SJP.GenerationRex
                     }
                     else
                     {
-                        condMap[key] = !condMap.TryGetValue(key, out var constraint1) ? move.Condition : _solver.MkOr(constraint1, move.Condition);
+                        condMap[key] = !condMap.TryGetValue(key, out var constraint1) ? move.Condition : _solver.Or(constraint1, move.Condition);
                     }
                 }
                 if (!flag3)
@@ -647,19 +646,19 @@ namespace SJP.GenerationRex
                 if (finalState != sfa.InitialState && finalState != initialState)
                     sfa.AddMove(Move<TConstraint>.Epsilon(finalState, initialState));
             }
-            return sfa.RemoveEpsilonLoops(new Func<TConstraint, TConstraint, TConstraint>(_solver.MkOr));
+            return sfa.RemoveEpsilonLoops(new Func<TConstraint, TConstraint, TConstraint>(_solver.Or));
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeNotoneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            var index = _solver.MkNot(_solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch));
+            var index = _solver.Not(_solver.CreateCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch));
             var loopFromCondition = CreateLoopFromCondition(minStateId, index, node._m, node._n);
             return ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeOneloop(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            var index = _solver.MkCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch);
+            var index = _solver.CreateCharConstraint(node._options.HasAnyFlags(RegexOptions.IgnoreCase), node._ch);
             var loopFromCondition = CreateLoopFromCondition(minStateId, index, node._m, node._n);
             return ExtendLoop(minStateId, isStart, isEnd, loopFromCondition);
         }

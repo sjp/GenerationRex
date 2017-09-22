@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Text;
 using EnumsNET;
 
@@ -32,7 +31,7 @@ namespace SJP.GenerationRex
             var result = new Dictionary<UnicodeCategory, BinaryDecisionDiagram>();
             var sourceRanges = _rangesLoader.Value.Item1;
             foreach (var kv in sourceRanges)
-                result[kv.Key] = bddBuilder.MkBddForIntRanges(kv.Value.ranges);
+                result[kv.Key] = bddBuilder.CreateFromRanges(kv.Value.ranges);
 
             return result;
         }
@@ -41,24 +40,24 @@ namespace SJP.GenerationRex
         {
             var bddBuilder = new BddBuilder(_bits);
             var ranges = _rangesLoader.Value.Item2.ranges;
-            return bddBuilder.MkBddForIntRanges(ranges);
+            return bddBuilder.CreateFromRanges(ranges);
         }
 
         private BinaryDecisionDiagram GenerateWordCharacter()
         {
             var categories = Category;
             var bddBuilder = new BddBuilder(_bits);
-            var wordCharacterBdd = bddBuilder.MkOr(
+            var wordCharacterBdd = bddBuilder.Or(
                 categories[UnicodeCategory.UppercaseLetter],
-                bddBuilder.MkOr(
+                bddBuilder.Or(
                     categories[UnicodeCategory.LowercaseLetter],
-                    bddBuilder.MkOr(
+                    bddBuilder.Or(
                         categories[UnicodeCategory.TitlecaseLetter],
-                        bddBuilder.MkOr(
+                        bddBuilder.Or(
                             categories[UnicodeCategory.ModifierLetter],
-                            bddBuilder.MkOr(
+                            bddBuilder.Or(
                                 categories[UnicodeCategory.OtherLetter],
-                                bddBuilder.MkOr(
+                                bddBuilder.Or(
                                     categories[UnicodeCategory.DecimalDigitNumber],
                                     categories[UnicodeCategory.ConnectorPunctuation]))))));
 
@@ -73,7 +72,7 @@ namespace SJP.GenerationRex
 
             const char questionMark = '?';
             const int questionMarkIndex = questionMark;
-            var whitepaceRanges = new Ranges();
+            var whitespaceRanges = new Ranges();
             var unicode = Encoding.Unicode;
             var bitMaxValue = (1 << _bits) - 1;
 
@@ -83,7 +82,7 @@ namespace SJP.GenerationRex
                 {
                     var c = (char)n;
                     if (char.IsWhiteSpace(c))
-                        whitepaceRanges.Add(n);
+                        whitespaceRanges.Add(n);
                     var category = char.GetUnicodeCategory(c);
                     categoryRange[category].Add(n);
                 }
@@ -106,7 +105,7 @@ namespace SJP.GenerationRex
                     {
                         var c = str[0];
                         if (char.IsWhiteSpace(c))
-                            whitepaceRanges.Add(n);
+                            whitespaceRanges.Add(n);
                         category = c == questionMark && n != questionMarkIndex
                             ? UnicodeCategory.OtherNotAssigned
                             : char.GetUnicodeCategory(c);
@@ -116,7 +115,7 @@ namespace SJP.GenerationRex
                 }
             }
 
-            return new Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges>(categoryRange, whitepaceRanges);
+            return new Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges>(categoryRange, whitespaceRanges);
         }
 
         private readonly Lazy<IReadOnlyDictionary<UnicodeCategory, BinaryDecisionDiagram>> _categoryLoader;

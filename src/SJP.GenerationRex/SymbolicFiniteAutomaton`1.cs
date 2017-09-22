@@ -283,46 +283,43 @@ namespace SJP.GenerationRex
             return Create(newInitialState, intSet, moveList);
         }
 
-        public static SymbolicFiniteAutomaton<TConstraint> MkProduct(SymbolicFiniteAutomaton<TConstraint> a, SymbolicFiniteAutomaton<TConstraint> b, Func<TConstraint, TConstraint, TConstraint> conj, Func<TConstraint, TConstraint, TConstraint> disj, Func<TConstraint, bool> isSat)
+        public static SymbolicFiniteAutomaton<TConstraint> MkProduct(SymbolicFiniteAutomaton<TConstraint> sfa1, SymbolicFiniteAutomaton<TConstraint> sfa2, Func<TConstraint, TConstraint, TConstraint> conjunction, Func<TConstraint, TConstraint, TConstraint> disjunction, Func<TConstraint, bool> isSat)
         {
-            a = a.RemoveEpsilons(disj);
-            b = b.RemoveEpsilons(disj);
+            sfa1 = sfa1.RemoveEpsilons(disjunction);
+            sfa2 = sfa2.RemoveEpsilons(disjunction);
             var dictionary1 = new Dictionary<Pair<int, int>, int>();
-            var index1 = new Pair<int, int>(a.InitialState, b.InitialState);
+            var index1 = new Pair<int, int>(sfa1.InitialState, sfa2.InitialState);
             var pairStack = new Stack<Pair<int, int>>();
             pairStack.Push(index1);
             dictionary1[index1] = 0;
-            var delta = new Dictionary<int, List<Move<TConstraint>>>
-            {
-                [0] = new List<Move<TConstraint>>()
-            };
+            var delta = new Dictionary<int, List<Move<TConstraint>>> { [0] = new List<Move<TConstraint>>() };
             var intList1 = new List<int> { 0 };
             var intList2 = new List<int>();
-            if (a.IsFinalState(a.InitialState) && b.IsFinalState(b.InitialState))
+            if (sfa1.IsFinalState(sfa1.InitialState) && sfa2.IsFinalState(sfa2.InitialState))
                 intList2.Add(0);
-            int num = 1;
+            int state = 1;
             while (pairStack.Count > 0)
             {
                 var index2 = pairStack.Pop();
                 var sourceState = dictionary1[index2];
                 var moveList = delta[sourceState];
-                foreach (var move1 in a.GetMovesFrom(index2.First))
+                foreach (var move1 in sfa1.GetMovesFrom(index2.First))
                 {
-                    foreach (var move2 in b.GetMovesFrom(index2.Second))
+                    foreach (var move2 in sfa2.GetMovesFrom(index2.Second))
                     {
-                        var condition = conj(move1.Condition, move2.Condition);
+                        var condition = conjunction(move1.Condition, move2.Condition);
                         if (isSat(condition))
                         {
                             var key = new Pair<int, int>(move1.TargetState, move2.TargetState);
                             if (!dictionary1.TryGetValue(key, out var targetState))
                             {
-                                targetState = num;
-                                ++num;
+                                targetState = state;
+                                ++state;
                                 dictionary1[key] = targetState;
                                 intList1.Add(targetState);
                                 delta[targetState] = new List<Move<TConstraint>>();
                                 pairStack.Push(key);
-                                if (a.IsFinalState(move1.TargetState) && b.IsFinalState(move2.TargetState))
+                                if (sfa1.IsFinalState(move1.TargetState) && sfa2.IsFinalState(move2.TargetState))
                                     intList2.Add(targetState);
                             }
                             moveList.Add(Move<TConstraint>.To(sourceState, targetState, condition));
@@ -376,14 +373,11 @@ namespace SJP.GenerationRex
                 return Empty;
             var sfa = Create(0, intList2, EnumerateMoves(delta));
             sfa._isEpsilonFree = true;
-            sfa._isDeterministic = a.IsDeterministic || b.IsDeterministic;
+            sfa._isDeterministic = sfa1.IsDeterministic || sfa2.IsDeterministic;
             return sfa;
         }
 
-        private static IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<int, List<Move<TConstraint>>> delta)
-        {
-            return delta.SelectMany(kv => kv.Value);
-        }
+        private static IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<int, List<Move<TConstraint>>> delta) => delta.SelectMany(kv => kv.Value);
 
         public SymbolicFiniteAutomaton<TConstraint> RemoveEpsilonLoops(Func<TConstraint, TConstraint, TConstraint> disj)
         {
