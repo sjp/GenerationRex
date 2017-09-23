@@ -13,19 +13,19 @@ namespace SJP.GenerationRex
             _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
             _bits = bits;
 
-            _categoryLoader = new Lazy<IReadOnlyDictionary<UnicodeCategory, BinaryDecisionDiagram>>(GenerateCategory);
+            _categoryLoader = new Lazy<IDictionary<UnicodeCategory, BinaryDecisionDiagram>>(GenerateCategory);
             _whitespaceLoader = new Lazy<BinaryDecisionDiagram>(GenerateWhiteSpace);
             _wordCharacterLoader = new Lazy<BinaryDecisionDiagram>(GenerateWordCharacter);
-            _rangesLoader = new Lazy<Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges>>(GenerateRanges);
+            _rangesLoader = new Lazy<Tuple<IDictionary<UnicodeCategory, Ranges>, Ranges>>(GenerateRanges);
         }
 
-        public IReadOnlyDictionary<UnicodeCategory, BinaryDecisionDiagram> Category => _categoryLoader.Value;
+        public IDictionary<UnicodeCategory, BinaryDecisionDiagram> Category => _categoryLoader.Value;
 
         public BinaryDecisionDiagram WhiteSpace => _whitespaceLoader.Value;
 
         public BinaryDecisionDiagram WordCharacter => _wordCharacterLoader.Value;
 
-        private IReadOnlyDictionary<UnicodeCategory, BinaryDecisionDiagram> GenerateCategory()
+        private IDictionary<UnicodeCategory, BinaryDecisionDiagram> GenerateCategory()
         {
             var bddBuilder = new BddBuilder(_bits);
             var result = new Dictionary<UnicodeCategory, BinaryDecisionDiagram>();
@@ -64,7 +64,7 @@ namespace SJP.GenerationRex
             return wordCharacterBdd;
         }
 
-        private Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges> GenerateRanges()
+        private Tuple<IDictionary<UnicodeCategory, Ranges>, Ranges> GenerateRanges()
         {
             var categoryRange = new Dictionary<UnicodeCategory, Ranges>();
             foreach (var category in Enums.GetValues<UnicodeCategory>())
@@ -115,13 +115,13 @@ namespace SJP.GenerationRex
                 }
             }
 
-            return new Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges>(categoryRange, whitespaceRanges);
+            return new Tuple<IDictionary<UnicodeCategory, Ranges>, Ranges>(categoryRange, whitespaceRanges);
         }
 
-        private readonly Lazy<IReadOnlyDictionary<UnicodeCategory, BinaryDecisionDiagram>> _categoryLoader;
+        private readonly Lazy<IDictionary<UnicodeCategory, BinaryDecisionDiagram>> _categoryLoader;
         private readonly Lazy<BinaryDecisionDiagram> _whitespaceLoader;
         private readonly Lazy<BinaryDecisionDiagram> _wordCharacterLoader;
-        private readonly Lazy<Tuple<IReadOnlyDictionary<UnicodeCategory, Ranges>, Ranges>> _rangesLoader;
+        private readonly Lazy<Tuple<IDictionary<UnicodeCategory, Ranges>, Ranges>> _rangesLoader;
         private readonly Encoding _encoding;
         private readonly int _bits;
 

@@ -26,7 +26,7 @@ namespace SJP.GenerationRex
 
         public BinaryDecisionDiagram WordLetterCondition { get; }
 
-        private readonly IReadOnlyDictionary<UnicodeCategory, BinaryDecisionDiagram> _catConditions;
+        private readonly IDictionary<UnicodeCategory, BinaryDecisionDiagram> _catConditions;
 
         private static readonly ConcurrentDictionary<int, UnicodeCategoryRangeGenerator> _cache = new ConcurrentDictionary<int, UnicodeCategoryRangeGenerator>();
     }
