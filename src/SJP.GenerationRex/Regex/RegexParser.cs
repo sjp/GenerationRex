@@ -195,7 +195,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
                     case ')':
                         if (EmptyStack())
-                            throw MakeException(SR.TooManyParens);
+                            throw MakeException(Strings.TooManyParens);
 
                         AddGroup();
                         PopGroup();
@@ -231,15 +231,15 @@ namespace SJP.GenerationRex.RegularExpressions
                         if (Unit() == null)
                         {
                             throw MakeException(wasPrevQuantifier ?
-                                               SR.Format(SR.NestedQuantify, ch.ToString()) :
-                                               SR.QuantifyAfterNothing);
+                                               string.Format(Strings.NestedQuantify, ch.ToString()) :
+                                               Strings.QuantifyAfterNothing);
                         }
 
                         MoveLeft();
                         break;
 
                     default:
-                        throw MakeException(SR.InternalError);
+                        throw MakeException(Strings.InternalError);
                 }
 
                 ScanBlank();
@@ -303,7 +303,7 @@ namespace SJP.GenerationRex.RegularExpressions
                             break;
 
                         default:
-                            throw MakeException(SR.InternalError);
+                            throw MakeException(Strings.InternalError);
                     }
 
                     ScanBlank();
@@ -319,7 +319,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     }
 
                     if (min > max)
-                        throw MakeException(SR.IllegalRange);
+                        throw MakeException(Strings.IllegalRange);
 
                     AddConcatenate(lazy, min, max);
                 }
@@ -332,7 +332,7 @@ namespace SJP.GenerationRex.RegularExpressions
             ;
 
             if (!EmptyStack())
-                throw MakeException(SR.NotEnoughParens);
+                throw MakeException(Strings.NotEnoughParens);
 
             AddGroup();
 
@@ -390,7 +390,7 @@ namespace SJP.GenerationRex.RegularExpressions
                             if (!scanOnly)
                             {
                                 if (inRange)
-                                    throw MakeException(SR.Format(SR.BadClassInCharRange, ch.ToString()));
+                                    throw MakeException(string.Format(Strings.BadClassInCharRange, ch.ToString()));
                                 cc.AddDigit(UseOptionE(), ch == 'D', _pattern);
                             }
                             continue;
@@ -400,7 +400,7 @@ namespace SJP.GenerationRex.RegularExpressions
                             if (!scanOnly)
                             {
                                 if (inRange)
-                                    throw MakeException(SR.Format(SR.BadClassInCharRange, ch.ToString()));
+                                    throw MakeException(string.Format(Strings.BadClassInCharRange, ch.ToString()));
                                 cc.AddSpace(UseOptionE(), ch == 'S');
                             }
                             continue;
@@ -410,7 +410,7 @@ namespace SJP.GenerationRex.RegularExpressions
                             if (!scanOnly)
                             {
                                 if (inRange)
-                                    throw MakeException(SR.Format(SR.BadClassInCharRange, ch.ToString()));
+                                    throw MakeException(string.Format(Strings.BadClassInCharRange, ch.ToString()));
 
                                 cc.AddWord(UseOptionE(), ch == 'W');
                             }
@@ -421,7 +421,7 @@ namespace SJP.GenerationRex.RegularExpressions
                             if (!scanOnly)
                             {
                                 if (inRange)
-                                    throw MakeException(SR.Format(SR.BadClassInCharRange, ch.ToString()));
+                                    throw MakeException(string.Format(Strings.BadClassInCharRange, ch.ToString()));
                                 cc.AddCategoryFromName(ParseProperty(), ch != 'p', caseInsensitive, _pattern);
                             }
                             else
@@ -474,13 +474,13 @@ namespace SJP.GenerationRex.RegularExpressions
                             cc.AddSubtraction(ScanCharClass(caseInsensitive, false));
 
                             if (CharsRight() > 0 && RightChar() != ']')
-                                throw MakeException(SR.SubtractionMustBeLast);
+                                throw MakeException(Strings.SubtractionMustBeLast);
                         }
                         else
                         {
                             // a regular range, like a-z
                             if (chPrev > ch)
-                                throw MakeException(SR.ReversedCharRange);
+                                throw MakeException(Strings.ReversedCharRange);
                             cc.AddRange(chPrev, ch);
                         }
                     }
@@ -502,7 +502,7 @@ namespace SJP.GenerationRex.RegularExpressions
                         cc.AddSubtraction(ScanCharClass(caseInsensitive, false));
 
                         if (CharsRight() > 0 && RightChar() != ']')
-                            throw MakeException(SR.SubtractionMustBeLast);
+                            throw MakeException(Strings.SubtractionMustBeLast);
                     }
                     else
                     {
@@ -518,7 +518,7 @@ namespace SJP.GenerationRex.RegularExpressions
             }
 
             if (!closed)
-                throw MakeException(SR.UnterminatedBracket);
+                throw MakeException(Strings.UnterminatedBracket);
 
             if (!scanOnly && caseInsensitive)
                 cc.AddLowercase(_culture);
@@ -618,11 +618,11 @@ namespace SJP.GenerationRex.RegularExpressions
 
                                 if (ch >= '0' && ch <= '9')
                                 {
-                                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                                    throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                                 }
                                 else if (RegexCharClass.IsWordChar(ch))
                                 {
-                                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                                    throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                                 }
                                 else if (ch == '-')
                                 {
@@ -631,7 +631,7 @@ namespace SJP.GenerationRex.RegularExpressions
                                 else
                                 {
                                     // bad group name - starts with something other than a word character and isn't a number
-                                    throw MakeException(SR.InvalidGroupName);
+                                    throw MakeException(Strings.InvalidGroupName);
                                 }
 
                                 // grab part after - if any
@@ -643,16 +643,16 @@ namespace SJP.GenerationRex.RegularExpressions
 
                                     if (ch >= '0' && ch <= '9')
                                     {
-                                        throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                                        throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                                     }
                                     else if (RegexCharClass.IsWordChar(ch))
                                     {
-                                        throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                                        throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                                     }
                                     else
                                     {
                                         // bad group name - starts with something other than a word character and isn't a number
-                                        throw MakeException(SR.InvalidGroupName);
+                                        throw MakeException(Strings.InvalidGroupName);
                                     }
                                 }
 
@@ -677,11 +677,11 @@ namespace SJP.GenerationRex.RegularExpressions
                             // check if the alternation condition is a backref
                             if (ch >= '0' && ch <= '9')
                             {
-                                throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                                throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                             }
                             else if (RegexCharClass.IsWordChar(ch))
                             {
-                                throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                                throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                             }
                         }
                         // not a backref
@@ -695,16 +695,16 @@ namespace SJP.GenerationRex.RegularExpressions
                             char rightchar2 = RightChar(2);
                             // disallow comments in the condition
                             if (rightchar2 == '#')
-                                throw MakeException(SR.AlternationCantHaveComment);
+                                throw MakeException(Strings.AlternationCantHaveComment);
 
                             // disallow named capture group (?<..>..) in the condition
                             if (rightchar2 == '\'')
                             {
-                                throw MakeException(SR.AlternationCantCapture);
+                                throw MakeException(Strings.AlternationCantCapture);
                             }
                             else if (charsRight >= 4 && (rightchar2 == '<' && RightChar(3) != '!' && RightChar(3) != '='))
                             {
-                                throw MakeException(SR.AlternationCantCapture);
+                                throw MakeException(Strings.AlternationCantCapture);
                             }
                         }
 
@@ -735,7 +735,7 @@ namespace SJP.GenerationRex.RegularExpressions
             ;
             // break Recognize comes here
 
-            throw MakeException(SR.UnrecognizedGrouping);
+            throw MakeException(Strings.UnrecognizedGrouping);
         }
 
         /*
@@ -764,7 +764,7 @@ namespace SJP.GenerationRex.RegularExpressions
                         while (CharsRight() > 0 && RightChar() != ')')
                             MoveRight();
                         if (CharsRight() == 0)
-                            throw MakeException(SR.UnterminatedComment);
+                            throw MakeException(Strings.UnterminatedComment);
                         MoveRight();
                     }
                     else
@@ -786,7 +786,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     while (CharsRight() > 0 && RightChar() != ')')
                         MoveRight();
                     if (CharsRight() == 0)
-                        throw MakeException(SR.UnterminatedComment);
+                        throw MakeException(Strings.UnterminatedComment);
                     MoveRight();
                 }
             }
@@ -802,7 +802,7 @@ namespace SJP.GenerationRex.RegularExpressions
             RegexCharClass cc;
 
             if (CharsRight() == 0)
-                throw MakeException(SR.IllegalEndEscape);
+                throw MakeException(Strings.IllegalEndEscape);
 
             switch (ch = RightChar())
             {
@@ -872,7 +872,7 @@ namespace SJP.GenerationRex.RegularExpressions
         private RegexNode ScanBasicBackslash()
         {
             if (CharsRight() == 0)
-                throw MakeException(SR.IllegalEndEscape);
+                throw MakeException(Strings.IllegalEndEscape);
 
             char ch;
             bool angled = false;
@@ -897,7 +897,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 }
 
                 if (!angled || CharsRight() <= 0)
-                    throw MakeException(SR.MalformedNameRef);
+                    throw MakeException(Strings.MalformedNameRef);
 
                 ch = RightChar();
             }
@@ -921,7 +921,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
                 if (CharsRight() > 0 && MoveRightGetChar() == close)
                 {
-                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                    throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                 }
             }
 
@@ -931,16 +931,16 @@ namespace SJP.GenerationRex.RegularExpressions
             {
                 if (UseOptionE())
                 {
-                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                    throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                 }
                 else
                 {
-                    throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                    throw MakeException(Strings.BackRefCaptureGroupNotSupported);
                 }
             }
             else if (angled && RegexCharClass.IsWordChar(ch))
             {
-                throw MakeException(SR.BackRefCaptureGroupNotSupported);
+                throw MakeException(Strings.BackRefCaptureGroupNotSupported);
             }
 
             // Not backreference: must be char code
@@ -1016,7 +1016,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 MoveRight();
 
                 if (i > (MaxValueDiv10) || (i == (MaxValueDiv10) && d > (MaxValueMod10)))
-                    throw MakeException(SR.CaptureGroupOutOfRange);
+                    throw MakeException(Strings.CaptureGroupOutOfRange);
 
                 i *= 10;
                 i += d;
@@ -1045,7 +1045,7 @@ namespace SJP.GenerationRex.RegularExpressions
             }
 
             if (c > 0)
-                throw MakeException(SR.TooFewHex);
+                throw MakeException(Strings.TooFewHex);
 
             return (char)i;
         }
@@ -1077,7 +1077,7 @@ namespace SJP.GenerationRex.RegularExpressions
             char ch;
 
             if (CharsRight() <= 0)
-                throw MakeException(SR.MissingControl);
+                throw MakeException(Strings.MissingControl);
 
             ch = MoveRightGetChar();
 
@@ -1089,7 +1089,7 @@ namespace SJP.GenerationRex.RegularExpressions
             if (unchecked(ch = (char)(ch - '@')) < ' ')
                 return ch;
 
-            throw MakeException(SR.UnrecognizedControl);
+            throw MakeException(Strings.UnrecognizedControl);
         }
 
         /*
@@ -1176,7 +1176,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     return ScanControl();
                 default:
                     if (!UseOptionE() && RegexCharClass.IsWordChar(ch))
-                        throw MakeException(SR.Format(SR.UnrecognizedEscape, ch.ToString()));
+                        throw MakeException(string.Format(Strings.UnrecognizedEscape, ch.ToString()));
                     return ch;
             }
         }
@@ -1188,12 +1188,12 @@ namespace SJP.GenerationRex.RegularExpressions
         {
             if (CharsRight() < 3)
             {
-                throw MakeException(SR.IncompleteSlashP);
+                throw MakeException(Strings.IncompleteSlashP);
             }
             char ch = MoveRightGetChar();
             if (ch != '{')
             {
-                throw MakeException(SR.MalformedSlashP);
+                throw MakeException(Strings.MalformedSlashP);
             }
 
             int startpos = Textpos();
@@ -1209,7 +1209,7 @@ namespace SJP.GenerationRex.RegularExpressions
             string capname = _pattern.Substring(startpos, Textpos() - startpos);
 
             if (CharsRight() == 0 || MoveRightGetChar() != '}')
-                throw MakeException(SR.IncompleteSlashP);
+                throw MakeException(Strings.IncompleteSlashP);
 
             return capname;
         }
@@ -1454,7 +1454,7 @@ namespace SJP.GenerationRex.RegularExpressions
             if (_group.Type() == RegexNode.Testgroup && _group.ChildCount() == 0)
             {
                 if (_unit == null)
-                    throw MakeException(SR.IllegalCondition);
+                    throw MakeException(Strings.IllegalCondition);
 
                 _group.AddChild(_unit);
                 _unit = null;
@@ -1582,7 +1582,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 _group.AddChild(_concatenation.ReverseLeft());
 
                 if ((_group.Type() == RegexNode.Testref && _group.ChildCount() > 2) || _group.ChildCount() > 3)
-                    throw MakeException(SR.TooManyAlternates);
+                    throw MakeException(Strings.TooManyAlternates);
             }
             else
             {
@@ -1623,7 +1623,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private ArgumentException MakeException(string message)
         {
-            return new ArgumentException(SR.Format(SR.MakeException, _pattern, message));
+            return new ArgumentException(string.Format(Strings.MakeException, _pattern, message));
         }
 
         /*

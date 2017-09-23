@@ -807,7 +807,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
         private static bool CharInCategory(char ch, string set, int start, int mySetLength, int myCategoryLength)
         {
-            var chcategory = char.GetUnicodeCategory(ch);
+            var chcategory = CharUnicodeInfo.GetUnicodeCategory(ch);
 
             int i = start + SETSTART + mySetLength;
             int end = i + myCategoryLength;
@@ -1115,7 +1115,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     }
                 }
             }
-            throw new ArgumentException(SR.Format(SR.MakeException, pattern, SR.Format(SR.UnknownProperty, capname)));
+            throw new ArgumentException(string.Format(Strings.MakeException, pattern, string.Format(Strings.UnknownProperty, capname)));
         }
 
         /// <summary>

@@ -83,7 +83,7 @@ namespace SJP.GenerationRex
                     var c = (char)n;
                     if (char.IsWhiteSpace(c))
                         whitespaceRanges.Add(n);
-                    var category = char.GetUnicodeCategory(c);
+                    var category = CharUnicodeInfo.GetUnicodeCategory(c);
                     categoryRange[category].Add(n);
                 }
             }
@@ -108,7 +108,7 @@ namespace SJP.GenerationRex
                             whitespaceRanges.Add(n);
                         category = c == questionMark && n != questionMarkIndex
                             ? UnicodeCategory.OtherNotAssigned
-                            : char.GetUnicodeCategory(c);
+                            : CharUnicodeInfo.GetUnicodeCategory(c);
                     }
 
                     categoryRange[category].Add(n);
