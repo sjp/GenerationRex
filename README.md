@@ -9,6 +9,15 @@
 
 [![License (MIT)](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![Build status](https://ci.appveyor.com/api/projects/status/qgi6h8l0fnhymdlj?svg=true)](https://ci.appveyor.com/project/sjp/generationrex)
 
+**GenerationRex** will generate members from a regular expression. This is particularly (but not only) useful for generating synthetic data for testing purposes. **GenerationRex** is an unofficial revival of the [Rex](https://www.microsoft.com/en-us/research/publication/rex-symbolic-regular-expression-explorer/) command line tool, originally published by Microsoft researchers. It has been repackaged into a class library, and made available for more runtimes (e.g. .NET Core and Standard).
+
+When generating data from **GenerationRex**, all output will match the input regular expression. In other words the following identity is true:
+
+```csharp
+engine.GenerateMembers(@"^\d{5}$", 10)
+	.All(member => Regex.IsMatch(member, @"^\d{5}$")); // true
+```
+
 ## Highlights
 
 * Supports .NET 4.0+, .NET Core 1.1+ and .NET Standard 1.3+.
