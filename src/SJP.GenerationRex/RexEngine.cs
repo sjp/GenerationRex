@@ -251,8 +251,5 @@ namespace SJP.GenerationRex
         private readonly Chooser _chooser;
         private readonly BddBuilder _solver;
         private readonly RegexToSFA<BinaryDecisionDiagram> _regexConverter;
-
-        private const int TryLimitMin = 100;
-        private const int TryLimitMax = 200;
     }
 }

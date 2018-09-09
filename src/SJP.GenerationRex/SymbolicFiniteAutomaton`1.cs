@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace SJP.GenerationRex
 {
-    internal class SymbolicFiniteAutomaton<TConstraint>
+    internal sealed class SymbolicFiniteAutomaton<TConstraint>
     {
-        public static SymbolicFiniteAutomaton<TConstraint> Empty = Create(0, new int[0], new Move<TConstraint>[0]);
-        public static SymbolicFiniteAutomaton<TConstraint> Epsilon = Create(0, new int[1], new Move<TConstraint>[0]);
+        public static SymbolicFiniteAutomaton<TConstraint> Empty = Create(0, Array.Empty<int>(), Array.Empty<Move<TConstraint>>());
+        public static SymbolicFiniteAutomaton<TConstraint> Epsilon = Create(0, new int[1], Array.Empty<Move<TConstraint>>());
         private Dictionary<int, IList<Move<TConstraint>>> _delta; // lookup for state to outbound states (i.e. those that are pointed to by the key)
         private Dictionary<int, IList<Move<TConstraint>>> _deltaInv; // lookup for state to inbound states (i.e. those that point to the key)
         private int _initialState;
@@ -411,7 +411,7 @@ namespace SJP.GenerationRex
             return Create(initialState, finalStates, EnumerateMoves(conditionMap, epsilonMoves));
         }
 
-        private IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<Pair<int, int>, TConstraint> conditionMap, HashSet<Move<TConstraint>> epsilonMoves)
+        private static IEnumerable<Move<TConstraint>> EnumerateMoves(Dictionary<Pair<int, int>, TConstraint> conditionMap, HashSet<Move<TConstraint>> epsilonMoves)
         {
             var conditionMoves = conditionMap.Select(condition => Move<TConstraint>.To(condition.Key.First, condition.Key.Second, condition.Value));
             return conditionMoves.Concat(epsilonMoves);

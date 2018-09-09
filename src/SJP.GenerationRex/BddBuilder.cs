@@ -289,7 +289,6 @@ namespace SJP.GenerationRex
 
         private int _id = 2;
         private readonly int[] _bitMaps;
-        private const int maxChar = ushort.MaxValue;
 
         // caches
         private readonly IDictionary<long, BinaryDecisionDiagram> _restrictCache = new Dictionary<long, BinaryDecisionDiagram>();

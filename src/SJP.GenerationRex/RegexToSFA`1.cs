@@ -10,10 +10,6 @@ namespace SJP.GenerationRex
 {
     internal class RegexToSFA<TConstraint>
     {
-        private const int SETLENGTH = 1;
-        private const int CATEGORYLENGTH = 2;
-        private const int SETSTART = 3;
-        private const char Lastchar = '\xFFFF';
         private readonly ICharacterConstraintSolver<TConstraint> _solver;
         private readonly IUnicodeCategoryConditions<TConstraint> _categorizer;
 
@@ -25,7 +21,7 @@ namespace SJP.GenerationRex
 
         public SymbolicFiniteAutomaton<TConstraint> Convert(string regex, RegexOptions options)
         {
-            RegexOptions op = options.RemoveFlags(RegexOptions.RightToLeft);
+            var op = options.RemoveFlags(RegexOptions.RightToLeft);
             return ConvertNode(RegexParser.Parse(regex, op).Root, 0, true, true);
         }
 
@@ -54,24 +50,24 @@ namespace SJP.GenerationRex
                 case RegexNode.Ref:
                     throw new RexException(RexException.NotSupported);
                 case RegexNode.Bol:
-                    return ConvertNodeBol(node, minStateId, isStart, isEnd);
+                    return ConvertNodeBol(minStateId, isStart, isEnd);
                 case RegexNode.Eol:
-                    return ConvertNodeEol(node, minStateId, isStart, isEnd);
+                    return ConvertNodeEol(minStateId, isStart, isEnd);
                 case RegexNode.Boundary:
                 case RegexNode.Nonboundary:
                     throw new RexException(RexException.NotSupported);
                 case RegexNode.Beginning:
-                    return ConvertNodeBeginning(node, minStateId, isStart, isEnd);
+                    return ConvertNodeBeginning(minStateId, isStart, isEnd);
                 case RegexNode.Start:
                     throw new RexException(RexException.NotSupported);
                 case RegexNode.EndZ:
-                    return ConvertNodeEndZ(node, minStateId, isStart, isEnd);
+                    return ConvertNodeEndZ(minStateId, isStart, isEnd);
                 case RegexNode.End:
-                    return ConvertNodeEnd(node, minStateId, isStart, isEnd);
+                    return ConvertNodeEnd(minStateId, isStart, isEnd);
                 case RegexNode.Nothing:
                     throw new RexException(RexException.NotSupported);
                 case RegexNode.Empty:
-                    return ConvertNodeEmpty(node, minStateId, isStart, isEnd);
+                    return ConvertNodeEmpty(minStateId, isStart, isEnd);
                 case RegexNode.Alternate:
                     return ConvertNodeAlternate(node, minStateId, isStart, isEnd);
                 case RegexNode.Concatenate:
@@ -96,7 +92,7 @@ namespace SJP.GenerationRex
             }
         }
 
-        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEmpty(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEmpty(int minStateId, bool isStart, bool isEnd)
         {
             return !isStart && !isEnd
                 ? SymbolicFiniteAutomaton<TConstraint>.Epsilon
@@ -233,7 +229,7 @@ namespace SJP.GenerationRex
             var result = stateList.Count != 0
                 ? (isNegated ? _solver.And(stateList) : _solver.Or(stateList))
                 : (isNegated ? _solver.False : _solver.True);
-            if (constraint1 != null)
+            if (!ReferenceEquals(constraint1, null))
                 result = _solver.And(result, _solver.Not(constraint1));
             return result;
         }
@@ -295,7 +291,7 @@ namespace SJP.GenerationRex
             return _categorizer.CategoryCondition(code);
         }
 
-        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEnd(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEnd(int minStateId, bool isStart, bool isEnd)
         {
             if (!isEnd)
                 throw new RexException(RexException.MisplacedEndAnchor);
@@ -304,7 +300,7 @@ namespace SJP.GenerationRex
             return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId }, new[] { Move<TConstraint>.To(minStateId, minStateId, _solver.True) });
         }
 
-        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEndZ(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEndZ(int minStateId, bool isStart, bool isEnd)
         {
             if (!isEnd)
                 throw new RexException(RexException.MisplacedEndAnchor);
@@ -313,7 +309,7 @@ namespace SJP.GenerationRex
             return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId }, new[] { Move<TConstraint>.To(minStateId, minStateId, _solver.True) });
         }
 
-        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeBeginning(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeBeginning(int minStateId, bool isStart, bool isEnd)
         {
             if (!isStart)
                 throw new RexException(RexException.MisplacedStartAnchor);
@@ -322,7 +318,7 @@ namespace SJP.GenerationRex
             return SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId }, new[] { Move<TConstraint>.To(minStateId, minStateId, _solver.True) });
         }
 
-        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeBol(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeBol(int minStateId, bool isStart, bool isEnd)
         {
             if (!isStart)
                 throw new RexException(RexException.MisplacedStartAnchor);
@@ -338,7 +334,7 @@ namespace SJP.GenerationRex
             return sfa;
         }
 
-        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEol(RegexNode node, int minStateId, bool isStart, bool isEnd)
+        private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEol(int minStateId, bool isStart, bool isEnd)
         {
             if (!isEnd)
                 throw new RexException(RexException.MisplacedEndAnchor);
@@ -508,7 +504,7 @@ namespace SJP.GenerationRex
             return ConcatenateSFAs(sfas);
         }
 
-        private SymbolicFiniteAutomaton<TConstraint> ConcatenateSFAs(List<SymbolicFiniteAutomaton<TConstraint>> sfas)
+        private static SymbolicFiniteAutomaton<TConstraint> ConcatenateSFAs(List<SymbolicFiniteAutomaton<TConstraint>> sfas)
         {
             if (sfas.Count == 0)
                 return SymbolicFiniteAutomaton<TConstraint>.Epsilon;
@@ -720,7 +716,7 @@ namespace SJP.GenerationRex
 
         private static bool HasEpsilons(SymbolicFiniteAutomaton<TConstraint> sfa) => !sfa._isEpsilonFree;
 
-        private IEnumerable<Move<TConstraint>> GenerateMoves(Dictionary<Pair<int, int>, TConstraint> condMap, IEnumerable<Pair<int, int>> epsilonMoves)
+        private static IEnumerable<Move<TConstraint>> GenerateMoves(Dictionary<Pair<int, int>, TConstraint> condMap, IEnumerable<Pair<int, int>> epsilonMoves)
         {
             var moves = condMap.Select(condition => Move<TConstraint>.To(condition.Key.First, condition.Key.Second, condition.Value));
             var eMoves = epsilonMoves.Select(eMove => Move<TConstraint>.Epsilon(eMove.First, eMove.Second));

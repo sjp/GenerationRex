@@ -1015,7 +1015,7 @@ namespace SJP.GenerationRex.RegularExpressions
             {
                 MoveRight();
 
-                if (i > (MaxValueDiv10) || (i == (MaxValueDiv10) && d > (MaxValueMod10)))
+                if (i > MaxValueDiv10 || (i == MaxValueDiv10 && d > MaxValueMod10))
                     throw MakeException(Strings.CaptureGroupOutOfRange);
 
                 i *= 10;
@@ -1095,7 +1095,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /*
          * Returns true for options allowed only at the top level
          */
-        private bool IsOnlyTopOption(RegexOptions option)
+        private static bool IsOnlyTopOption(RegexOptions option)
         {
             return option == RegexOptions.RightToLeft
                 || option == RegexOptions.CultureInvariant

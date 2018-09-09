@@ -2,7 +2,7 @@
 
 namespace SJP.GenerationRex
 {
-    internal class Move<TCondition> : IEquatable<Move<TCondition>>
+    internal sealed class Move<TCondition> : IEquatable<Move<TCondition>>
     {
         private Move(int sourceState, int targetState, TCondition condition)
         {
@@ -32,7 +32,7 @@ namespace SJP.GenerationRex
 
         public bool Equals(Move<TCondition> other)
         {
-            if (ReferenceEquals(other, null))
+            if (other is null)
                 return false;
 
             if (ReferenceEquals(this, other))
@@ -44,7 +44,7 @@ namespace SJP.GenerationRex
             if (ReferenceEquals(Condition, null) && ReferenceEquals(other.Condition, null))
                 return true;
 
-            return other.Condition != null && other.Condition.Equals(Condition);
+            return !ReferenceEquals(other.Condition, null) && other.Condition.Equals(Condition);
         }
 
         public override bool Equals(object obj)

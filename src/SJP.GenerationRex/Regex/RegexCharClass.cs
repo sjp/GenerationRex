@@ -44,8 +44,6 @@ namespace SJP.GenerationRex.RegularExpressions
         private const char NullChar = '\0';
         private const char LastChar = '\uFFFF';
 
-        private const char GroupChar = (char)0;
-
         private const short SpaceConst = 100;
         private const short NotSpaceConst = -100;
 
@@ -58,12 +56,12 @@ namespace SJP.GenerationRex.RegularExpressions
         private const string s_word = "\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
         private const string s_notWord = "\u0000\uFFFE\uFFFC\uFFFB\uFFFD\uFFFF\uFFFA\uFFF7\uFFED\u0000";
 
-        internal static readonly string SpaceClass = "\u0000\u0000\u0001\u0064";
-        internal static readonly string NotSpaceClass = "\u0001\u0000\u0001\u0064";
-        internal static readonly string WordClass = "\u0000\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
-        internal static readonly string NotWordClass = "\u0001\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
-        internal static readonly string DigitClass = "\u0000\u0000\u0001\u0009";
-        internal static readonly string NotDigitClass = "\u0000\u0000\u0001\uFFF7";
+        internal const string SpaceClass = "\u0000\u0000\u0001\u0064";
+        internal const string NotSpaceClass = "\u0001\u0000\u0001\u0064";
+        internal const string WordClass = "\u0000\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
+        internal const string NotWordClass = "\u0001\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
+        internal const string DigitClass = "\u0000\u0000\u0001\u0009";
+        internal const string NotDigitClass = "\u0000\u0000\u0001\uFFF7";
 
         private const string ECMASpaceSet = "\u0009\u000E\u0020\u0021";
         private const string NotECMASpaceSet = "\0\u0009\u000E\u0020\u0021";
@@ -84,6 +82,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
         // UnicodeCategory is zero based, so we add one to each value and subtract it off later
         private const int DefinedCategoriesCapacity = 38;
+
         private static readonly Dictionary<string, string> s_definedCategories = new Dictionary<string, string>(DefinedCategoriesCapacity)
         {
             // Others
@@ -689,10 +688,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
         internal static bool IsEmpty(string charClass)
         {
-            if (charClass[CATEGORYLENGTH] == 0 && charClass[FLAGS] == 0 && charClass[SETLENGTH] == 0 && !IsSubtraction(charClass))
-                return true;
-            else
-                return false;
+            return charClass[CATEGORYLENGTH] == 0 && charClass[FLAGS] == 0 && charClass[SETLENGTH] == 0 && !IsSubtraction(charClass);
         }
 
         /// <summary>

@@ -6,10 +6,10 @@ using System.Text;
 namespace SJP.GenerationRex.Tests
 {
     [TestFixture]
-    public class RoundTripTests
+    internal static class RoundTripTests
     {
         [Test]
-        public void GenerateMembers_WithDigitsForAsciiEncoding_ExecutesRoundTrip()
+        public static void GenerateMembers_WithDigitsForAsciiEncoding_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\d\d\d - \d\d\d\d$";
@@ -22,7 +22,7 @@ namespace SJP.GenerationRex.Tests
         }
 
         [Test]
-        public void GenerateMembers_WithDigitsForAsciiEncodingWithLargeSuite_ExecutesRoundTrip()
+        public static void GenerateMembers_WithDigitsForAsciiEncodingWithLargeSuite_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\d\d\d - \d\d\d\d$";
@@ -41,7 +41,7 @@ namespace SJP.GenerationRex.Tests
         }
 
         [Test]
-        public void GenerateMembers_WithDigitsForUnicodeEncoding_ExecutesRoundTrip()
+        public static void GenerateMembers_WithDigitsForUnicodeEncoding_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\d\d\d - \d\d\d\d$";
@@ -54,7 +54,7 @@ namespace SJP.GenerationRex.Tests
         }
 
         [Test]
-        public void GenerateMembers_WithDigitsForUnicodeEncodingWithLargeSuite_ExecutesRoundTrip()
+        public static void GenerateMembers_WithDigitsForUnicodeEncodingWithLargeSuite_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\d\d\d - \d\d\d\d$";
@@ -73,7 +73,7 @@ namespace SJP.GenerationRex.Tests
         }
 
         [Test]
-        public void GenerateMembers_WithWhiteSpaceAndDigitsForAsciiEncoding_ExecutesRoundTrip()
+        public static void GenerateMembers_WithWhiteSpaceAndDigitsForAsciiEncoding_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\s{3}\d{4} -\s+\d{3}$";
@@ -86,7 +86,7 @@ namespace SJP.GenerationRex.Tests
         }
 
         [Test]
-        public void GenerateMembers_WithWhiteSpaceAndDigitsForAsciiEncodingWithLargeSuite_ExecutesRoundTrip()
+        public static void GenerateMembers_WithWhiteSpaceAndDigitsForAsciiEncodingWithLargeSuite_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\s{3}\d{4} -\s+\d{3}$";
@@ -105,7 +105,7 @@ namespace SJP.GenerationRex.Tests
         }
 
         [Test]
-        public void GenerateMembers_WithWhiteSpaceAndDigitsForUnicodeEncoding_ExecutesRoundTrip()
+        public static void GenerateMembers_WithWhiteSpaceAndDigitsForUnicodeEncoding_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\s{3}\d{4} -\s+\d{3}$";
@@ -118,7 +118,7 @@ namespace SJP.GenerationRex.Tests
         }
 
         [Test]
-        public void GenerateMembers_WithWhiteSpaceAndDigitsForUnicodeEncodingWithLargeSuite_ExecutesRoundTrip()
+        public static void GenerateMembers_WithWhiteSpaceAndDigitsForUnicodeEncodingWithLargeSuite_ExecutesRoundTrip()
         {
             const int seed = 123;
             const string regex = @"^\s{3}\d{4} -\s+\d{3}$";

@@ -54,8 +54,7 @@ namespace SJP.GenerationRex
             {
                 var hash = 17;
                 hash = (hash * 23) + First.GetHashCode();
-                hash = (hash * 23) + Second.GetHashCode();
-                return hash;
+                return (hash * 23) + Second.GetHashCode();
             }
         }
     }
