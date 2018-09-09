@@ -20,7 +20,7 @@ engine.GenerateMembers(@"^\d{5}$", 10)
 
 ## Highlights
 
-* Supports .NET 4.0+, .NET Core 1.1+ and .NET Standard 1.3+.
+* Supports .NET Standard 2.0.
 * Handles generating regular expressions for multiple character sets.
 * Most common regular expressions supported.
 
