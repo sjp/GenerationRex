@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;netcoreapp1.1;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -9,7 +9,7 @@
     <Company />
     <Product />
     <Description>Efficiently generate data from a regular expression.</Description>
-    <Copyright>Copyright © Simon Potter 2017</Copyright>
+    <Copyright>Copyright © Simon Potter 2018</Copyright>
     <PackageLicenseUrl>https://raw.github.com/sjp/GenerationRex/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/sjp/GenerationRex</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sjp/GenerationRex</RepositoryUrl>
