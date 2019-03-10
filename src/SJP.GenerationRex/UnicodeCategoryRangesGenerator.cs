@@ -141,8 +141,6 @@ namespace SJP.GenerationRex
                 }
                 ranges.Add(new[] { n, n });
             }
-
-            internal int Count => ranges.Count;
         }
     }
 }

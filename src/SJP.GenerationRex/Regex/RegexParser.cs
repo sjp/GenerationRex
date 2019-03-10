@@ -732,9 +732,7 @@ namespace SJP.GenerationRex.RegularExpressions
             }
 
         BreakRecognize:
-            ;
             // break Recognize comes here
-
             throw MakeException(Strings.UnrecognizedGrouping);
         }
 

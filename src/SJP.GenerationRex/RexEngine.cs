@@ -172,17 +172,21 @@ namespace SJP.GenerationRex
             if (sfa.IsEmpty)
                 throw new ArgumentException("Cannot generate a member for an empty state machine.", nameof(sfa));
 
-            var generatedValues = new HashSet<string>();
-            while (true)
+            return GenerateMembersIterator();
+            IEnumerable<string> GenerateMembersIterator()
             {
-                var member = GenerateMember(sfa);
-                var tryCount = Math.Min(100 + generatedValues.Count, 200);
-                while (generatedValues.Contains(member) && tryCount-- > 0)
-                    member = GenerateMember(sfa);
-                if (tryCount < 0 && generatedValues.Contains(member))
-                    break;
-                generatedValues.Add(member);
-                yield return member;
+                var generatedValues = new HashSet<string>();
+                while (true)
+                {
+                    var member = GenerateMember(sfa);
+                    var tryCount = Math.Min(100 + generatedValues.Count, 200);
+                    while (generatedValues.Contains(member) && tryCount-- > 0)
+                        member = GenerateMember(sfa);
+                    if (tryCount < 0 && generatedValues.Contains(member))
+                        break;
+                    generatedValues.Add(member);
+                    yield return member;
+                }
             }
         }
 
@@ -193,17 +197,21 @@ namespace SJP.GenerationRex
             if (sfa.IsEmpty)
                 throw new ArgumentException("Cannot generate a member for an empty state machine.", nameof(sfa));
 
-            var generatedValues = new HashSet<string>();
-            for (var i = 0; i < count; ++i)
+            return GenerateMembersIterator();
+            IEnumerable<string> GenerateMembersIterator()
             {
-                var member = GenerateMember(sfa);
-                var tryCount = Math.Min(100 + generatedValues.Count, 200);
-                while (generatedValues.Contains(member) && tryCount-- > 0)
-                    member = GenerateMember(sfa);
-                if (tryCount < 0 && generatedValues.Contains(member))
-                    break;
-                generatedValues.Add(member);
-                yield return member;
+                var generatedValues = new HashSet<string>();
+                for (var i = 0; i < count; ++i)
+                {
+                    var member = GenerateMember(sfa);
+                    var tryCount = Math.Min(100 + generatedValues.Count, 200);
+                    while (generatedValues.Contains(member) && tryCount-- > 0)
+                        member = GenerateMember(sfa);
+                    if (tryCount < 0 && generatedValues.Contains(member))
+                        break;
+                    generatedValues.Add(member);
+                    yield return member;
+                }
             }
         }
 

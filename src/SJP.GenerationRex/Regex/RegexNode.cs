@@ -306,12 +306,15 @@ namespace SJP.GenerationRex.RegularExpressions
         }
 
         /// <summary>
+        /// <para>
         /// Basic optimization. Single-letter alternations can be replaced
         /// by faster set specifications, and nested alternations with no
         /// intervening operators can be flattened:
-        ///
+        /// </para>
+        /// <para>
         /// a|b|c|def|g|h -> [a-c]|def|[gh]
         /// apple|(?:orange|pear)|grape -> apple|orange|pear|grape
+        /// </para>
         /// </summary>
         internal RegexNode ReduceAlternation()
         {
@@ -340,7 +343,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 if (j < i)
                     _children[j] = at;
 
-                for (; ;)
+                do
                 {
                     if (at._type == Alternate)
                     {
@@ -411,8 +414,7 @@ namespace SJP.GenerationRex.RegularExpressions
                         wasLastSet = false;
                         lastNodeCannotMerge = false;
                     }
-                    break;
-                }
+                } while (false);
             }
 
             if (j < i)
@@ -422,9 +424,8 @@ namespace SJP.GenerationRex.RegularExpressions
         }
 
         /// <summary>
-        /// Basic optimization. Adjacent strings can be concatenated.
-        ///
-        /// (?:abc)(?:def) -> abcdef
+        /// <para>Basic optimization. Adjacent strings can be concatenated.</para>
+        /// <para>(?:abc)(?:def) -> abcdef</para>
         /// </summary>
         internal RegexNode ReduceConcatenation()
         {

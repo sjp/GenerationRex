@@ -6,13 +6,11 @@ namespace SJP.GenerationRex
 {
     internal sealed class SymbolicFiniteAutomaton<TConstraint>
     {
-        public static SymbolicFiniteAutomaton<TConstraint> Empty = Create(0, Array.Empty<int>(), Array.Empty<Move<TConstraint>>());
-        public static SymbolicFiniteAutomaton<TConstraint> Epsilon = Create(0, new int[1], Array.Empty<Move<TConstraint>>());
+        public static readonly SymbolicFiniteAutomaton<TConstraint> Empty = Create(0, Array.Empty<int>(), Array.Empty<Move<TConstraint>>());
+        public static readonly SymbolicFiniteAutomaton<TConstraint> Epsilon = Create(0, new int[1], Array.Empty<Move<TConstraint>>());
         private Dictionary<int, IList<Move<TConstraint>>> _delta; // lookup for state to outbound states (i.e. those that are pointed to by the key)
         private Dictionary<int, IList<Move<TConstraint>>> _deltaInv; // lookup for state to inbound states (i.e. those that point to the key)
-        private int _initialState;
         private ISet<int> _finalStateSet;
-        private int _maxState;
         internal bool _isEpsilonFree;
         internal bool _isDeterministic;
 
@@ -31,7 +29,7 @@ namespace SJP.GenerationRex
 
         public int OutDegree(int state) => _delta[state].Count;
 
-        public bool InitialStateIsSource => _deltaInv[_initialState].Count == 0;
+        public bool InitialStateIsSource => _deltaInv[InitialState].Count == 0;
 
         public bool IsEpsilonFree => _isEpsilonFree;
 
@@ -110,10 +108,10 @@ namespace SJP.GenerationRex
                 throw new RexException(RexException.InvalidFinalStates);
             return new SymbolicFiniteAutomaton<TConstraint>
             {
-                _initialState = initialState,
+                InitialState = initialState,
                 _finalStateSet = intSet,
                 _isEpsilonFree = isEpsilonFree,
-                _maxState = maxState,
+                MaxState = maxState,
                 _delta = delta,
                 _deltaInv = deltaInv,
                 _isDeterministic = isDeterministic
@@ -124,9 +122,9 @@ namespace SJP.GenerationRex
         {
         }
 
-        public int InitialState => _initialState;
+        public int InitialState { get; private set; }
 
-        public int MaxState => _maxState;
+        public int MaxState { get; private set; }
 
         public IEnumerable<int> States => _delta.Keys;
 
@@ -165,8 +163,8 @@ namespace SJP.GenerationRex
                     _delta.Remove(finalState);
                     _deltaInv.Remove(finalState);
                 }
-                if (_finalStateSet.Contains(_initialState))
-                    _initialState = fa._initialState;
+                if (_finalStateSet.Contains(InitialState))
+                    InitialState = fa.InitialState;
                 _isEpsilonFree = _isEpsilonFree && fa._isEpsilonFree;
                 _isDeterministic = _isDeterministic && fa._isDeterministic;
             }
@@ -174,20 +172,20 @@ namespace SJP.GenerationRex
             {
                 foreach (int finalState in _finalStateSet)
                 {
-                    Move<TConstraint> move = Move<TConstraint>.Epsilon(finalState, fa._initialState);
+                    Move<TConstraint> move = Move<TConstraint>.Epsilon(finalState, fa.InitialState);
                     _delta[finalState].Add(move);
-                    _deltaInv[fa._initialState].Add(move);
+                    _deltaInv[fa.InitialState].Add(move);
                 }
                 _isEpsilonFree = false;
                 _isDeterministic = false;
             }
             _finalStateSet = fa._finalStateSet;
-            _maxState = Math.Max(_maxState, fa._maxState);
+            MaxState = Math.Max(MaxState, fa.MaxState);
         }
 
         internal void MakeInitialStateFinal()
         {
-            _finalStateSet.Add(_initialState);
+            _finalStateSet.Add(InitialState);
         }
 
         internal void AddMove(Move<TConstraint> move)
@@ -198,22 +196,22 @@ namespace SJP.GenerationRex
                 _deltaInv[move.TargetState] = new List<Move<TConstraint>>();
             _delta[move.SourceState].Add(move);
             _deltaInv[move.TargetState].Add(move);
-            _maxState = Math.Max(_maxState, Math.Max(move.SourceState, move.TargetState));
+            MaxState = Math.Max(MaxState, Math.Max(move.SourceState, move.TargetState));
             _isEpsilonFree = _isEpsilonFree && !move.IsEpsilon;
             _isDeterministic = false;
         }
 
         public bool IsKleeneClosure()
         {
-            return IsFinalState(_initialState)
-                && !_finalStateSet.Any(f => f != _initialState && !_delta[f].Any(IsEpsilonMoveToInitialState));
+            return IsFinalState(InitialState)
+                && !_finalStateSet.Any(f => f != InitialState && !_delta[f].Any(IsEpsilonMoveToInitialState));
         }
 
-        internal bool IsEpsilonMoveToInitialState(Move<TConstraint> move) => move.IsEpsilon && move.TargetState == _initialState;
+        internal bool IsEpsilonMoveToInitialState(Move<TConstraint> move) => move.IsEpsilon && move.TargetState == InitialState;
 
         internal void RenameInitialState(int p)
         {
-            var moveList = _delta[_initialState];
+            var moveList = _delta[InitialState];
             if (!_delta.ContainsKey(p))
                 _delta[p] = new List<Move<TConstraint>>();
             if (!_deltaInv.ContainsKey(p))
@@ -225,14 +223,14 @@ namespace SJP.GenerationRex
                 _deltaInv[move1.TargetState].Add(move2);
                 _delta[p].Add(move2);
             }
-            if (_finalStateSet.Contains(_initialState))
+            if (_finalStateSet.Contains(InitialState))
             {
-                _finalStateSet.Remove(_initialState);
+                _finalStateSet.Remove(InitialState);
                 _finalStateSet.Add(p);
             }
-            _delta.Remove(_initialState);
-            _deltaInv.Remove(_initialState);
-            _initialState = p;
+            _delta.Remove(InitialState);
+            _deltaInv.Remove(InitialState);
+            InitialState = p;
         }
 
         internal void AddNewInitialStateThatIsFinal(int newInitialState)
@@ -240,23 +238,23 @@ namespace SJP.GenerationRex
             _finalStateSet.Add(newInitialState);
             var moveList = new List<Move<TConstraint>>
             {
-                Move<TConstraint>.Epsilon(newInitialState, _initialState)
+                Move<TConstraint>.Epsilon(newInitialState, InitialState)
             };
             _delta[newInitialState] = moveList;
             _deltaInv[newInitialState] = new List<Move<TConstraint>>();
-            _deltaInv[_initialState].Add(moveList[0]);
+            _deltaInv[InitialState].Add(moveList[0]);
             _isDeterministic = false;
             _isEpsilonFree = false;
-            _maxState = Math.Max(_maxState, newInitialState);
-            _initialState = newInitialState;
+            MaxState = Math.Max(MaxState, newInitialState);
+            InitialState = newInitialState;
         }
 
         public SymbolicFiniteAutomaton<TConstraint> MakeCopy(int newInitialState)
         {
-            int num = Math.Max(_maxState, newInitialState) + 1;
+            int num = Math.Max(MaxState, newInitialState) + 1;
             var dictionary = new Dictionary<int, int>
             {
-                [_initialState] = newInitialState
+                [InitialState] = newInitialState
             };
             var moveList = new List<Move<TConstraint>>();
             var intSet = new HashSet<int>();
@@ -278,7 +276,7 @@ namespace SJP.GenerationRex
                 }
                 moveList.Add(Move<TConstraint>.To(sourceState, targetState, move.Condition));
             }
-            if (_finalStateSet.Contains(_initialState))
+            if (_finalStateSet.Contains(InitialState))
                 intSet.Add(newInitialState);
             return Create(newInitialState, intSet, moveList);
         }

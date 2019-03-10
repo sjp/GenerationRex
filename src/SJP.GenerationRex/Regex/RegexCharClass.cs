@@ -514,13 +514,10 @@ namespace SJP.GenerationRex.RegularExpressions
         {
             if (s_definedCategories.TryGetValue(categoryName, out var category) && !categoryName.Equals(s_internalRegexIgnoreCase))
             {
-                if (caseInsensitive)
+                if (caseInsensitive && (categoryName.Equals("Ll") || categoryName.Equals("Lu") || categoryName.Equals("Lt")))
                 {
-                    if (categoryName.Equals("Ll") || categoryName.Equals("Lu") || categoryName.Equals("Lt"))
-                    {
-                        // when RegexOptions.IgnoreCase is specified then {Ll}, {Lu}, and {Lt} cases should all match
-                        category = s_definedCategories[s_internalRegexIgnoreCase];
-                    }
+                    // when RegexOptions.IgnoreCase is specified then {Ll}, {Lu}, and {Lt} cases should all match
+                    category = s_definedCategories[s_internalRegexIgnoreCase];
                 }
 
                 if (invert)
