@@ -15,8 +15,8 @@ build:
   verbosity: minimal
 
 test_script:
-  - dotnet test src/SJP.GenerationRex.Tests/SJP.GenerationRex.Tests.csproj --configuration Release --logger:trx;LogFileName=SJP.GenerationRex.Tests.results.xml
-  - ps: build/uploadtests.ps1 "src/SJP.GenerationRex.Tests/TestResults/SJP.GenerationRex.Tests.results.xml"
+  - dotnet test src/SJP.GenerationRex.Tests/SJP.GenerationRex.Tests.csproj --configuration Release --logger "trx;LogFileName=SJP.GenerationRex.Tests.results.xml"
+  - ps: build/uploadtests.ps1 src/SJP.GenerationRex.Tests/TestResults/SJP.GenerationRex.Tests.results*.xml
 
 notifications:
 - provider: Email
