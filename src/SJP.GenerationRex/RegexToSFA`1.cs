@@ -8,12 +8,12 @@ using SJP.GenerationRex.RegularExpressions;
 
 namespace SJP.GenerationRex
 {
-    internal class RegexToSFA<TConstraint>
+    internal class RegexToSfa<TConstraint>
     {
         private readonly ICharacterConstraintSolver<TConstraint> _solver;
         private readonly IUnicodeCategoryConditions<TConstraint> _categorizer;
 
-        public RegexToSFA(ICharacterConstraintSolver<TConstraint> solver, IUnicodeCategoryConditions<TConstraint> categorizer)
+        public RegexToSfa(ICharacterConstraintSolver<TConstraint> solver, IUnicodeCategoryConditions<TConstraint> categorizer)
         {
             _solver = solver;
             _categorizer = categorizer;

@@ -1367,14 +1367,14 @@ namespace SJP.GenerationRex.RegularExpressions
             if (ch != '{')
                 return ch <= '{' && _category[ch] >= Q;
             int pos = startpos;
-            while (--nChars > 0 && (ch = CharAt(++pos)) >= '0' && ch <= '9') ;
+            while (--nChars > 0 && (ch = CharAt(++pos)) >= '0' && ch <= '9') { }
             if (nChars == 0 || pos - startpos == 1)
                 return false;
             if (ch == '}')
                 return true;
             if (ch != ',')
                 return false;
-            while (--nChars > 0 && (ch = CharAt(++pos)) >= '0' && ch <= '9') ;
+            while (--nChars > 0 && (ch = CharAt(++pos)) >= '0' && ch <= '9') { }
             return nChars > 0 && ch == '}';
         }
 

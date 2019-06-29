@@ -97,7 +97,7 @@ namespace SJP.GenerationRex
             _chooser = new Chooser();
 
             var categoryProvider = new UnicodeCategoryConditionsBddProvider(encoding, nbits);
-            _regexConverter = new RegexToSFA<BinaryDecisionDiagram>(_solver, categoryProvider);
+            _regexConverter = new RegexToSfa<BinaryDecisionDiagram>(_solver, categoryProvider);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace SJP.GenerationRex
             _chooser = new Chooser(randomSeed);
 
             var categoryProvider = new UnicodeCategoryConditionsBddProvider(encoding, nbits);
-            _regexConverter = new RegexToSFA<BinaryDecisionDiagram>(_solver, categoryProvider);
+            _regexConverter = new RegexToSfa<BinaryDecisionDiagram>(_solver, categoryProvider);
         }
 
         /// <summary>
@@ -258,6 +258,6 @@ namespace SJP.GenerationRex
         private readonly RegexOptions _options;
         private readonly Chooser _chooser;
         private readonly BddBuilder _solver;
-        private readonly RegexToSFA<BinaryDecisionDiagram> _regexConverter;
+        private readonly RegexToSfa<BinaryDecisionDiagram> _regexConverter;
     }
 }

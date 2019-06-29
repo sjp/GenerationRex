@@ -63,6 +63,14 @@ namespace SJP.GenerationRex
             return bddSet.Count;
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is BinaryDecisionDiagram bdd)
+                return bdd.Id == Id;
+
+            return false;
+        }
+
         public override int GetHashCode() => Id;
     }
 }
