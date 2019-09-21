@@ -449,11 +449,10 @@ namespace SJP.GenerationRex.RegularExpressions
                     // It currently doesn't do anything other than skip the whole thing!
                     if (CharsRight() > 0 && RightChar() == ':' && !inRange)
                     {
-                        string name;
                         int savePos = Textpos();
 
                         MoveRight();
-                        name = ScanCapname();
+                        _ = ScanCapname();
                         if (CharsRight() < 2 || MoveRightGetChar() != ':' || MoveRightGetChar() != ']')
                             Textto(savePos);
                         // else lookup name (nyi)
@@ -561,7 +560,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 if (CharsRight() == 0)
                     break;
 
-                switch (ch = MoveRightGetChar())
+                switch (_ = MoveRightGetChar())
                 {
                     case ':':
                         NodeType = RegexNode.Group;
@@ -915,7 +914,7 @@ namespace SJP.GenerationRex.RegularExpressions
 
             if (angled && ch >= '0' && ch <= '9')
             {
-                int capnum = ScanDecimal();
+                _ = ScanDecimal();
 
                 if (CharsRight() > 0 && MoveRightGetChar() == close)
                 {
