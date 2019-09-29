@@ -36,7 +36,7 @@ namespace SJP.GenerationRex
 
         public bool Equals(IntSet other)
         {
-            if (ReferenceEquals(other, null))
+            if (other is null)
                 return false;
 
             if (ReferenceEquals(this, other))
@@ -47,13 +47,13 @@ namespace SJP.GenerationRex
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(obj, null))
+            if (obj is null)
                 return false;
 
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return Equals(obj as IntSet);
+            return obj is IntSet set && Equals(set);
         }
 
         private string MkString()

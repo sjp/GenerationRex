@@ -7,9 +7,9 @@ namespace SJP.GenerationRex
     {
         public Pair(TFirst first, TSecond second)
         {
-            if (ReferenceEquals(first, null))
+            if (first == null)
                 throw new ArgumentNullException(nameof(first));
-            if (ReferenceEquals(second, null))
+            if (second == null)
                 throw new ArgumentNullException(nameof(second));
 
             First = first;
@@ -24,7 +24,7 @@ namespace SJP.GenerationRex
 
         public bool Equals(Pair<TFirst, TSecond> other)
         {
-            if (ReferenceEquals(other, null))
+            if (other is null)
                 return false;
 
             if (ReferenceEquals(this, other))
@@ -39,23 +39,15 @@ namespace SJP.GenerationRex
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(obj, null))
+            if (obj is null)
                 return false;
 
             if (ReferenceEquals(this, obj))
                 return true;
 
-            return Equals(obj as Pair<TFirst, TSecond>);
+            return obj is Pair<TFirst, TSecond> pair && Equals(pair);
         }
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hash = 17;
-                hash = (hash * 23) + First.GetHashCode();
-                return (hash * 23) + Second.GetHashCode();
-            }
-        }
+        public override int GetHashCode() => HashCode.Combine(First, Second);
     }
 }

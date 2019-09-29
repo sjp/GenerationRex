@@ -313,18 +313,18 @@ namespace SJP.GenerationRex
 
             public override bool Equals(object obj)
             {
-                if (ReferenceEquals(obj, null))
+                if (obj is null)
                     return false;
 
                 if (ReferenceEquals(this, obj))
                     return true;
 
-                return Equals(obj as BddPair);
+                return obj is BddPair pair && Equals(pair);
             }
 
             public bool Equals(BddPair other)
             {
-                if (ReferenceEquals(other, null))
+                if (other is null)
                     return false;
 
                 if (ReferenceEquals(this, other))
