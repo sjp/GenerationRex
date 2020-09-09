@@ -18,7 +18,7 @@ namespace SJP.GenerationRex.Tests
 
             var matches = Regex.IsMatch(result, regex);
 
-            Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+            Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace SJP.GenerationRex.Tests
                 foreach (var result in results)
                 {
                     var matches = Regex.IsMatch(result, regex);
-                    Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+                    Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
                 }
             });
         }
@@ -50,7 +50,7 @@ namespace SJP.GenerationRex.Tests
 
             var matches = Regex.IsMatch(result, regex);
 
-            Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+            Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
         }
 
         [Test]
@@ -67,7 +67,7 @@ namespace SJP.GenerationRex.Tests
                 foreach (var result in results)
                 {
                     var matches = Regex.IsMatch(result, regex);
-                    Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+                    Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
                 }
             });
         }
@@ -82,7 +82,7 @@ namespace SJP.GenerationRex.Tests
 
             var matches = Regex.IsMatch(result, regex);
 
-            Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+            Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
         }
 
         [Test]
@@ -99,7 +99,7 @@ namespace SJP.GenerationRex.Tests
                 foreach (var result in results)
                 {
                     var matches = Regex.IsMatch(result, regex);
-                    Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+                    Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
                 }
             });
         }
@@ -114,7 +114,7 @@ namespace SJP.GenerationRex.Tests
 
             var matches = Regex.IsMatch(result, regex);
 
-            Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+            Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
         }
 
         [Test]
@@ -131,7 +131,7 @@ namespace SJP.GenerationRex.Tests
                 foreach (var result in results)
                 {
                     var matches = Regex.IsMatch(result, regex, RegexOptions.CultureInvariant);
-                    Assert.IsTrue(matches, $"Generated result '{ result }' does not match regular expresssion '{ regex }'");
+                    Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
                 }
             });
         }
