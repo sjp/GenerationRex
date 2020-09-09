@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace SJP.GenerationRex
+﻿namespace SJP.GenerationRex
 {
     /// <summary>
     /// Represents a binary decision diagram
@@ -32,36 +30,6 @@ namespace SJP.GenerationRex
         public BinaryDecisionDiagram TrueCase { get; set; }
 
         public BinaryDecisionDiagram FalseCase { get; set; }
-
-        public int CalculateSize()
-        {
-            if (TrueCase == null)
-                return 1;
-
-            var bddSet = new HashSet<BinaryDecisionDiagram> { this };
-            var bddStack = new Stack<BinaryDecisionDiagram>();
-            bddStack.Push(this);
-
-            while (bddStack.Count > 0)
-            {
-                var bdd = bddStack.Pop();
-                if (bdd == False || bdd == True)
-                    continue;
-
-                if (!bddSet.Contains(bdd.TrueCase))
-                {
-                    bddSet.Add(bdd.TrueCase);
-                    bddStack.Push(bdd.TrueCase);
-                }
-                if (!bddSet.Contains(bdd.FalseCase))
-                {
-                    bddSet.Add(bdd.FalseCase);
-                    bddStack.Push(bdd.FalseCase);
-                }
-            }
-
-            return bddSet.Count;
-        }
 
         public override bool Equals(object obj)
         {
