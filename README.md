@@ -7,7 +7,7 @@
 
 > Efficiently generate data from a regular expression.
 
-[![License (MIT)](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) ![Build Status](https://github.com/sjp/GenerationRex/workflows/CI/badge.svg?branch=master)
+[![License (MIT)](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT) ![Build Status](https://github.com/sjp/GenerationRex/workflows/CI/badge.svg?branch=master) [![Code coverage](https://img.shields.io/codecov/c/gh/sjp/GenerationRex/master?logo=codecov)](https://codecov.io/gh/sjp/GenerationRex)
 
 **GenerationRex** will generate members from a regular expression. This is particularly (but not only) useful for generating synthetic data for testing purposes. **GenerationRex** is an unofficial revival of the [Rex](https://www.microsoft.com/en-us/research/publication/rex-symbolic-regular-expression-explorer/) command line tool, originally published by Microsoft researchers. It has been repackaged into a class library, and made available for more runtimes (e.g. .NET Core and Standard).
 
