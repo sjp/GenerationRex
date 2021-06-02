@@ -2,14 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <Description>Efficiently generate data from a regular expression.</Description>
-    <PackageLicenseUrl>https://raw.github.com/sjp/GenerationRex/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/sjp/GenerationRex</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/sjp/GenerationRex</RepositoryUrl>
-    <PackageIconUrl>https://raw.github.com/sjp/GenerationRex/master/rex.svg</PackageIconUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
