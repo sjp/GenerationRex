@@ -27,69 +27,34 @@ namespace SJP.GenerationRex
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNode(RegexNode node, int minStateId, bool isStart, bool isEnd)
         {
-            switch (node._type)
+            return node._type switch
             {
-                case RegexNode.Oneloop:
-                    return ConvertNodeOneloop(node, minStateId, isStart, isEnd);
-                case RegexNode.Notoneloop:
-                    return ConvertNodeNotoneloop(node, minStateId, isStart, isEnd);
-                case RegexNode.Setloop:
-                    return ConvertNodeSetloop(node, minStateId, isStart, isEnd);
-                case RegexNode.Onelazy:
-                case RegexNode.Notonelazy:
-                case RegexNode.Setlazy:
-                    throw new RexException(RexException.NotSupported);
-                case RegexNode.One:
-                    return ConvertNodeOne(node, minStateId, isStart, isEnd);
-                case RegexNode.Notone:
-                    return ConvertNodeNotone(node, minStateId, isStart, isEnd);
-                case RegexNode.Set:
-                    return ConvertNodeSet(node, minStateId, isStart, isEnd);
-                case RegexNode.Multi:
-                    return ConvertNodeMulti(node, minStateId, isStart, isEnd);
-                case RegexNode.Ref:
-                    throw new RexException(RexException.NotSupported);
-                case RegexNode.Bol:
-                    return ConvertNodeBol(minStateId, isStart, isEnd);
-                case RegexNode.Eol:
-                    return ConvertNodeEol(minStateId, isStart, isEnd);
-                case RegexNode.Boundary:
-                case RegexNode.Nonboundary:
-                    throw new RexException(RexException.NotSupported);
-                case RegexNode.Beginning:
-                    return ConvertNodeBeginning(minStateId, isStart, isEnd);
-                case RegexNode.Start:
-                    throw new RexException(RexException.NotSupported);
-                case RegexNode.EndZ:
-                    return ConvertNodeEndZ(minStateId, isStart, isEnd);
-                case RegexNode.End:
-                    return ConvertNodeEnd(minStateId, isStart, isEnd);
-                case RegexNode.Nothing:
-                    throw new RexException(RexException.NotSupported);
-                case RegexNode.Empty:
-                    return ConvertNodeEmpty(minStateId, isStart, isEnd);
-                case RegexNode.Alternate:
-                    return ConvertNodeAlternate(node, minStateId, isStart, isEnd);
-                case RegexNode.Concatenate:
-                    return ConvertNodeConcatenate(node, minStateId, isStart, isEnd);
-                case RegexNode.Loop:
-                    return ConvertNodeLoop(node, minStateId, isStart, isEnd);
-                case RegexNode.Lazyloop:
-                    throw new RexException(RexException.NotSupported);
-                case RegexNode.Capture:
-                    return ConvertNode(node.Child(0), minStateId, isStart, isEnd);
-                case RegexNode.Group:
-                case RegexNode.Require:
-                case RegexNode.Prevent:
-                case RegexNode.Greedy:
-                case RegexNode.Testref:
-                case RegexNode.Testgroup:
-                case RegexNode.ECMABoundary:
-                case RegexNode.NonECMABoundary:
-                    throw new RexException(RexException.NotSupported);
-                default:
-                    throw new RexException(RexException.UnrecognizedRegex);
-            }
+                RegexNode.Oneloop => ConvertNodeOneloop(node, minStateId, isStart, isEnd),
+                RegexNode.Notoneloop => ConvertNodeNotoneloop(node, minStateId, isStart, isEnd),
+                RegexNode.Setloop => ConvertNodeSetloop(node, minStateId, isStart, isEnd),
+                RegexNode.Onelazy or RegexNode.Notonelazy or RegexNode.Setlazy => throw new RexException(RexException.NotSupported),
+                RegexNode.One => ConvertNodeOne(node, minStateId, isStart, isEnd),
+                RegexNode.Notone => ConvertNodeNotone(node, minStateId, isStart, isEnd),
+                RegexNode.Set => ConvertNodeSet(node, minStateId, isStart, isEnd),
+                RegexNode.Multi => ConvertNodeMulti(node, minStateId, isStart, isEnd),
+                RegexNode.Ref => throw new RexException(RexException.NotSupported),
+                RegexNode.Bol => ConvertNodeBol(minStateId, isStart, isEnd),
+                RegexNode.Eol => ConvertNodeEol(minStateId, isStart, isEnd),
+                RegexNode.Boundary or RegexNode.Nonboundary => throw new RexException(RexException.NotSupported),
+                RegexNode.Beginning => ConvertNodeBeginning(minStateId, isStart, isEnd),
+                RegexNode.Start => throw new RexException(RexException.NotSupported),
+                RegexNode.EndZ => ConvertNodeEndZ(minStateId, isStart, isEnd),
+                RegexNode.End => ConvertNodeEnd(minStateId, isStart, isEnd),
+                RegexNode.Nothing => throw new RexException(RexException.NotSupported),
+                RegexNode.Empty => ConvertNodeEmpty(minStateId, isStart, isEnd),
+                RegexNode.Alternate => ConvertNodeAlternate(node, minStateId, isStart, isEnd),
+                RegexNode.Concatenate => ConvertNodeConcatenate(node, minStateId, isStart, isEnd),
+                RegexNode.Loop => ConvertNodeLoop(node, minStateId, isStart, isEnd),
+                RegexNode.Lazyloop => throw new RexException(RexException.NotSupported),
+                RegexNode.Capture => ConvertNode(node.Child(0), minStateId, isStart, isEnd),
+                RegexNode.Group or RegexNode.Require or RegexNode.Prevent or RegexNode.Greedy or RegexNode.Testref or RegexNode.Testgroup or RegexNode.ECMABoundary or RegexNode.NonECMABoundary => throw new RexException(RexException.NotSupported),
+                _ => throw new RexException(RexException.UnrecognizedRegex),
+            };
         }
 
         private SymbolicFiniteAutomaton<TConstraint> ConvertNodeEmpty(int minStateId, bool isStart, bool isEnd)

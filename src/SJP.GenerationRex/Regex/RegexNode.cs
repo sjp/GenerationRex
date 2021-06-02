@@ -169,28 +169,15 @@ namespace SJP.GenerationRex.RegularExpressions
         /// </summary>
         internal RegexNode Reduce()
         {
-            switch (Type())
+            return Type() switch
             {
-                case Alternate:
-                    return ReduceAlternation();
-
-                case Concatenate:
-                    return ReduceConcatenation();
-
-                case Loop:
-                case Lazyloop:
-                    return ReduceRep();
-
-                case Group:
-                    return ReduceGroup();
-
-                case Set:
-                case Setloop:
-                    return ReduceSet();
-
-                default:
-                    return this;
-            }
+                Alternate => ReduceAlternation(),
+                Concatenate => ReduceConcatenation(),
+                Loop or Lazyloop => ReduceRep(),
+                Group => ReduceGroup(),
+                Set or Setloop => ReduceSet(),
+                _ => this,
+            };
         }
 
         /// <summary>
@@ -200,15 +187,12 @@ namespace SJP.GenerationRex.RegularExpressions
         /// </summary>
         internal RegexNode StripEnation(int emptyType)
         {
-            switch (ChildCount())
+            return ChildCount() switch
             {
-                case 0:
-                    return new RegexNode(emptyType, _options);
-                case 1:
-                    return Child(0);
-                default:
-                    return this;
-            }
+                0 => new RegexNode(emptyType, _options),
+                1 => Child(0),
+                _ => this,
+            };
         }
 
         /// <summary>

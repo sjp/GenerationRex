@@ -28,6 +28,6 @@ namespace SJP.GenerationRex
 
         private readonly IDictionary<UnicodeCategory, BinaryDecisionDiagram> _catConditions;
 
-        private static readonly ConcurrentDictionary<int, UnicodeCategoryRangeGenerator> _cache = new ConcurrentDictionary<int, UnicodeCategoryRangeGenerator>();
+        private static readonly ConcurrentDictionary<int, UnicodeCategoryRangeGenerator> _cache = new();
     }
 }

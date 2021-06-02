@@ -83,7 +83,7 @@ namespace SJP.GenerationRex.RegularExpressions
         // UnicodeCategory is zero based, so we add one to each value and subtract it off later
         private const int DefinedCategoriesCapacity = 38;
 
-        private static readonly Dictionary<string, string> s_definedCategories = new Dictionary<string, string>(DefinedCategoriesCapacity)
+        private static readonly Dictionary<string, string> s_definedCategories = new(DefinedCategoriesCapacity)
         {
             // Others
             { "Cc", "\u000F" }, // UnicodeCategory.Control + 1
@@ -1081,7 +1081,7 @@ namespace SJP.GenerationRex.RegularExpressions
             while (min != max)
             {
                 int mid = (min + max) / 2;
-                int res = string.Compare(capname, s_propTable[mid][0], StringComparison.Ordinal);
+                int res = string.CompareOrdinal(capname, s_propTable[mid][0]);
                 if (res < 0)
                 {
                     max = mid;
@@ -1098,7 +1098,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     {
                         if (set[0] == NullChar)
                         {
-                            return set.Substring(1);
+                            return set[1..];
                         }
                         return NullCharString + set;
                     }
@@ -1135,7 +1135,7 @@ namespace SJP.GenerationRex.RegularExpressions
         /// </summary>
         private sealed class SingleRangeComparer : IComparer<SingleRange>
         {
-            public static readonly SingleRangeComparer Instance = new SingleRangeComparer();
+            public static readonly SingleRangeComparer Instance = new();
 
             private SingleRangeComparer()
             {

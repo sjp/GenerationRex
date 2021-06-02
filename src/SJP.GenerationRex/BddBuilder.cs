@@ -255,7 +255,7 @@ namespace SJP.GenerationRex
             return ((long)bdd.Id << 16) + (value << 4) + (makeTrue ? 1L : 0L);
         }
 
-        private static BddPair MkApplyKey(BinaryDecisionDiagram bdd1, BinaryDecisionDiagram bdd2) => new BddPair(bdd1, bdd2);
+        private static BddPair MkApplyKey(BinaryDecisionDiagram bdd1, BinaryDecisionDiagram bdd2) => new(bdd1, bdd2);
 
         private BinaryDecisionDiagram Restrict(int value, bool makeTrue, BinaryDecisionDiagram bdd)
         {

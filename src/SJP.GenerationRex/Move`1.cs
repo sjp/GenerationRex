@@ -24,9 +24,9 @@ namespace SJP.GenerationRex
 
         public TCondition Condition { get; }
 
-        public static Move<TCondition> To(int sourceState, int targetState, TCondition condition) => new Move<TCondition>(sourceState, targetState, condition);
+        public static Move<TCondition> To(int sourceState, int targetState, TCondition condition) => new(sourceState, targetState, condition);
 
-        public static Move<TCondition> Epsilon(int sourceState, int targetState) => new Move<TCondition>(sourceState, targetState);
+        public static Move<TCondition> Epsilon(int sourceState, int targetState) => new(sourceState, targetState);
 
         public bool IsEpsilon => Condition == null;
 

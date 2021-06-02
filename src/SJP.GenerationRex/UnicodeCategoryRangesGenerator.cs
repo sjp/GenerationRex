@@ -127,7 +127,7 @@ namespace SJP.GenerationRex
 
         private class Ranges
         {
-            internal List<int[]> ranges = new List<int[]>();
+            internal List<int[]> ranges = new();
 
             internal void Add(int n)
             {

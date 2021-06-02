@@ -967,7 +967,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 }
             }
 
-            return _pattern.Substring(startpos, Textpos() - startpos);
+            return _pattern[startpos..Textpos()];
         }
 
         /*
@@ -1216,23 +1216,16 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private int TypeFromCode(char ch)
         {
-            switch (ch)
+            return ch switch
             {
-                case 'b':
-                    return UseOptionE() ? RegexNode.ECMABoundary : RegexNode.Boundary;
-                case 'B':
-                    return UseOptionE() ? RegexNode.NonECMABoundary : RegexNode.Nonboundary;
-                case 'A':
-                    return RegexNode.Beginning;
-                case 'G':
-                    return RegexNode.Start;
-                case 'Z':
-                    return RegexNode.EndZ;
-                case 'z':
-                    return RegexNode.End;
-                default:
-                    return RegexNode.Nothing;
-            }
+                'b' => UseOptionE() ? RegexNode.ECMABoundary : RegexNode.Boundary,
+                'B' => UseOptionE() ? RegexNode.NonECMABoundary : RegexNode.Nonboundary,
+                'A' => RegexNode.Beginning,
+                'G' => RegexNode.Start,
+                'Z' => RegexNode.EndZ,
+                'z' => RegexNode.End,
+                _ => RegexNode.Nothing,
+            };
         }
 
         /*
@@ -1244,25 +1237,17 @@ namespace SJP.GenerationRex.RegularExpressions
             if (ch >= 'A' && ch <= 'Z')
                 ch += (char)('a' - 'A');
 
-            switch (ch)
+            return ch switch
             {
-                case 'i':
-                    return RegexOptions.IgnoreCase;
-                case 'r':
-                    return RegexOptions.RightToLeft;
-                case 'm':
-                    return RegexOptions.Multiline;
-                case 'n':
-                    return RegexOptions.ExplicitCapture;
-                case 's':
-                    return RegexOptions.Singleline;
-                case 'x':
-                    return RegexOptions.IgnorePatternWhitespace;
-                case 'e':
-                    return RegexOptions.ECMAScript;
-                default:
-                    return 0;
-            }
+                'i' => RegexOptions.IgnoreCase,
+                'r' => RegexOptions.RightToLeft,
+                'm' => RegexOptions.Multiline,
+                'n' => RegexOptions.ExplicitCapture,
+                's' => RegexOptions.Singleline,
+                'x' => RegexOptions.IgnorePatternWhitespace,
+                'e' => RegexOptions.ECMAScript,
+                _ => 0,
+            };
         }
 
         /*

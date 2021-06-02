@@ -71,7 +71,7 @@ namespace SJP.GenerationRex
         public IEnumerator<int> GetEnumerator() => _elems.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => _elems.GetEnumerator();
-        private readonly HashSet<int> _elems = new HashSet<int>();
+        private readonly HashSet<int> _elems = new();
         private readonly Lazy<string> _strBuilder;
     }
 }
