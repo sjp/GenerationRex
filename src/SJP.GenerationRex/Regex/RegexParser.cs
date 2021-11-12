@@ -1203,7 +1203,7 @@ namespace SJP.GenerationRex.RegularExpressions
                     break;
                 }
             }
-            string capname = _pattern.Substring(startpos, Textpos() - startpos);
+            string capname = _pattern[startpos..Textpos()];
 
             if (CharsRight() == 0 || MoveRightGetChar() != '}')
                 throw MakeException(Strings.IncompleteSlashP);
@@ -1588,7 +1588,7 @@ namespace SJP.GenerationRex.RegularExpressions
          */
         private void PopOptions()
         {
-            _options = _optionsStack[_optionsStack.Count - 1];
+            _options = _optionsStack[^1];
             _optionsStack.RemoveAt(_optionsStack.Count - 1);
         }
 

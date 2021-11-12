@@ -465,7 +465,7 @@ namespace SJP.GenerationRex.RegularExpressions
                 _rangelist.Add(cc.GetRangeAt(i));
             }
 
-            _categories.Append(cc._categories.ToString());
+            _categories.Append(cc._categories);
         }
 
         /// <summary>
@@ -504,7 +504,7 @@ namespace SJP.GenerationRex.RegularExpressions
         {
             _rangelist.Add(new SingleRange(first, last));
             if (_canonical && _rangelist.Count > 0
-                && first <= _rangelist[_rangelist.Count - 1]._last)
+                && first <= _rangelist[^1]._last)
             {
                 _canonical = false;
             }

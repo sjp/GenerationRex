@@ -188,13 +188,13 @@ namespace SJP.GenerationRex
             var constraint1 = default(TConstraint);
             if (set.Length > startIndex)
             {
-                string set1 = set.Substring(startIndex);
+                string set1 = set[startIndex..];
                 constraint1 = CreateConditionFromSet(ignoreCase, set1);
             }
             var result = stateList.Count != 0
                 ? (isNegated ? _solver.And(stateList) : _solver.Or(stateList))
                 : (isNegated ? _solver.False : _solver.True);
-            if (!ReferenceEquals(constraint1, null))
+            if (constraint1 is not null)
                 result = _solver.And(result, _solver.Not(constraint1));
             return result;
         }
@@ -243,7 +243,7 @@ namespace SJP.GenerationRex
             foreach (var catCode in catCodes)
             {
                 var condition = MapCategoryCodeToCondition(catCode);
-                result = ReferenceEquals(result, null) ? condition : _solver.Or(result, condition);
+                result = result is null ? condition : _solver.Or(result, condition);
             }
             return result;
         }
