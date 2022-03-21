@@ -544,13 +544,13 @@ internal sealed class RegexCharClass
     {
         _canonical = false;
 
-        int count = _rangelist.Count;
-        for (int i = 0; i < count; i++)
+        var count = _rangelist.Count;
+        for (var i = 0; i < count; i++)
         {
             SingleRange range = _rangelist[i];
             if (range._first == range._last)
             {
-                char lower = culture.TextInfo.ToLower(range._first);
+                var lower = culture.TextInfo.ToLower(range._first);
                 _rangelist[i] = new SingleRange(lower, lower);
             }
             else
@@ -737,16 +737,16 @@ internal sealed class RegexCharClass
     {
         int mySetLength = set[start + SETLENGTH];
         int myCategoryLength = set[start + CATEGORYLENGTH];
-        int myEndPosition = start + SETSTART + mySetLength + myCategoryLength;
+        var myEndPosition = start + SETSTART + mySetLength + myCategoryLength;
 
-        bool subtracted = false;
+        var subtracted = false;
 
         if (set.Length > myEndPosition)
         {
             subtracted = CharInClassRecursive(ch, set, myEndPosition);
         }
 
-        bool b = CharInClassInternal(ch, set, start, mySetLength, myCategoryLength);
+        var b = CharInClassInternal(ch, set, start, mySetLength, myCategoryLength);
 
         // Note that we apply the negation *before* performing the subtraction.  This is because
         // the negation only applies to the first char class, not the entire subtraction.
@@ -802,8 +802,8 @@ internal sealed class RegexCharClass
     {
         var chcategory = CharUnicodeInfo.GetUnicodeCategory(ch);
 
-        int i = start + SETSTART + mySetLength;
-        int end = i + myCategoryLength;
+        var i = start + SETSTART + mySetLength;
+        var end = i + myCategoryLength;
         while (i < end)
         {
             int curcat = unchecked((short)set[i]);
@@ -875,7 +875,7 @@ internal sealed class RegexCharClass
         if (curcat > 0)
         {
             // positive case - the character must be in ANY of the categories in the group
-            bool answer = false;
+            var answer = false;
 
             while (curcat != 0)
             {
@@ -893,7 +893,7 @@ internal sealed class RegexCharClass
         else
         {
             // negative case - the character must be in NONE of the categories in the group
-            bool answer = true;
+            var answer = true;
 
             while (curcat != 0)
             {
@@ -919,7 +919,7 @@ internal sealed class RegexCharClass
 
         var sb = new StringBuilder(category.Length);
 
-        for (int i = 0; i < category.Length; i++)
+        for (var i = 0; i < category.Length; i++)
         {
             var ch = (short)category[i];
             sb.Append(unchecked((char)-ch));
@@ -936,14 +936,14 @@ internal sealed class RegexCharClass
     {
         int mySetLength = charClass[start + SETLENGTH];
         int myCategoryLength = charClass[start + CATEGORYLENGTH];
-        int myEndPosition = start + SETSTART + mySetLength + myCategoryLength;
+        var myEndPosition = start + SETSTART + mySetLength + myCategoryLength;
 
         var ranges = new List<SingleRange>(mySetLength);
-        int i = start + SETSTART;
-        int end = i + mySetLength;
+        var i = start + SETSTART;
+        var end = i + mySetLength;
         while (i < end)
         {
-            char first = charClass[i];
+            var first = charClass[i];
             i++;
 
             char last;
@@ -981,7 +981,7 @@ internal sealed class RegexCharClass
         // make a guess about the length of the ranges.  We'll update this at the end.
         // This is important because if the last range ends in LastChar, we won't append
         // LastChar to the list.
-        int rangeLen = _rangelist.Count * 2;
+        var rangeLen = _rangelist.Count * 2;
         var sb = new StringBuilder(rangeLen + _categories.Length + 3);
 
         int flags;
@@ -994,7 +994,7 @@ internal sealed class RegexCharClass
         sb.Append((char)rangeLen);
         sb.Append((char)_categories.Length);
 
-        for (int i = 0; i < _rangelist.Count; i++)
+        for (var i = 0; i < _rangelist.Count; i++)
         {
             SingleRange currentRange = _rangelist[i];
             sb.Append(currentRange._first);
@@ -1076,12 +1076,12 @@ internal sealed class RegexCharClass
 
     private static string SetFromProperty(string capname, bool invert, string pattern)
     {
-        int min = 0;
-        int max = s_propTable.Length;
+        var min = 0;
+        var max = s_propTable.Length;
         while (min != max)
         {
-            int mid = (min + max) / 2;
-            int res = string.CompareOrdinal(capname, s_propTable[mid][0]);
+            var mid = (min + max) / 2;
+            var res = string.CompareOrdinal(capname, s_propTable[mid][0]);
             if (res < 0)
             {
                 max = mid;
@@ -1092,7 +1092,7 @@ internal sealed class RegexCharClass
             }
             else
             {
-                string set = s_propTable[mid][1];
+                var set = s_propTable[mid][1];
                 Debug.Assert(!string.IsNullOrEmpty(set), "Found a null/empty element in RegexCharClass prop table");
                 if (invert)
                 {

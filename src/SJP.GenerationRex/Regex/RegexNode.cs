@@ -226,7 +226,7 @@ internal sealed class RegexNode
         min = _m;
         max = _n;
 
-        for (; ;)
+        for (; ; )
         {
             if (u.ChildCount() == 0)
                 break;
@@ -236,7 +236,7 @@ internal sealed class RegexNode
             // multiply reps of the same type only
             if (child.Type() != type)
             {
-                int childType = child.Type();
+                var childType = child.Type();
 
                 if (!((childType >= Oneloop && childType <= Setloop && type == Loop)
                       || (childType >= Onelazy && childType <= Setlazy && type == Lazyloop)))
@@ -331,7 +331,7 @@ internal sealed class RegexNode
             {
                 if (at._type == Alternate)
                 {
-                    for (int k = 0; k < at._children.Count; k++)
+                    for (var k = 0; k < at._children.Count; k++)
                         at._children[k]._next = this;
 
                     _children.InsertRange(i + 1, at._children);
@@ -382,7 +382,7 @@ internal sealed class RegexNode
                     }
                     else
                     {
-                        RegexCharClass atCharClass = RegexCharClass.Parse(at._str);
+                        var atCharClass = RegexCharClass.Parse(at._str);
                         prevCharClass.AddCharClass(atCharClass);
                     }
 
@@ -440,7 +440,7 @@ internal sealed class RegexNode
             if (at._type == Concatenate
                 && ((at._options.CommonFlags(RegexOptions.RightToLeft)) == (_options.CommonFlags(RegexOptions.RightToLeft))))
             {
-                for (int k = 0; k < at._children.Count; k++)
+                for (var k = 0; k < at._children.Count; k++)
                     at._children[k]._next = this;
 
                 _children.InsertRange(i + 1, at._children);

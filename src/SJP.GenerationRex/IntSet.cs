@@ -10,7 +10,7 @@ internal class IntSet : IEnumerable<int>, IEquatable<IntSet>
 {
     public IntSet(IEnumerable<int> elems)
     {
-        foreach (int elem in elems)
+        foreach (var elem in elems)
         {
             _elems.Add(elem);
             Choice = Math.Min(elem, Choice);

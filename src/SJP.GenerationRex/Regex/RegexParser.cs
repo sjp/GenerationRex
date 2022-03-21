@@ -101,19 +101,19 @@ internal sealed class RegexParser
      */
     private RegexNode ScanRegex()
     {
-        char ch = '@'; // nonspecial ch, means at beginning
-        bool isQuantifier = false;
+        var ch = '@'; // nonspecial ch, means at beginning
+        var isQuantifier = false;
 
         StartGroup(new RegexNode(RegexNode.Capture, _options, 0, -1));
 
         while (CharsRight() > 0)
         {
-            bool wasPrevQuantifier = isQuantifier;
+            var wasPrevQuantifier = isQuantifier;
             isQuantifier = false;
 
             ScanBlank();
 
-            int startpos = Textpos();
+            var startpos = Textpos();
 
             // move past all of the normal characters.  We'll stop when we hit some kind of control character,
             // or if IgnorePatternWhiteSpace is on, we'll stop when we see some whitespace.
@@ -128,7 +128,7 @@ internal sealed class RegexParser
                     MoveRight();
             }
 
-            int endpos = Textpos();
+            var endpos = Textpos();
 
             ScanBlank();
 
@@ -148,7 +148,7 @@ internal sealed class RegexParser
 
             if (startpos < endpos)
             {
-                int cchUnquantified = endpos - startpos - (isQuantifier ? 1 : 0);
+                var cchUnquantified = endpos - startpos - (isQuantifier ? 1 : 0);
 
                 wasPrevQuantifier = false;
 
@@ -354,11 +354,11 @@ internal sealed class RegexParser
      */
     private RegexCharClass ScanCharClass(bool caseInsensitive, bool scanOnly)
     {
-        char ch = '\0';
-        char chPrev = '\0';
-        bool inRange = false;
-        bool firstChar = true;
-        bool closed = false;
+        var ch = '\0';
+        var chPrev = '\0';
+        var inRange = false;
+        var firstChar = true;
+        var closed = false;
 
         var cc = scanOnly ? null : new RegexCharClass();
 
@@ -371,7 +371,7 @@ internal sealed class RegexParser
 
         for (; CharsRight() > 0; firstChar = false)
         {
-            bool fTranslatedChar = false;
+            var fTranslatedChar = false;
             ch = MoveRightGetChar();
             if (ch == ']')
             {
@@ -449,7 +449,7 @@ internal sealed class RegexParser
                 // It currently doesn't do anything other than skip the whole thing!
                 if (CharsRight() > 0 && RightChar() == ':' && !inRange)
                 {
-                    int savePos = Textpos();
+                    var savePos = Textpos();
 
                     MoveRight();
                     _ = ScanCapname();
@@ -532,9 +532,9 @@ internal sealed class RegexParser
      */
     private RegexNode ScanGroupOpen()
     {
-        char ch = '\0';
+        var ch = '\0';
         int NodeType;
-        char close = '>';
+        var close = '>';
 
         // just return a RegexNode if we have:
         // 1. "(" followed by nothing
@@ -555,7 +555,7 @@ internal sealed class RegexParser
 
         MoveRight();
 
-        for (; ;)
+        for (; ; )
         {
             if (CharsRight() == 0)
                 break;
@@ -611,7 +611,7 @@ internal sealed class RegexParser
                             MoveLeft();
                             const int capnum = -1;
                             const int uncapnum = -1;
-                            bool proceed = false;
+                            var proceed = false;
 
                             // grab part before -
 
@@ -668,7 +668,7 @@ internal sealed class RegexParser
                 case '(':
                     // alternation construct (?(...) | )
 
-                    int parenPos = Textpos();
+                    var parenPos = Textpos();
                     if (CharsRight() > 0)
                     {
                         ch = RightChar();
@@ -688,10 +688,10 @@ internal sealed class RegexParser
                     Textto(parenPos - 1);       // jump to the start of the parentheses
                     _ignoreNextParen = true;    // but make sure we don't try to capture the insides
 
-                    int charsRight = CharsRight();
+                    var charsRight = CharsRight();
                     if (charsRight >= 3 && RightChar(1) == '?')
                     {
-                        char rightchar2 = RightChar(2);
+                        var rightchar2 = RightChar(2);
                         // disallow comments in the condition
                         if (rightchar2 == '#')
                             throw MakeException(Strings.AlternationCantHaveComment);
@@ -742,7 +742,7 @@ internal sealed class RegexParser
     {
         if (UseOptionX())
         {
-            for (; ;)
+            for (; ; )
             {
                 while (CharsRight() > 0 && IsSpace(RightChar()))
                     MoveRight();
@@ -772,7 +772,7 @@ internal sealed class RegexParser
         }
         else
         {
-            for (; ;)
+            for (; ; )
             {
                 if (CharsRight() < 3 || RightChar(2) != '#'
                     || RightChar(1) != '?' || RightChar() != '(')
@@ -872,9 +872,9 @@ internal sealed class RegexParser
             throw MakeException(Strings.IllegalEndEscape);
 
         char ch;
-        bool angled = false;
-        char close = '\0';
-        int backpos = Textpos();
+        var angled = false;
+        var close = '\0';
+        var backpos = Textpos();
         ch = RightChar();
 
         // allow \k<foo> instead of \<foo>, which is now deprecated
@@ -956,7 +956,7 @@ internal sealed class RegexParser
      */
     private string ScanCapname()
     {
-        int startpos = Textpos();
+        var startpos = Textpos();
 
         while (CharsRight() > 0)
         {
@@ -980,7 +980,7 @@ internal sealed class RegexParser
 
         // Consume octal chars only up to 3 digits and value 0377
 
-        int c = 3;
+        var c = 3;
         if (c > CharsRight())
             c = CharsRight();
 
@@ -1005,7 +1005,7 @@ internal sealed class RegexParser
      */
     private int ScanDecimal()
     {
-        int i = 0;
+        var i = 0;
         int d;
 
         while (CharsRight() > 0 && unchecked((uint)(d = (char)(RightChar() - '0'))) <= 9)
@@ -1139,7 +1139,7 @@ internal sealed class RegexParser
      */
     private char ScanCharEscape()
     {
-        char ch = MoveRightGetChar();
+        var ch = MoveRightGetChar();
 
         if (ch >= '0' && ch <= '7')
         {
@@ -1187,13 +1187,13 @@ internal sealed class RegexParser
         {
             throw MakeException(Strings.IncompleteSlashP);
         }
-        char ch = MoveRightGetChar();
+        var ch = MoveRightGetChar();
         if (ch != '{')
         {
             throw MakeException(Strings.MalformedSlashP);
         }
 
-        int startpos = Textpos();
+        var startpos = Textpos();
         while (CharsRight() > 0)
         {
             ch = MoveRightGetChar();
@@ -1203,7 +1203,7 @@ internal sealed class RegexParser
                 break;
             }
         }
-        string capname = _pattern[startpos..Textpos()];
+        var capname = _pattern[startpos..Textpos()];
 
         if (CharsRight() == 0 || MoveRightGetChar() != '}')
             throw MakeException(Strings.IncompleteSlashP);
@@ -1343,14 +1343,14 @@ internal sealed class RegexParser
 
     private bool IsTrueQuantifier()
     {
-        int nChars = CharsRight();
+        var nChars = CharsRight();
         if (nChars == 0)
             return false;
-        int startpos = Textpos();
-        char ch = CharAt(startpos);
+        var startpos = Textpos();
+        var ch = CharAt(startpos);
         if (ch != '{')
             return ch <= '{' && _category[ch] >= Q;
-        int pos = startpos;
+        var pos = startpos;
         while (--nChars > 0 && (ch = CharAt(++pos)) >= '0' && ch <= '9') { }
         if (nChars == 0 || pos - startpos == 1)
             return false;
@@ -1382,7 +1382,7 @@ internal sealed class RegexParser
 
         if (cch > 1)
         {
-            string str = _pattern.Substring(pos, cch);
+            var str = _pattern.Substring(pos, cch);
 
             if (UseOptionI())
             {
@@ -1391,7 +1391,7 @@ internal sealed class RegexParser
                 // linguistically, but since Regex doesn't support surrogates, it's more important to be
                 // consistent.
                 var sb = new StringBuilder(str.Length);
-                for (int i = 0; i < str.Length; i++)
+                for (var i = 0; i < str.Length; i++)
                     sb.Append(_culture.TextInfo.ToLower(str[i]));
                 str = sb.ToString();
             }
@@ -1400,7 +1400,7 @@ internal sealed class RegexParser
         }
         else
         {
-            char ch = _pattern[pos];
+            var ch = _pattern[pos];
 
             if (UseOptionI())
                 ch = _culture.TextInfo.ToLower(ch);

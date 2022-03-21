@@ -66,19 +66,19 @@ internal class RegexToSfa<TConstraint>
 
     private SymbolicFiniteAutomaton<TConstraint> ConvertNodeMulti(RegexNode node, int minStateId, bool isStart, bool isEnd)
     {
-        string str = node._str;
-        int length = str.Length;
-        bool caseInsensitive = node._options.HasAnyFlags(RegexOptions.IgnoreCase);
-        int sourceStateId = minStateId;
+        var str = node._str;
+        var length = str.Length;
+        var caseInsensitive = node._options.HasAnyFlags(RegexOptions.IgnoreCase);
+        var sourceStateId = minStateId;
         var moveList = new List<Move<TConstraint>>();
-        for (int i = 0; i < length;i++)
+        for (var i = 0; i < length; i++)
         {
-            char c = str[i];
+            var c = str[i];
             var charRanges = new List<char[]> { new[] { c, c } };
             var index2 = _solver.CreateRangedConstraint(caseInsensitive, charRanges);
             moveList.Add(Move<TConstraint>.To(sourceStateId + i, sourceStateId + i + 1, index2));
         }
-        int finalState = sourceStateId + length;
+        var finalState = sourceStateId + length;
         var finalStates = new[] { finalState };
         var sfa = SymbolicFiniteAutomaton<TConstraint>.Create(sourceStateId, finalStates, moveList);
         sfa._isDeterministic = true;
@@ -125,11 +125,11 @@ internal class RegexToSfa<TConstraint>
 
     private SymbolicFiniteAutomaton<TConstraint> ConvertNodeSet(RegexNode node, int minStateId, bool isStart, bool isEnd)
     {
-        string str = node._str;
+        var str = node._str;
         var conditionFromSet = CreateConditionFromSet(node._options.HasAnyFlags(RegexOptions.IgnoreCase), str);
         if (conditionFromSet.Equals(_solver.False))
             return SymbolicFiniteAutomaton<TConstraint>.Empty;
-        int num = minStateId + 1;
+        var num = minStateId + 1;
         var sfa = SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { num }, new[] { Move<TConstraint>.To(minStateId, num, conditionFromSet) });
         sfa._isDeterministic = true;
         if (isStart)
@@ -145,7 +145,7 @@ internal class RegexToSfa<TConstraint>
 
     private TConstraint CreateConditionFromSet(bool ignoreCase, string set)
     {
-        bool isNegated = RegexCharClass.IsNegated(set);
+        var isNegated = RegexCharClass.IsNegated(set);
         var stateList = new List<TConstraint>();
         foreach (var range in ComputeRanges(set))
         {
@@ -154,8 +154,8 @@ internal class RegexToSfa<TConstraint>
         }
         int num1 = set[1];
         int num2 = set[2];
-        int num3 = num1 + 3;
-        int startIndex = num3;
+        var num3 = num1 + 3;
+        var startIndex = num3;
         while (startIndex < num3 + num2)
         {
             var codePoint = (short)set[startIndex++];
@@ -173,7 +173,7 @@ internal class RegexToSfa<TConstraint>
                 if (secondCodePoint != 0)
                 {
                     var catCodes = new HashSet<UnicodeCategory>();
-                    bool isInvalidCodePoint = secondCodePoint < 0;
+                    var isInvalidCodePoint = secondCodePoint < 0;
                     for (; secondCodePoint != 0; secondCodePoint = (short)set[startIndex++])
                     {
                         var cat = Math.Abs(secondCodePoint) - 1;
@@ -188,7 +188,7 @@ internal class RegexToSfa<TConstraint>
         var constraint1 = default(TConstraint);
         if (set.Length > startIndex)
         {
-            string set1 = set[startIndex..];
+            var set1 = set[startIndex..];
             constraint1 = CreateConditionFromSet(ignoreCase, set1);
         }
         var result = stateList.Count != 0
@@ -203,13 +203,13 @@ internal class RegexToSfa<TConstraint>
     {
         int capacity = set[1];
         var pairList = new List<Pair<char, char>>(capacity);
-        int index1 = 3;
-        int num = index1 + capacity;
+        var index1 = 3;
+        var num = index1 + capacity;
         while (index1 < num)
         {
-            char first = set[index1];
-            int index2 = index1 + 1;
-            char second = index2 >= num ? char.MaxValue : (char)(set[index2] - 1U);
+            var first = set[index1];
+            var index2 = index1 + 1;
+            var second = index2 >= num ? char.MaxValue : (char)(set[index2] - 1U);
             index1 = index2 + 1;
             pairList.Add(new Pair<char, char>(first, second));
         }
@@ -318,8 +318,8 @@ internal class RegexToSfa<TConstraint>
     private SymbolicFiniteAutomaton<TConstraint> ConvertNodeAlternate(RegexNode node, int minStateId, bool isStart, bool isEnd)
     {
         var sfas = new List<SymbolicFiniteAutomaton<TConstraint>>();
-        int minStateId1 = minStateId + 1;
-        bool addEmptyWord = false;
+        var minStateId1 = minStateId + 1;
+        var addEmptyWord = false;
         foreach (var child in node._children)
         {
             var sfa = ConvertNode(child, minStateId1, isStart, isEnd);
@@ -360,7 +360,7 @@ internal class RegexToSfa<TConstraint>
             }
             return sfas[0];
         }
-        bool flag1 = true;
+        var flag1 = true;
         foreach (SymbolicFiniteAutomaton<TConstraint> sfa in sfas)
         {
             if (!sfa.InitialStateIsSource)
@@ -369,10 +369,10 @@ internal class RegexToSfa<TConstraint>
                 break;
             }
         }
-        bool flag2 = !sfas.Exists(IsNonDeterministic);
+        var flag2 = !sfas.Exists(IsNonDeterministic);
         sfas.Exists(HasEpsilons);
-        bool flag3 = true;
-        int val2 = int.MinValue;
+        var flag3 = true;
+        var val2 = int.MinValue;
         foreach (SymbolicFiniteAutomaton<TConstraint> sfa in sfas)
         {
             if (!sfa.HasSingleFinalSink)
@@ -395,9 +395,9 @@ internal class RegexToSfa<TConstraint>
         }
         else if (flag2)
         {
-            for (int index1 = 0; index1 < sfas.Count - 1; ++index1)
+            for (var index1 = 0; index1 < sfas.Count - 1; ++index1)
             {
-                for (int index2 = index1 + 1; index2 < sfas.Count; ++index2)
+                for (var index2 = index1 + 1; index2 < sfas.Count; ++index2)
                 {
                     TConstraint constraint1 = _solver.False;
                     foreach (Move<TConstraint> move in sfas[index1].GetMovesFrom(sfas[index1].InitialState))
@@ -420,8 +420,8 @@ internal class RegexToSfa<TConstraint>
         {
             foreach (var move in sfa.GetMoves())
             {
-                int first = !flag1 || sfa.InitialState != move.SourceState ? move.SourceState : start;
-                int second = !flag3 || sfa.FinalState != move.TargetState ? move.TargetState : val2;
+                var first = !flag1 || sfa.InitialState != move.SourceState ? move.SourceState : start;
+                var second = !flag3 || sfa.FinalState != move.TargetState ? move.TargetState : val2;
                 var key = new Pair<int, int>(first, second);
                 dictionary[move.SourceState] = first;
                 dictionary[move.TargetState] = second;
@@ -437,9 +437,9 @@ internal class RegexToSfa<TConstraint>
             }
             if (!flag3)
             {
-                foreach (int finalState in sfa.GetFinalStates())
+                foreach (var finalState in sfa.GetFinalStates())
                 {
-                    int num = dictionary[finalState];
+                    var num = dictionary[finalState];
                     if (!intList.Contains(num))
                         intList.Add(num);
                 }
@@ -454,8 +454,8 @@ internal class RegexToSfa<TConstraint>
     {
         var children = node._children;
         var sfas = new List<SymbolicFiniteAutomaton<TConstraint>>();
-        int minStateId1 = minStateId;
-        for (int index = 0; index < children.Count; ++index)
+        var minStateId1 = minStateId;
+        for (var index = 0; index < children.Count; ++index)
         {
             var sfa = ConvertNode(children[index], minStateId1, isStart && index == 0, isEnd && index == children.Count - 1);
             if (sfa == SymbolicFiniteAutomaton<TConstraint>.Empty)
@@ -476,7 +476,7 @@ internal class RegexToSfa<TConstraint>
         if (sfas.Count == 1)
             return sfas[0];
         var sfa = sfas[0];
-        for (int index = 1; index < sfas.Count; ++index)
+        for (var index = 1; index < sfas.Count; ++index)
             sfa.Concat(sfas[index]);
         return sfa;
     }
@@ -484,8 +484,8 @@ internal class RegexToSfa<TConstraint>
     private SymbolicFiniteAutomaton<TConstraint> ConvertNodeLoop(RegexNode node, int minStateId, bool isStart, bool isEnd)
     {
         var sfa = ConvertNode(node._children[0], minStateId, false, false);
-        int m = node._m;
-        int n = node._n;
+        var m = node._m;
+        var n = node._n;
         SymbolicFiniteAutomaton<TConstraint> loop;
         if (m == 0 && sfa.IsEmpty)
         {
@@ -522,7 +522,7 @@ internal class RegexToSfa<TConstraint>
             else
             {
                 var sfas = new List<SymbolicFiniteAutomaton<TConstraint>>();
-                for (int index = 0; index < m; ++index)
+                for (var index = 0; index < m; ++index)
                 {
                     sfas.Add(sfa);
                     sfa = sfa.MakeCopy(sfa.MaxState + 1);
@@ -534,7 +534,7 @@ internal class RegexToSfa<TConstraint>
         else
         {
             var sfas = new List<SymbolicFiniteAutomaton<TConstraint>>();
-            for (int index = 0; index < n; ++index)
+            for (var index = 0; index < n; ++index)
             {
                 sfas.Add(sfa);
                 if (index < n - 1)
@@ -594,7 +594,7 @@ internal class RegexToSfa<TConstraint>
             sfa.RenameInitialState(sfa.FinalState);
             return sfa;
         }
-        int initialState = sfa.InitialState;
+        var initialState = sfa.InitialState;
         if (!sfa.IsFinalState(sfa.InitialState))
         {
             if (sfa.InitialStateIsSource)
@@ -602,7 +602,7 @@ internal class RegexToSfa<TConstraint>
             else
                 sfa.AddNewInitialStateThatIsFinal(sfa.MaxState + 1);
         }
-        foreach (int finalState in sfa.GetFinalStates())
+        foreach (var finalState in sfa.GetFinalStates())
         {
             if (finalState != sfa.InitialState && finalState != initialState)
                 sfa.AddMove(Move<TConstraint>.Epsilon(finalState, initialState));
@@ -657,7 +657,7 @@ internal class RegexToSfa<TConstraint>
         if (n == int.MaxValue)
         {
             var moveList = new List<Move<TConstraint>>();
-            for (int index = 0; index < m; ++index)
+            for (var index = 0; index < m; ++index)
                 moveList.Add(Move<TConstraint>.To(minStateId + index, minStateId + index + 1, cond));
             moveList.Add(Move<TConstraint>.To(minStateId + m, minStateId + m, cond));
             var sfa = SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, new[] { minStateId + m }, moveList);
@@ -666,10 +666,10 @@ internal class RegexToSfa<TConstraint>
             return sfa;
         }
         var moveArray = new List<Move<TConstraint>>();
-        for (int index = 0; index < n; ++index)
+        for (var index = 0; index < n; ++index)
             moveArray.Add(Move<TConstraint>.To(minStateId + index, minStateId + index + 1, cond));
         var numArray = new int[n + 1 - m];
-        for (int index = m; index <= n; ++index)
+        for (var index = m; index <= n; ++index)
             numArray[index - m] = index + minStateId;
         var resultSfa = SymbolicFiniteAutomaton<TConstraint>.Create(minStateId, numArray, moveArray);
         resultSfa._isEpsilonFree = true;

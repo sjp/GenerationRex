@@ -8,7 +8,7 @@ internal static class RegexCode
 {
     // The following primitive operations come directly from the parser
 
-                                                // lef/back operands        description
+    // lef/back operands        description
     internal const int Onerep = 0;              // lef,back char,min,max    a {n}
     internal const int Notonerep = 1;           // lef,back char,min,max    .{n}
     internal const int Setrep = 2;              // lef,back set,min,max     [\d]{n}

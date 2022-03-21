@@ -83,9 +83,9 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         var deltaInv = new Dictionary<int, IList<Move<TConstraint>>>();
         delta[initialState] = new List<Move<TConstraint>>();
         deltaInv[initialState] = new List<Move<TConstraint>>();
-        bool isEpsilonFree = true;
-        int maxState = initialState;
-        bool isDeterministic = true;
+        var isEpsilonFree = true;
+        var maxState = initialState;
+        var isDeterministic = true;
         foreach (var move in moves)
         {
             if (move.IsEpsilon)
@@ -144,19 +144,19 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
 
     public void Concat(SymbolicFiniteAutomaton<TConstraint> fa)
     {
-        foreach (int state in fa.States)
+        foreach (var state in fa.States)
         {
             _delta[state] = new List<Move<TConstraint>>(fa._delta[state]);
             _deltaInv[state] = new List<Move<TConstraint>>(fa._deltaInv[state]);
         }
         if (HasSingleFinalSink)
         {
-            foreach (int finalState in _finalStateSet)
+            foreach (var finalState in _finalStateSet)
             {
                 foreach (Move<TConstraint> move1 in _deltaInv[finalState])
                 {
                     _delta[move1.SourceState].Remove(move1);
-                    Move<TConstraint> move2 = Move<TConstraint>.To(move1.SourceState == finalState ? fa.InitialState : move1.SourceState, fa.InitialState, move1.Condition);
+                    var move2 = Move<TConstraint>.To(move1.SourceState == finalState ? fa.InitialState : move1.SourceState, fa.InitialState, move1.Condition);
                     _delta[move2.SourceState].Add(move2);
                     _deltaInv[move2.TargetState].Add(move2);
                 }
@@ -170,9 +170,9 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         }
         else
         {
-            foreach (int finalState in _finalStateSet)
+            foreach (var finalState in _finalStateSet)
             {
-                Move<TConstraint> move = Move<TConstraint>.Epsilon(finalState, fa.InitialState);
+                var move = Move<TConstraint>.Epsilon(finalState, fa.InitialState);
                 _delta[finalState].Add(move);
                 _deltaInv[fa.InitialState].Add(move);
             }
@@ -218,7 +218,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
             _deltaInv[p] = new List<Move<TConstraint>>();
         foreach (var move1 in moveList)
         {
-            Move<TConstraint> move2 = Move<TConstraint>.To(p, move1.TargetState, move1.Condition);
+            var move2 = Move<TConstraint>.To(p, move1.TargetState, move1.Condition);
             _deltaInv[move1.TargetState].Remove(move1);
             _deltaInv[move1.TargetState].Add(move2);
             _delta[p].Add(move2);
@@ -251,7 +251,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
 
     public SymbolicFiniteAutomaton<TConstraint> MakeCopy(int newInitialState)
     {
-        int num = Math.Max(MaxState, newInitialState) + 1;
+        var num = Math.Max(MaxState, newInitialState) + 1;
         var dictionary = new Dictionary<int, int>
         {
             [InitialState] = newInitialState
@@ -295,7 +295,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         var intList2 = new List<int>();
         if (sfa1.IsFinalState(sfa1.InitialState) && sfa2.IsFinalState(sfa2.InitialState))
             intList2.Add(0);
-        int state = 1;
+        var state = 1;
         while (pairStack.Count > 0)
         {
             var index2 = pairStack.Pop();
@@ -326,9 +326,9 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
             }
         }
         var dictionary2 = new Dictionary<int, List<Move<TConstraint>>>();
-        foreach (int index2 in intList1)
+        foreach (var index2 in intList1)
             dictionary2[index2] = new List<Move<TConstraint>>();
-        foreach (int index2 in intList1)
+        foreach (var index2 in intList1)
         {
             foreach (var move in delta[index2])
                 dictionary2[move.TargetState].Add(move);
@@ -349,7 +349,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         if (intSet.Count == 0)
             return Empty;
         var intList3 = new List<int>();
-        foreach (int key in intList1)
+        foreach (var key in intList1)
         {
             if (!intSet.Contains(key))
                 delta.Remove(key);
@@ -357,7 +357,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
                 intList3.Add(key);
         }
         var intList4 = intList3;
-        foreach (int index2 in intList4)
+        foreach (var index2 in intList4)
         {
             var moveList = new List<Move<TConstraint>>();
             foreach (var move in delta[index2])
@@ -380,7 +380,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
     public SymbolicFiniteAutomaton<TConstraint> RemoveEpsilonLoops(Func<TConstraint, TConstraint, TConstraint> disj)
     {
         var dictionary = new Dictionary<int, int>();
-        foreach (int state in States)
+        foreach (var state in States)
         {
             var intSet = new IntSet(GetEpsilonClosure(state));
             dictionary[state] = intSet.Intersect(GetInvEpsilonClosure(state)).Choice;
@@ -389,8 +389,8 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         var epsilonMoves = new HashSet<Move<TConstraint>>();
         foreach (var move in GetMoves())
         {
-            int num1 = dictionary[move.SourceState];
-            int num2 = dictionary[move.TargetState];
+            var num1 = dictionary[move.SourceState];
+            var num2 = dictionary[move.TargetState];
             if (move.IsEpsilon)
             {
                 if (num1 != num2)
@@ -402,7 +402,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
                 conditionMap[key] = !conditionMap.TryGetValue(key, out var s) ? move.Condition : disj(s, move.Condition);
             }
         }
-        int initialState = dictionary[InitialState];
+        var initialState = dictionary[InitialState];
         var finalStates = new HashSet<int>();
         foreach (var finalState in GetFinalStates())
             finalStates.Add(dictionary[finalState]);
@@ -428,7 +428,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
             dictionary[key] = !dictionary.TryGetValue(key, out var s) ? move.Condition : disj(move.Condition, s);
         }
 
-        foreach (int state in States)
+        foreach (var state in States)
         {
             var nonEpsMoves = GetEpsilonClosure(state)
                 .Where(sourceState => state != sourceState)
@@ -442,7 +442,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
             }
         }
         var delta = new Dictionary<int, List<Move<TConstraint>>>();
-        foreach (int state in States)
+        foreach (var state in States)
             delta[state] = new List<Move<TConstraint>>();
         foreach (var kv in dictionary)
             delta[kv.Key.First].Add(Move<TConstraint>.To(kv.Key.First, kv.Key.Second, kv.Value));
@@ -461,7 +461,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
             }
         }
         var intList1 = new List<int>();
-        foreach (int state in States)
+        foreach (var state in States)
         {
             if (intSet.Contains(state))
                 intList1.Add(state);
@@ -469,9 +469,9 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
                 delta.Remove(state);
         }
         var intList2 = new List<int>();
-        foreach (int state1 in intList1)
+        foreach (var state1 in intList1)
         {
-            foreach (int state2 in GetEpsilonClosure(state1))
+            foreach (var state2 in GetEpsilonClosure(state1))
             {
                 if (IsFinalState(state2))
                 {

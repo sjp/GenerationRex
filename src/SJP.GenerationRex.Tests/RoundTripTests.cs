@@ -1,7 +1,7 @@
-using NUnit.Framework;
-using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using NUnit.Framework;
 
 namespace SJP.GenerationRex.Tests;
 

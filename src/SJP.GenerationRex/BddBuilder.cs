@@ -9,7 +9,7 @@ internal class BddBuilder : ICharacterConstraintSolver<BinaryDecisionDiagram>
     public BddBuilder(int bitLength)
     {
         _bitMaps = new int[bitLength];
-        for (int index = 0; index < bitLength; ++index)
+        for (var index = 0; index < bitLength; ++index)
         {
             _bitMaps[index] = 1 << bitLength - 1 - index;
         }
@@ -217,7 +217,7 @@ internal class BddBuilder : ICharacterConstraintSolver<BinaryDecisionDiagram>
 
     public char GenerateMember(Chooser chooser, BinaryDecisionDiagram bdd)
     {
-        int num = 0;
+        var num = 0;
         for (var index = 0; index < BitLength; ++index)
         {
             if (index < bdd.Ordinal)
