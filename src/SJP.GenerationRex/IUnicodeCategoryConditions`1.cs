@@ -1,13 +1,12 @@
 ﻿using System.Globalization;
 
-namespace SJP.GenerationRex
+namespace SJP.GenerationRex;
+
+internal interface IUnicodeCategoryConditions<TConstraint>
 {
-    internal interface IUnicodeCategoryConditions<TConstraint>
-    {
-        TConstraint CategoryCondition(UnicodeCategory category);
+    TConstraint CategoryCondition(UnicodeCategory category);
 
-        TConstraint WhiteSpaceCondition { get; }
+    TConstraint WhiteSpaceCondition { get; }
 
-        TConstraint WordLetterCondition { get; }
-    }
+    TConstraint WordLetterCondition { get; }
 }
