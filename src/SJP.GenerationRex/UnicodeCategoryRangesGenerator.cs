@@ -125,7 +125,7 @@ internal class UnicodeCategoryRangeGenerator
     private readonly Encoding _encoding;
     private readonly int _bits;
 
-    private class Ranges
+    private sealed class Ranges
     {
         internal List<int[]> ranges = new();
 
