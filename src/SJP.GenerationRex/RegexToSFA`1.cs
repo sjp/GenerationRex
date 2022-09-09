@@ -251,7 +251,7 @@ internal class RegexToSfa<TConstraint>
     private TConstraint MapCategoryCodeToCondition(UnicodeCategory code)
     {
         if (!code.IsValid())
-            throw new ArgumentException($"The { nameof(UnicodeCategory) } provided must be a valid enum.", nameof(code));
+            throw new ArgumentException($"The {nameof(UnicodeCategory)} provided must be a valid enum.", nameof(code));
 
         return _categorizer.CategoryCondition(code);
     }

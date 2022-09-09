@@ -86,7 +86,7 @@ public class RexEngine
     public RexEngine(RegexOptions options, Encoding encoding)
     {
         if (!options.IsValid())
-            throw new ArgumentException($"The { nameof(RegexOptions) } provided must be a valid enum.", nameof(options));
+            throw new ArgumentException($"The {nameof(RegexOptions)} provided must be a valid enum.", nameof(options));
         if (encoding == null)
             throw new ArgumentNullException(nameof(encoding));
 
@@ -111,7 +111,7 @@ public class RexEngine
     public RexEngine(RegexOptions options, Encoding encoding, int randomSeed)
     {
         if (!options.IsValid())
-            throw new ArgumentException($"The { nameof(RegexOptions) } provided must be a valid enum.", nameof(options));
+            throw new ArgumentException($"The {nameof(RegexOptions)} provided must be a valid enum.", nameof(options));
         if (encoding == null)
             throw new ArgumentNullException(nameof(encoding));
 

@@ -18,7 +18,7 @@ internal static class RoundTripTests
 
         var matches = Regex.IsMatch(result, regex);
 
-        Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+        Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
     }
 
     [Test]
@@ -35,7 +35,7 @@ internal static class RoundTripTests
             foreach (var result in results)
             {
                 var matches = Regex.IsMatch(result, regex);
-                Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+                Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
             }
         });
     }
@@ -50,7 +50,7 @@ internal static class RoundTripTests
 
         var matches = Regex.IsMatch(result, regex);
 
-        Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+        Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
     }
 
     [Test]
@@ -67,7 +67,7 @@ internal static class RoundTripTests
             foreach (var result in results)
             {
                 var matches = Regex.IsMatch(result, regex);
-                Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+                Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
             }
         });
     }
@@ -82,7 +82,7 @@ internal static class RoundTripTests
 
         var matches = Regex.IsMatch(result, regex);
 
-        Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+        Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
     }
 
     [Test]
@@ -99,7 +99,7 @@ internal static class RoundTripTests
             foreach (var result in results)
             {
                 var matches = Regex.IsMatch(result, regex);
-                Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+                Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
             }
         });
     }
@@ -114,7 +114,7 @@ internal static class RoundTripTests
 
         var matches = Regex.IsMatch(result, regex);
 
-        Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+        Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
     }
 
     [Test]
@@ -131,7 +131,7 @@ internal static class RoundTripTests
             foreach (var result in results)
             {
                 var matches = Regex.IsMatch(result, regex, RegexOptions.CultureInvariant);
-                Assert.That(matches, Is.True, $"Generated result '{ result }' does not match regular expression '{ regex }'");
+                Assert.That(matches, Is.True, $"Generated result '{result}' does not match regular expression '{regex}'");
             }
         });
     }
