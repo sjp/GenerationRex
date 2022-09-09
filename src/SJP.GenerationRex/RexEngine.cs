@@ -134,12 +134,28 @@ public class RexEngine
     /// <exception cref="ArgumentException"><paramref name="regex"/> is not a valid regular expression.</exception>
     /// <exception cref="RexException"><paramref name="regex"/> is not a valid regular expression to generate from.</exception>
     /// <remarks>The resulting set of members is unique, and because it is generated randomly it may terminate before generating all values from the set defined by the regular expression.</remarks>
-    public IEnumerable<string> GenerateMembers(string regex)
+    public IEnumerable<string> GenerateMembers([StringSyntax(StringSyntaxAttribute.Regex)] string regex)
     {
         if (string.IsNullOrWhiteSpace(regex))
             throw new ArgumentNullException(nameof(regex));
 
         var sfa = CreateSFAFromRegex(regex);
+        return GenerateMembers(sfa);
+    }
+    /// <summary>
+    /// Generates a collection of values from the set defined by a regular expression.
+    /// </summary>
+    /// <param name="regex">A regular expression.</param>
+    /// <returns>A collection of members of a regular expression.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="regex"/> is <c>null</c>.</exception>
+    /// <exception cref="RexException"><paramref name="regex"/> is not a valid regular expression to generate from.</exception>
+    /// <remarks>The resulting set of members is unique, and because it is generated randomly it may terminate before generating all values from the set defined by the regular expression.</remarks>
+    public IEnumerable<string> GenerateMembers(Regex regex)
+    {
+        if (regex == null)
+            throw new ArgumentNullException(nameof(regex));
+
+        var sfa = CreateSFAFromRegex(regex.ToString());
         return GenerateMembers(sfa);
     }
 
@@ -154,7 +170,7 @@ public class RexEngine
     /// <exception cref="ArgumentException"><paramref name="regex"/> is not a valid regular expression.</exception>
     /// <exception cref="RexException"><paramref name="regex"/> is not a valid regular expression to generate from.</exception>
     /// <remarks>The resulting set of members is unique, and because it is generated randomly it may terminate before generating all values from the set defined by the regular expression. Consequently, it may terminate before the maximum count of values <paramref name="count"/>, has been reached.</remarks>
-    public IEnumerable<string> GenerateMembers(string regex, int count)
+    public IEnumerable<string> GenerateMembers([StringSyntax(StringSyntaxAttribute.Regex)] string regex, int count)
     {
         if (string.IsNullOrWhiteSpace(regex))
             throw new ArgumentNullException(nameof(regex));
@@ -162,6 +178,27 @@ public class RexEngine
             throw new ArgumentOutOfRangeException(nameof(count), "The number of values to generate must be non-negative.");
 
         var sfa = CreateSFAFromRegex(regex);
+        return GenerateMembers(sfa, count);
+    }
+
+    /// <summary>
+    /// Generates a collection of values from the set defined by a regular expression.
+    /// </summary>
+    /// <param name="regex">A regular expression.</param>
+    /// <param name="count">The maximum amount of members to generate.</param>
+    /// <returns>A collection of members of a regular expression.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="regex"/> is <c>null</c>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> is a negative number.</exception>
+    /// <exception cref="RexException"><paramref name="regex"/> is not a valid regular expression to generate from.</exception>
+    /// <remarks>The resulting set of members is unique, and because it is generated randomly it may terminate before generating all values from the set defined by the regular expression. Consequently, it may terminate before the maximum count of values <paramref name="count"/>, has been reached.</remarks>
+    public IEnumerable<string> GenerateMembers(Regex regex, int count)
+    {
+        if (regex == null)
+            throw new ArgumentNullException(nameof(regex));
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), "The number of values to generate must be non-negative.");
+
+        var sfa = CreateSFAFromRegex(regex.ToString());
         return GenerateMembers(sfa, count);
     }
 
@@ -216,21 +253,6 @@ public class RexEngine
     }
 
     private SymbolicFiniteAutomaton<BinaryDecisionDiagram> CreateSFAFromRegex(string regex) => _regexConverter.Convert(regex, _options);
-
-    /* Uncomment if we want combinations of regexes together, probably not though
-    private SymbolicFiniteAutomaton<BinaryDecisionDiagram> CreateSFAFromRegexes(params string[] regexes)
-    {
-        SymbolicFiniteAutomaton<BinaryDecisionDiagram> result = null;
-        foreach (var regex in regexes)
-        {
-            var sfa = _regexConverter.Convert(regex, _options);
-            result = result == null ? sfa : SymbolicFiniteAutomaton<BinaryDecisionDiagram>.MkProduct(result, sfa, _solver.And, _solver.Or, b => b != _solver.False);
-            if (result.IsEmpty)
-                break;
-        }
-        return result;
-    }
-    */
 
     private string GenerateMember(SymbolicFiniteAutomaton<BinaryDecisionDiagram> fa)
     {
