@@ -4,6 +4,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using EnumsNET;
 
+#if NET7_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+
 namespace SJP.GenerationRex;
 
 /// <summary>

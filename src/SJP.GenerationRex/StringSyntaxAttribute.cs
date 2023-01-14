@@ -2,6 +2,8 @@
 
 namespace SJP.GenerationRex;
 
+#if NET7_0_OR_GREATER
+#else
 /// <summary>Specifies the syntax used in a string.</summary>
 [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 internal sealed class StringSyntaxAttribute : Attribute
@@ -31,3 +33,4 @@ internal sealed class StringSyntaxAttribute : Attribute
 
     public const string Regex = nameof(Regex);
 }
+#endif
