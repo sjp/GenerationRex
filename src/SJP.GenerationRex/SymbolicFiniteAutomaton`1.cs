@@ -290,7 +290,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         var pairStack = new Stack<Pair<int, int>>();
         pairStack.Push(index1);
         dictionary1[index1] = 0;
-        var delta = new Dictionary<int, List<Move<TConstraint>>> { [0] = new List<Move<TConstraint>>() };
+        var delta = new Dictionary<int, List<Move<TConstraint>>> { [0] = [] };
         var intList1 = new List<int> { 0 };
         var intList2 = new List<int>();
         if (sfa1.IsFinalState(sfa1.InitialState) && sfa2.IsFinalState(sfa2.InitialState))
@@ -315,7 +315,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
                             ++state;
                             dictionary1[key] = targetState;
                             intList1.Add(targetState);
-                            delta[targetState] = new List<Move<TConstraint>>();
+                            delta[targetState] = [];
                             pairStack.Push(key);
                             if (sfa1.IsFinalState(move1.TargetState) && sfa2.IsFinalState(move2.TargetState))
                                 intList2.Add(targetState);
@@ -327,7 +327,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         }
         var dictionary2 = new Dictionary<int, List<Move<TConstraint>>>();
         foreach (var index2 in intList1)
-            dictionary2[index2] = new List<Move<TConstraint>>();
+            dictionary2[index2] = [];
         foreach (var index2 in intList1)
         {
             foreach (var move in delta[index2])
@@ -443,7 +443,7 @@ internal sealed class SymbolicFiniteAutomaton<TConstraint>
         }
         var delta = new Dictionary<int, List<Move<TConstraint>>>();
         foreach (var state in States)
-            delta[state] = new List<Move<TConstraint>>();
+            delta[state] = [];
         foreach (var kv in dictionary)
             delta[kv.Key.First].Add(Move<TConstraint>.To(kv.Key.First, kv.Key.Second, kv.Value));
         var intStack = new Stack<int>();

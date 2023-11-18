@@ -127,7 +127,7 @@ internal class UnicodeCategoryRangeGenerator
 
     private sealed class Ranges
     {
-        internal List<int[]> ranges = new();
+        internal List<int[]> ranges = [];
 
         internal void Add(int n)
         {
@@ -139,7 +139,7 @@ internal class UnicodeCategoryRangeGenerator
                     return;
                 }
             }
-            ranges.Add(new[] { n, n });
+            ranges.Add([n, n]);
         }
     }
 }

@@ -71,6 +71,6 @@ internal class IntSet : IEnumerable<int>, IEquatable<IntSet>
     public IEnumerator<int> GetEnumerator() => _elems.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => _elems.GetEnumerator();
-    private readonly HashSet<int> _elems = new();
+    private readonly HashSet<int> _elems = [];
     private readonly Lazy<string> _strBuilder;
 }
